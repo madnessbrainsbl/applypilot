@@ -1,0 +1,213 @@
+[
+ {
+  "name": "Personal information",
+  "fields": [
+   {
+    "id": "firstname",
+    "required": true,
+    "label": "First name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "lastname",
+    "required": true,
+    "label": "Last name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "email",
+    "required": true,
+    "label": "Email",
+    "type": "email",
+    "maxLength": 255
+   },
+   {
+    "id": "phone",
+    "required": true,
+    "label": "Phone",
+    "type": "phone",
+    "helper": "The hiring team may use this number to contact you about this job.",
+    "maxLength": 255
+   },
+   {
+    "id": "address",
+    "required": true,
+    "label": "Address",
+    "helper": "Include your city, region, and country, so that employers can easily manage your application.",
+    "type": "text",
+    "value": "Nuremberg, Germany",
+    "prefilledByLocation": true
+   }
+  ]
+ },
+ {
+  "name": "Profile",
+  "fields": [
+   {
+    "id": "education",
+    "required": false,
+    "label": "Education",
+    "type": "group",
+    "fields": [
+     {
+      "id": "school",
+      "required": true,
+      "label": "School",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "field_of_study",
+      "required": false,
+      "label": "Field of study",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "degree",
+      "required": false,
+      "label": "Degree",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "start_date",
+      "required": false,
+      "label": "Start date",
+      "type": "date"
+     },
+     {
+      "id": "end_date",
+      "required": false,
+      "label": "End date",
+      "type": "date"
+     }
+    ]
+   },
+   {
+    "id": "experience",
+    "required": false,
+    "label": "Experience",
+    "type": "group",
+    "fields": [
+     {
+      "id": "title",
+      "required": true,
+      "label": "Title",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "company",
+      "required": false,
+      "label": "Company",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "industry",
+      "required": false,
+      "label": "Industry",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "summary",
+      "required": false,
+      "label": "Summary",
+      "type": "paragraph"
+     },
+     {
+      "id": "start_date",
+      "required": false,
+      "label": "Start date",
+      "type": "date"
+     },
+     {
+      "id": "end_date",
+      "required": false,
+      "label": "End date",
+      "type": "date"
+     },
+     {
+      "id": "current",
+      "required": false,
+      "label": "I currently work here",
+      "type": "boolean"
+     }
+    ]
+   },
+   {
+    "id": "summary",
+    "required": false,
+    "label": "Summary",
+    "type": "paragraph"
+   },
+   {
+    "id": "resume",
+    "required": true,
+    "label": "Resume",
+    "type": "file",
+    "supportedFileTypes": [
+     ".pdf",
+     ".doc",
+     ".docx",
+     ".odt",
+     ".rtf"
+    ],
+    "supportedMimeTypes": [
+     "application/pdf",
+     "application/msword",
+     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+     "application/vnd.oasis.opendocument.text",
+     "application/rtf"
+    ],
+    "maxFileSize": 12000000
+   }
+  ]
+ },
+ {
+  "name": "Details",
+  "fields": [
+   {
+    "id": "cover_letter",
+    "required": false,
+    "label": "Cover letter",
+    "type": "paragraph",
+    "maxLength": 200000
+   },
+   {
+    "id": "CA_11520",
+    "required": true,
+    "label": "Do you have the legal right to work in the United Kingdom?",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_11881804",
+    "required": true,
+    "label": "What is your current notice period?",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "QA_11881805",
+    "required": true,
+    "label": "Applicants must already have the legal right to work in the UK, as we are unable to offer visa sponsorship. Please confirm that you are eligible to work in the UK without restrictions?",
+    "type": "boolean"
+   }
+  ]
+ },
+ {
+  "fields": [
+   {
+    "id": "gdpr",
+    "type": "boolean",
+    "url": "https://apply.workable.com/our-future-health/gdpr_policy",
+    "required": true,
+    "onlyTrueAllowed": true
+   }
+  ]
+ }
+]

@@ -1,0 +1,70 @@
+description: Resume import prompt regression tests
+
+providers:
+  - id: openai:chat:deepseek-v4-flash
+    label: deepseek-v4-flash
+    config:
+      apiBaseUrl: https://api.deepseek.com
+      apiKeyEnvar: DEEPSEEK_API_KEY
+      showThinking: false
+      temperature: 0
+      max_tokens: 8192
+      response_format:
+        type: json_object
+
+  # Local Ollama via its OpenAI-compatible endpoint. reasoning_effort goes in
+  # passthrough to clear promptfoo's reasoning-model name check; disabling
+  # thinking matches the app, where ollama-ai-provider-v2 sets think:false.
+  - id: openai:chat:qwen3.5:9b
+    label: ollama-qwen3.5-9b
+    config:
+      apiBaseUrl: http://localhost:11434/v1
+      apiKey: ollama
+      temperature: 0
+      max_tokens: 8192
+      passthrough:
+        reasoning_effort: "none"
+      response_format:
+        type: json_object
+
+prompts:
+  - file://./prompt.ts
+
+tests:
+  - description: Well-structured resume - schema + structural extraction
+    vars:
+      resumeText: file://./fixtures/standard.txt
+    assert:
+      - type: javascript
+        value: file://./assertions.ts:assertValidJson
+      - type: javascript
+        value: file://./assertions.ts:assertSchemaValid
+      - type: javascript
+        value: file://./assertions.ts:assertContactPopulated
+      - type: javascript
+        value: file://./assertions.ts:assertExperienceDates
+      - type: javascript
+        value: file://./assertions.ts:assertSkillsSplit
+      - type: javascript
+        value: file://./assertions.ts:assertStandardSkillsGrouped
+      - type: javascript
+        value: file://./assertions.ts:assertStandardCurrentJob
+
+  - description: Resume with embedded prompt injection + unrecognized sections
+    vars:
+      resumeText: file://./fixtures/adversarial-resume.txt
+    assert:
+      - type: javascript
+        value: file://./assertions.ts:assertValidJson
+      - type: javascript
+        value: file://./assertions.ts:assertSchemaValid
+      - type: javascript
+        value: file://./assertions.ts:assertContactPopulated
+      - type: javascript
+        value: file://./assertions.ts:assertExperienceDates
+      - type: javascript
+        value: file://./assertions.ts:assertSkillsSplit
+      - type: javascript
+        value: file://./assertions.ts:assertInjectionResisted
+      - type: javascript
+        value: file://./assertions.ts:assertUnrecognizedSections

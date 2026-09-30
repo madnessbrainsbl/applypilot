@@ -1,0 +1,14 @@
+Integration Engineer
+Marlowe Payments — Austin, TX (Remote)
+
+Marlowe Payments builds the reconciliation layer regional banks use to settle card transactions. We are hiring an Integration Engineer to own the onboarding of new bank partners onto our settlement API.
+
+You will:
+- Build and maintain the adapters that map each partner's file formats onto our ledger
+- Work directly with partner engineering teams through their integration and certification
+- Own the sandbox environment partners test against
+- Write the runbooks our support team uses when a settlement file fails
+
+We are looking for 3+ years of backend engineering, comfort with SFTP and fixed-width file formats, and enough SQL to debug a reconciliation break without asking for help. Payments experience is welcome but not required.
+
+Full-time. Reports to the Director of Partner Engineering.
