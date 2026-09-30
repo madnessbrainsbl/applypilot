@@ -1,0 +1,141 @@
+{
+ "id": 5250063008,
+ "title": "Security Controls Assurance Lead",
+ "questions": [
+  {
+   "description": null,
+   "label": "First Name",
+   "required": true,
+   "fields": [
+    {
+     "name": "first_name",
+     "type": "input_text",
+     "values": []
+    }
+   ]
+  },
+  {
+   "description": null,
+   "label": "Resume/CV",
+   "required": false,
+   "fields": [
+    {
+     "name": "resume",
+     "type": "input_file",
+     "values": []
+    },
+    {
+     "name": "resume_text",
+     "type": "textarea",
+     "values": []
+    }
+   ]
+  },
+  {
+   "description": "<p>Why do you want to work at Anthropic? (We value this response highly - great answers are often 200-400 words.)</p>",
+   "label": "Why Anthropic?",
+   "required": true,
+   "fields": [
+    {
+     "name": "question_16357585008",
+     "type": "textarea",
+     "values": []
+    }
+   ]
+  },
+  {
+   "description": null,
+   "label": "Do you require visa sponsorship? ",
+   "required": true,
+   "fields": [
+    {
+     "name": "question_16357586008",
+     "type": "multi_value_single_select",
+     "values": [
+      {
+       "label": "Yes",
+       "value": 1
+      },
+      {
+       "label": "No",
+       "value": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "description": null,
+   "label": "Which of these have you personally supported through at least one full audit or certification cycle? (select all)",
+   "required": true,
+   "fields": [
+    {
+     "name": "question_16700780008[]",
+     "type": "multi_value_multi_select",
+     "values": [
+      {
+       "label": "SOC 2 Type II",
+       "value": 41088213008
+      },
+      {
+       "label": "ISO/IEC 27001",
+       "value": 41088214008
+      },
+      {
+       "label": "SOX ITGC",
+       "value": 41088215008
+      },
+      {
+       "label": "FedRAMP (any baseline)",
+       "value": 41088216008
+      },
+      {
+       "label": "HIPAA or HITRUST",
+       "value": 41088217008
+      },
+      {
+       "label": "PCI DSS",
+       "value": 41088218008
+      },
+      {
+       "label": "None of the above",
+       "value": 41088219008
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "location_questions": [],
+ "compliance": [
+  {
+   "type": "eeoc",
+   "questions": [
+    {
+     "required": false,
+     "label": "VeteranStatus",
+     "fields": [
+      {
+       "name": "veteran_status",
+       "type": "multi_value_single_select",
+       "values": [
+        {
+         "label": "I don't wish to answer",
+         "value": "3"
+        },
+        {
+         "label": "I identify as one or more of the classifications of a protected veteran",
+         "value": "2"
+        },
+        {
+         "label": "I am not a protected veteran",
+         "value": "1"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

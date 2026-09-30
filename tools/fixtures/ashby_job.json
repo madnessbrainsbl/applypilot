@@ -1,0 +1,67 @@
+{
+ "data": {
+  "jobPosting": {
+   "id": "36e30720-0a32-4b7b-8172-e31ad0a20cdc",
+   "applicationForm": {
+    "sections": [
+     {
+      "fieldEntries": [
+       {
+        "id": "54f21781-9fc4-42c3-8ff4-919eba8fd84e__systemfield_name",
+        "isRequired": true,
+        "field": {
+         "path": "_systemfield_name",
+         "title": "Legal Name",
+         "type": "String"
+        }
+       },
+       {
+        "id": "54f21781-9fc4-42c3-8ff4-919eba8fd84e__systemfield_resume",
+        "isRequired": true,
+        "field": {
+         "path": "_systemfield_resume",
+         "title": "Resume",
+         "type": "File"
+        }
+       },
+       {
+        "id": "54f21781-9fc4-42c3-8ff4-919eba8fd84e_18351087-6925-4fcd-b724-2266d748e148",
+        "isRequired": true,
+        "field": {
+         "path": "18351087-6925-4fcd-b724-2266d748e148",
+         "title": "Are you authorized to work in the country where the job is located?",
+         "type": "Boolean"
+        }
+       },
+       {
+        "id": "54f21781-9fc4-42c3-8ff4-919eba8fd84e_a90e16d2-baaf-4c31-b3e5-70b53f261040",
+        "isRequired": true,
+        "field": {
+         "path": "a90e16d2-baaf-4c31-b3e5-70b53f261040",
+         "title": "Applicant Arbitration Agreement Acknowledgement",
+         "type": "MultiValueSelect",
+         "selectableValues": [
+          {
+           "label": "I acknowledge that I have opened, read, and understood the Arbitration Agreement. I understand that by submitting my application, I am agreeing to be bound by the terms of the Arbitration Agreement.",
+           "value": "I acknowledge that I have opened, read, and understood the Arbitration Agreement. I understand that by submitting my application, I am agreeing to be bound by the terms of the Arbitration Agreement.",
+           "isArchived": false
+          }
+         ]
+        }
+       },
+       {
+        "id": "54f21781-9fc4-42c3-8ff4-919eba8fd84e_5d55f849-f848-4778-8ecc-4fd274aaa6ee",
+        "isRequired": true,
+        "field": {
+         "path": "5d55f849-f848-4778-8ecc-4fd274aaa6ee",
+         "title": "Do you have an active Full Scope Polygraph clearance?",
+         "type": "Boolean"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  }
+ }
+}

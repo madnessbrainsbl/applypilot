@@ -1,0 +1,76 @@
+# secrets — the real ones live in ~/.config/search-work-world/secrets.env
+.env
+.env*.local
+.env.*
+!.env.example
+*.pem
+
+# node / next
+/node_modules
+/evals/node_modules
+/.next/
+/out/
+/build
+/coverage
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+tsconfig.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev.log
+
+# jobsync database — the user's own data, not source
+prisma/dev.db
+prisma/dev.db-journal
+uploads/
+
+# autopilot: your config, CVs and everything the bot generates
+autopilot/config.json
+autopilot/resumes/
+autopilot/outreach/
+autopilot/chrome-profile*/
+autopilot/test-*/
+autopilot/*.pdf
+secrets.env
+
+# autopilot runtime state
+autopilot/browser-state.json
+autopilot/control.json
+autopilot/progress.json
+autopilot/screenshots/
+autopilot/covers/
+autopilot/current-cover.pdf
+autopilot/*.log
+autopilot/*.tmp
+autopilot/*.bak
+autopilot/jobs.db
+autopilot/jobs.db-shm
+autopilot/jobs.db-wal
+autopilot/jobs.db.backup-*
+
+# personal data
+/*.pdf
+*.resume.pdf
+credentials.txt
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# os
+.DS_Store
+prisma/dev.db.bak
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+jobsyncdb/
+o2-data/
+playwright-report/
+test-results/
+.venv/
+venv/

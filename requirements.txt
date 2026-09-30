@@ -1,0 +1,8 @@
+playwright
+playwright-stealth
+openai
+pypdf
+pymupdf
+pytesseract
+Pillow
+python-jobspy

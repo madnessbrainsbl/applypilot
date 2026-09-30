@@ -1,0 +1,296 @@
+description: All prompt regression tests (resume-review + job-match + automation + cover-letter + resume-import) in one table
+
+providers:
+  - id: openai:chat:deepseek-v4-flash
+    label: deepseek-v4-flash
+    config:
+      apiBaseUrl: https://api.deepseek.com
+      apiKeyEnvar: DEEPSEEK_API_KEY
+      showThinking: false
+      temperature: 0
+      max_tokens: 8192
+
+  # Local Ollama via its OpenAI-compatible endpoint, not promptfoo's native
+  # ollama provider: only the openai provider merges the per-task config that
+  # dispatch-prompt.ts returns for resume-import's JSON mode.
+  - id: openai:chat:qwen3.5:9b
+    label: ollama-qwen3.5-9b
+    config:
+      apiBaseUrl: http://localhost:11434/v1
+      apiKey: ollama
+      temperature: 0
+      max_tokens: 8192
+      # passthrough bypasses promptfoo's reasoning-model name check, which
+      # would drop reasoning_effort for a non-OpenAI model name. Disabling
+      # thinking matches the app, where ollama-ai-provider-v2 sets think:false.
+      passthrough:
+        reasoning_effort: "none"
+
+prompts:
+  - file://./dispatch-prompt.ts
+
+# Grading provider for every llm-rubric below. Declared once here rather than
+# inline per assertion, so a new rubric can't silently inherit promptfoo's
+# defaults for these two settings:
+#   max_tokens — the default 1024 is a shared budget, and DeepSeek's reasoning
+#     can consume all of it, leaving zero content and a "No output" grade.
+#   showThinking — defaults true, which prepends "Thinking: ...\n\n" to the
+#     grade and breaks llm-rubric's JSON extraction.
+defaultTest:
+  options:
+    provider:
+      id: openai:chat:deepseek-v4-flash
+      config:
+        apiBaseUrl: https://api.deepseek.com
+        apiKeyEnvar: DEEPSEEK_API_KEY
+        showThinking: false
+        temperature: 0
+        max_tokens: 4096
+
+tests:
+  # Resume review
+  - description: "[resume-review] strong senior resume"
+    vars:
+      task: resume-review
+      resumeText: file://./resume-review/fixtures/strong-senior.txt
+    assert:
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertNotJson
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertScoresLine
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertScoresFirstLine
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertMarkdownBodyNonEmpty
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertRequiredSections
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertStrongScoresHigh
+
+  - description: "[resume-review] weak sparse resume"
+    vars:
+      task: resume-review
+      resumeText: file://./resume-review/fixtures/weak-sparse.txt
+    assert:
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertNotJson
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertScoresLine
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertScoresFirstLine
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertMarkdownBodyNonEmpty
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertRequiredSections
+      - type: javascript
+        value: file://./resume-review/assertions.ts:assertWeakScoresLow
+      - type: icontains-any
+        value:
+          - "Responsible for"
+          - "Helped with"
+
+  # Job match (interactive, full 7-section)
+  - description: "[job-match] backend resume vs backend JD - strong fit"
+    vars:
+      task: job-match
+      resumeText: file://./job-match/fixtures/backend-resume.txt
+      jobDescription: file://./job-match/fixtures/backend-job.txt
+    assert:
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertNotJson
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertScoresLine
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertScoresFirstLine
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertMarkdownBodyNonEmpty
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertRequiredSections
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertRecommendationConsistent
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertStrongMatchHigh
+
+  - description: "[job-match] marketing resume vs backend JD - weak fit"
+    vars:
+      task: job-match
+      resumeText: file://./job-match/fixtures/marketing-resume.txt
+      jobDescription: file://./job-match/fixtures/backend-job.txt
+    assert:
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertNotJson
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertScoresLine
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertScoresFirstLine
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertMarkdownBodyNonEmpty
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertRequiredSections
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertRecommendationConsistent
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertWeakMatchLow
+      - type: icontains-any
+        value:
+          - "Go"
+          - "Kubernetes"
+          - "AWS"
+
+  # Automation match (lean, Summary-only)
+  - description: "[automation-match] backend resume vs backend JD - strong fit, lean"
+    vars:
+      task: automation-match
+      resumeText: file://./job-match/fixtures/backend-resume.txt
+      jobDescription: file://./job-match/fixtures/backend-job.txt
+    assert:
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertNotJson
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertScoresLine
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertScoresFirstLine
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertMarkdownBodyNonEmpty
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertAutomationSummaryOnly
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertRecommendationConsistent
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertStrongMatchHigh
+
+  - description: "[automation-match] marketing resume vs backend JD - weak fit, lean"
+    vars:
+      task: automation-match
+      resumeText: file://./job-match/fixtures/marketing-resume.txt
+      jobDescription: file://./job-match/fixtures/backend-job.txt
+    assert:
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertNotJson
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertScoresLine
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertScoresFirstLine
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertMarkdownBodyNonEmpty
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertAutomationSummaryOnly
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertRecommendationConsistent
+      - type: javascript
+        value: file://./job-match/assertions.ts:assertWeakMatchLow
+
+  # Cover letter (free-form markdown letter, no scores line)
+  - description: "[cover-letter] backend resume vs backend JD - no guidance"
+    vars:
+      task: cover-letter
+      resumeText: file://./job-match/fixtures/backend-resume.txt
+      jobDescription: file://./job-match/fixtures/backend-job.txt
+    assert:
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertNotJsonOrFenced
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertStartsWithSalutation
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertSignOff
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertCandidateNameSignature
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertWordCount
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertNoPlaceholders
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertNoInventedNumbers
+      - type: icontains-any
+        value:
+          - "Kubernetes"
+          - "Go"
+          - "AWS"
+      - type: llm-rubric
+        value: >-
+          Every employer, job title, date, degree, certification, and metric in
+          the letter must appear in the candidate's resume below. Fail if the
+          letter names any employer, title, school, degree, or certification the
+          resume does not contain, states an achievement the resume does not
+          support, or credits one employer with an achievement the resume lists
+          under a different employer. Company names taken from the job posting
+          are acceptable when used as the employer being applied to. Judge only
+          titles the letter claims the candidate has HELD at a named employer —
+          a general self-description aligned to the role applied for ("I am a
+          senior backend engineer") is not a title claim and is acceptable.
+          Resume:
+
+          {{resumeText}}
+
+  - description: "[cover-letter] backend resume vs backend JD - with match guidance"
+    vars:
+      task: cover-letter
+      resumeText: file://./job-match/fixtures/backend-resume.txt
+      jobDescription: file://./job-match/fixtures/backend-job.txt
+      guidance: file://./cover-letter/fixtures/match-guidance.txt
+    assert:
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertNotJsonOrFenced
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertStartsWithSalutation
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertSignOff
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertCandidateNameSignature
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertWordCount
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertNoPlaceholders
+      - type: javascript
+        value: file://./cover-letter/assertions.ts:assertNoInventedNumbers
+      - type: icontains
+        value: "Meridian Technologies"
+      - type: icontains-any
+        value:
+          - "95K"
+          - "95,000"
+          - "documents per second"
+          - "documents/second"
+
+  # Resume import (structured JSON via Output.object). JSON mode is set per-task
+  # by dispatch-prompt.ts, not per-provider, so these rows run against every
+  # provider above without forcing JSON onto the review/match tasks.
+  - description: "[resume-import] well-structured resume"
+    vars:
+      task: resume-import
+      resumeText: file://./resume-import/fixtures/standard.txt
+    assert:
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertValidJson
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertSchemaValid
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertContactPopulated
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertExperienceDates
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertSkillsSplit
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertStandardSkillsGrouped
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertStandardCurrentJob
+
+  - description: "[resume-import] embedded prompt injection + unrecognized sections"
+    vars:
+      task: resume-import
+      resumeText: file://./resume-import/fixtures/adversarial-resume.txt
+    assert:
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertValidJson
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertSchemaValid
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertContactPopulated
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertExperienceDates
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertSkillsSplit
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertInjectionResisted
+      - type: javascript
+        value: file://./resume-import/assertions.ts:assertUnrecognizedSections

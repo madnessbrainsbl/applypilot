@@ -1,0 +1,309 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "patch, minor, major, or an explicit semver (e.g. 1.5.0)"
+        required: true
+        default: patch
+        type: string
+
+# Nothing is committed until the `publish` job's atomic push, so a failed run
+# leaves no git side effects and can be re-run with the same input.
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+      tag: ${{ steps.bump.outputs.tag }}
+      prev_tag: ${{ steps.bump.outputs.prev_tag }}
+    steps:
+      - name: Guard branch
+        run: |
+          if [ "$GITHUB_REF_NAME" != "main" ]; then
+            echo "::error::Releases must run from main (got $GITHUB_REF_NAME)"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Resolve next version
+        id: bump
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          SEMVER_REGEX='^[0-9]+\.[0-9]+\.[0-9]+$'
+          if [[ "$BUMP" != "patch" && "$BUMP" != "minor" && "$BUMP" != "major" && ! "$BUMP" =~ $SEMVER_REGEX ]]; then
+            echo "::error::Invalid bump '$BUMP'. Use patch, minor, major, or a semver."
+            exit 1
+          fi
+
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          # Writes package.json in the runner's throwaway checkout, purely to
+          # derive the number. Nothing here is committed.
+          TAG=$(npm version "$BUMP" --no-git-tag-version)
+
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag $TAG already exists. Pick a different bump."
+            exit 1
+          fi
+
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "prev_tag=$PREV_TAG" >> "$GITHUB_OUTPUT"
+          echo "Releasing $TAG (previous: ${PREV_TAG:-none})" >> "$GITHUB_STEP_SUMMARY"
+
+  verify:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npx prisma generate
+
+      - run: npx tsc --noEmit
+
+      - run: npm run lint
+
+      - run: npm test
+
+  build:
+    needs: [prepare, verify]
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+            slug: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            slug: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # The version is imported by SupportDialog and backup/manifest, so it has
+      # to be in the build context even though it is not committed yet.
+      - name: Apply release version to build context
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.slug }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.slug }}
+
+      - name: Export digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${DIGEST#sha256:}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.slug }}
+          path: /tmp/digests/*
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digest-*
+          merge-multiple: true
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump version and update CHANGELOG
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          PREV_TAG: ${{ needs.prepare.outputs.prev_tag }}
+        run: |
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+          TODAY=$(date +%Y-%m-%d)
+          if [ -n "$PREV_TAG" ]; then
+            COMPARE_URL="https://github.com/${GITHUB_REPOSITORY}/compare/${PREV_TAG}...${TAG}"
+            LOG_RANGE="${PREV_TAG}..HEAD"
+          else
+            COMPARE_URL=""
+            LOG_RANGE=""
+          fi
+
+          SECTIONS=""
+
+          FEATURES=""
+          FIXES=""
+          OTHER=""
+
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            if echo "$line" | grep -qiE '^feat'; then
+              msg=$(echo "$line" | sed -E 's/^feat(\([^)]*\))?:\s*//')
+              FEATURES="${FEATURES}* ${msg}"$'\n'
+            elif echo "$line" | grep -qiE '^fix'; then
+              msg=$(echo "$line" | sed -E 's/^fix(\([^)]*\))?:\s*//')
+              FIXES="${FIXES}* ${msg}"$'\n'
+            else
+              cleaned=$(echo "$line" | sed -E 's/^[a-z]+(\([^)]*\))?:\s*//')
+              OTHER="${OTHER}* ${cleaned}"$'\n'
+            fi
+          done < <(git log ${LOG_RANGE} --pretty=format:"%s" --no-merges)
+
+          if [ -n "$FEATURES" ]; then
+            SECTIONS="${SECTIONS}"$'\n'"### Features"$'\n'$'\n'"${FEATURES}"
+          fi
+
+          if [ -n "$FIXES" ]; then
+            SECTIONS="${SECTIONS}"$'\n'"### Bug Fixes"$'\n'$'\n'"${FIXES}"
+          fi
+
+          if [ -n "$OTHER" ]; then
+            SECTIONS="${SECTIONS}"$'\n'"### Other Changes"$'\n'$'\n'"${OTHER}"
+          fi
+
+          CHANGELOG_ENTRY="## [$VERSION]($COMPARE_URL) ($TODAY)"$'\n'$'\n'"${SECTIONS}"
+
+          # Same body without the version heading: the release title is the tag.
+          printf '%s\n' "$SECTIONS" > "$RUNNER_TEMP/release-notes.md"
+          if [ -n "$COMPARE_URL" ]; then
+            printf '\n**Full Changelog**: %s\n' "$COMPARE_URL" >> "$RUNNER_TEMP/release-notes.md"
+          fi
+
+          if [ -f CHANGELOG.md ]; then
+            HEADER=$(head -1 CHANGELOG.md)
+            EXISTING=$(tail -n +2 CHANGELOG.md)
+            printf '%s\n\n%s\n%s\n' "$HEADER" "$CHANGELOG_ENTRY" "$EXISTING" > CHANGELOG.md
+          else
+            printf '# Changelog\n\n%s\n' "$CHANGELOG_ENTRY" > CHANGELOG.md
+          fi
+
+      # Commit point: both refs land or neither does. Everything above is
+      # idempotent, so a failure here is fixed by re-running the workflow.
+      - name: Commit, tag, and push
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json CHANGELOG.md
+          git commit -m "chore(release): $VERSION"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push --atomic origin HEAD:main "refs/tags/$TAG"
+
+      # The image tags are created after the git push, so a rejected push (main
+      # moved) leaves only unreferenced digests. If this step fails, the refs
+      # are already pushed: re-run `imagetools create` with the digests from
+      # this run's artifacts rather than re-running the workflow.
+      - name: Push multi-arch manifest
+        working-directory: /tmp/digests
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          MAJOR="${VERSION%%.*}"
+          MINOR="${VERSION%.*}"
+          IMAGE="$REGISTRY/$IMAGE_NAME"
+
+          docker buildx imagetools create \
+            -t "$IMAGE:$VERSION" \
+            -t "$IMAGE:$MINOR" \
+            -t "$IMAGE:$MAJOR" \
+            -t "$IMAGE:latest" \
+            $(printf "$IMAGE@sha256:%s " *)
+
+      # Notes come from the CHANGELOG step, not --generate-notes: that builds
+      # its body from merged PRs, and dev is merged to main directly.
+      # If this step alone fails, the tag is already pushed: run
+      # `gh release create <tag> --notes-file <file>` rather than re-running.
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: gh release create "$TAG" --title "$TAG" --notes-file "$RUNNER_TEMP/release-notes.md"
+
+      - name: Summary
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          MAJOR="${VERSION%%.*}"
+          MINOR="${VERSION%.*}"
+          {
+            echo "### Released $TAG"
+            echo ""
+            echo "Image: \`$REGISTRY/$IMAGE_NAME\`"
+            echo "Tags: \`$VERSION\`, \`$MINOR\`, \`$MAJOR\`, \`latest\`"
+          } >> "$GITHUB_STEP_SUMMARY"
