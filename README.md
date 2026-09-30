@@ -1,6 +1,9 @@
 # ApplyPilot
 
-[English](README.md) | [Русский](README.ru.md)
+[![CI](https://github.com/madnessbrainsbl/applypilot/actions/workflows/ci.yml/badge.svg)](https://github.com/madnessbrainsbl/applypilot/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+**Find ATS jobs, match them to your CV and prepare applications — locally, under your control.**
 
 A local job-search assistant in two parts, each with its own SQLite database:
 
@@ -105,3 +108,18 @@ npm test                     # dashboard unit tests (vitest)
 
 The dashboard is built on [JobSync](https://github.com/Gsync/jobsync) by Gsync. MIT licensed, see [LICENSE](LICENSE).
 Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## From the author
+
+ApplyPilot helps you search for jobs and prepare applications on the way to an interview. For help during the
+interview itself, try [Talkaside](https://app.talkaside.workers.dev/): a Windows app with answer suggestions based on
+your CV and the job description, live translation in 27 languages, and conversation transcription.
+
+Talkaside is a paid application with a **5-day trial**. **ApplyPilot is free and open source.** Both tools let you
+choose your own providers; any fees charged by those providers are separate.
+
+---
+
+**Keywords:** job search automation, job application bot, auto apply, ATS application automation, Greenhouse,
+Ashby, Workable, AI cover letters, resume matching, application tracking, local job-search assistant,
+self-hosted career tools, Python, Playwright.
