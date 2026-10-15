@@ -1137,7 +1137,7 @@ export default function AutopilotClient() {
               </span>
             </div>
             <CardDescription className="mt-1">
-              Провайдеры отсортированы по алфавиту и опрашиваются сверху вниз. Первый ответивший выполняет запрос. Если сервис недоступен, автопилот мгновенно переходит к следующему.
+              Providers are listed alphabetically. Enable the services you want to use, choose their models, and test the connection before a run.
             </CardDescription>
           </div>
           <Button
@@ -1164,7 +1164,7 @@ export default function AutopilotClient() {
             }}
           >
             {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-            Проверить все (Test all)
+            Test all
           </Button>
         </CardHeader>
         <CardContent className="flex flex-col divide-y divide-border/60 p-0">
@@ -1178,52 +1178,52 @@ export default function AutopilotClient() {
               const meta: { label: string; desc: string; tag: string } = {
                 antigravity: {
                   label: "Antigravity Bridge",
-                  desc: "Локальный мост к моделям Google Gemini через прокси Antigravity IDE (порт 8080).",
+                  desc: "Local model bridge through an Antigravity-compatible proxy.",
                   tag: "Local Bridge",
                 },
                 claude: {
                   label: "Anthropic Claude (CLI)",
-                  desc: "Консольный клиент Claude. Использует подписку Anthropic без ввода отдельного ключа.",
+                  desc: "Uses your locally installed Claude CLI and its configured authentication.",
                   tag: "CLI Tool",
                 },
                 codex: {
                   label: "OpenAI Codex (CLI)",
-                  desc: "Официальный агент OpenAI CLI. Работает локально через активную консольную сессию.",
+                  desc: "Uses your locally installed Codex CLI and its configured authentication.",
                   tag: "CLI Tool",
                 },
                 grok: {
                   label: "xAI Grok (CLI)",
-                  desc: "Консольный агент xAI Grok. Прямой вызов исполняемого файла grok.exe.",
+                  desc: "Uses your locally installed Grok CLI.",
                   tag: "CLI Tool",
                 },
                 groq: {
                   label: "Groq Cloud (LPU)",
-                  desc: "Сверхскоростной облачный инференс (Qwen 3.8 / Llama 3) с минимальной задержкой.",
+                  desc: "Cloud inference through the Groq API. Available models depend on your account.",
                   tag: "Cloud API",
                 },
                 llm7: {
                   label: "LLM7.io Gateway",
-                  desc: "Провайдер новейших моделей (GPT-5.5, DeepSeek V4 Pro, Claude 4.5/4.7, GLM-5.3).",
+                  desc: "OpenAI-compatible model gateway. List models to see current availability.",
                   tag: "Cloud API",
                 },
                 lmstudio: {
                   label: "LM Studio (Offline)",
-                  desc: "Автономный локальный сервер LLM (127.0.0.1:1234). Работает офлайн без расхода квот.",
+                  desc: "Local model server. Load a model in LM Studio and enable its API server.",
                   tag: "Local LLM",
                 },
                 openrouter: {
                   label: "OpenRouter Gateway",
-                  desc: "Универсальный облачный шлюз ко всем мировым моделям (Claude, GPT, Gemini).",
+                  desc: "Model gateway through OpenRouter. Availability and pricing depend on the selected model.",
                   tag: "Cloud API",
                 },
                 tokenharbor: {
                   label: "Token Harbor Hub",
-                  desc: "Единый хаб моделей с поддержкой бесплатных тарифов (DeepSeek V4 Flash, Qwen Flash).",
+                  desc: "OpenAI-compatible model gateway using your own account and credentials.",
                   tag: "Cloud API",
                 },
               }[p.name] || {
                 label: p.name,
-                desc: p.kind === "cli" ? "Консольный провайдер." : "OpenAI-совместимый API сервис.",
+                desc: p.kind === "cli" ? "Locally installed CLI provider." : "OpenAI-compatible API service.",
                 tag: p.kind === "cli" ? "CLI" : "API",
               };
 
@@ -1236,18 +1236,18 @@ export default function AutopilotClient() {
                 : "border-l-blue-500";
 
               const badge =
-                !p.enabled ? { text: "ВЫКЛЮЧЕН", cls: "bg-muted text-muted-foreground" }
-                : missing ? { text: "НЕ УСТАНОВЛЕН", cls: "bg-warning/15 text-warning" }
-                : noKey ? { text: "ТРЕБУЕТ КЛЮЧ", cls: "bg-warning/15 text-warning" }
-                : p.ok === true ? { text: "РАБОТАЕТ (ONLINE)", cls: "bg-primary/15 text-primary" }
-                : p.ok === false ? { text: "ОШИБКА", cls: "bg-destructive/15 text-destructive" }
-                : { text: "ГОТОВ К ТЕСТУ", cls: "bg-primary/15 text-primary" };
+                !p.enabled ? { text: "DISABLED", cls: "bg-muted text-muted-foreground" }
+                : missing ? { text: "NOT INSTALLED", cls: "bg-warning/15 text-warning" }
+                : noKey ? { text: "KEY REQUIRED", cls: "bg-warning/15 text-warning" }
+                : p.ok === true ? { text: "WORKING", cls: "bg-primary/15 text-primary" }
+                : p.ok === false ? { text: "ERROR", cls: "bg-destructive/15 text-destructive" }
+                : { text: "READY TO TEST", cls: "bg-primary/15 text-primary" };
 
               const keyStatus = !p.key_env
-                ? { text: "Без API-ключа", cls: "text-muted-foreground" }
+                ? { text: "No API key needed", cls: "text-muted-foreground" }
                 : p.has_key
-                ? { text: "✓ Ключ настроен", cls: "text-primary font-medium" }
-                : { text: "⚠ Ключ отсутствует", cls: "text-warning font-medium" };
+                ? { text: "✓ Key configured", cls: "text-primary font-medium" }
+                : { text: "⚠ Key missing", cls: "text-warning font-medium" };
 
               return (
                 <div
@@ -1276,9 +1276,9 @@ export default function AutopilotClient() {
                       </p>
                       <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs">
                         <span className="font-medium text-foreground/80">
-                          {p.kind === "cli" ? (p.path || "CLI не обнаружен в PATH") : p.url}
+                          {p.kind === "cli" ? (p.path || "CLI not found in PATH") : p.url}
                         </span>
-                        {p.model && <span>· модель: <span className="font-mono text-foreground">{p.model}</span></span>}
+                        {p.model && <span>· model: <span className="font-mono text-foreground">{p.model}</span></span>}
                       </div>
                     </div>
 
@@ -1291,8 +1291,8 @@ export default function AutopilotClient() {
                         className="h-8 px-3 text-xs font-medium"
                       >
                         {testing === p.name ? (
-                          <><Loader2 className="mr-1.5 h-3 w-3 animate-spin" />Тестирование…</>
-                        ) : "Тест"}
+                          <><Loader2 className="mr-1.5 h-3 w-3 animate-spin" />Testing…</>
+                        ) : "Test"}
                       </Button>
                       <Button
                         variant={p.enabled ? "default" : "secondary"}
@@ -1301,25 +1301,25 @@ export default function AutopilotClient() {
                         onClick={() => send("toggle", { name: p.name, enabled: !p.enabled })}
                         className={`h-8 px-3 text-xs font-semibold ${p.enabled ? "bg-primary hover:bg-primary text-primary-foreground" : ""}`}
                       >
-                        {p.enabled ? "Включен" : "Выключен"}
+                        {p.enabled ? "Turn off" : "Turn on"}
                       </Button>
                     </div>
                   </div>
 
                   {missing && (
                     <div className="mt-2.5 rounded-md border border-warning/30 bg-warning/10 p-2 text-xs text-warning">
-                      Утилита {p.name} не найдена в системном PATH. Установите её через терминал и выполните разовый вход.
+                      {p.name} was not found in PATH. Install the CLI and sign in before using it.
                     </div>
                   )}
 
                   {p.detail && (
                     <div className={`mt-2.5 rounded-md p-2 text-xs font-mono break-all ${p.ok ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>
-                      {p.ok ? `✓ Ответ сервиса: ${p.detail}` : `⚠ Ошибка: ${p.detail}`}
+                      {p.ok ? `✓ Response: ${p.detail}` : `⚠ Error: ${p.detail}`}
                     </div>
                   )}
 
                   <div className="mt-3 flex flex-wrap items-center gap-2.5">
-                    <span className="text-muted-foreground text-xs font-medium">Модель:</span>
+                    <span className="text-muted-foreground text-xs font-medium">Model:</span>
                     <select
                       aria-label={`Model for ${p.name}`}
                       className="border-input bg-background h-8 min-w-44 rounded-md border px-2.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary"
@@ -1327,7 +1327,7 @@ export default function AutopilotClient() {
                       onFocus={() => loadModels(p.name)}
                       onChange={(e) => send("model", { name: p.name, model: e.target.value })}
                     >
-                      <option value={p.model || ""}>{p.model || "Модель по умолчанию"}</option>
+                      <option value={p.model || ""}>{p.model || "Default model"}</option>
                       {(models[p.name] || [])
                         .filter((m) => m !== p.model)
                         .map((m) => (
@@ -1335,11 +1335,11 @@ export default function AutopilotClient() {
                         ))}
                     </select>
                     <Button variant="ghost" size="sm" onClick={() => loadModels(p.name)} className="h-8 px-2.5 text-xs">
-                      Загрузить список моделей
+                      List models
                     </Button>
                     {models[p.name] && (
                       <span className="text-muted-foreground text-xs">
-                        доступно: {models[p.name].length}
+                        available: {models[p.name].length}
                       </span>
                     )}
                   </div>
@@ -1350,13 +1350,13 @@ export default function AutopilotClient() {
                         <Input
                           type="password"
                           value={keys[p.key_env] || ""}
-                          placeholder={p.has_key ? `${p.key_env} настроен (вставьте новый для замены)` : `Вставьте ключ (${p.key_env})`}
+                          placeholder={p.has_key ? `${p.key_env} configured (paste to replace)` : `Paste key (${p.key_env})`}
                           onChange={(e) => setKeys((prev) => ({ ...prev, [p.key_env!]: e.target.value }))}
                           className="h-8 text-xs pr-16"
                         />
                         {p.has_key && (
                           <span className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded bg-primary/15 px-1.5 py-0.5 text-xs font-bold text-primary uppercase">
-                            АКТИВЕН
+                            SET
                           </span>
                         )}
                       </div>
@@ -1367,13 +1367,13 @@ export default function AutopilotClient() {
                         onClick={async () => {
                           const ok = await send("key", { env: p.key_env, value: keys[p.key_env!] });
                           if (ok) {
-                            toastSuccess(`${p.key_env} успешно сохранен`);
+                            toastSuccess(`${p.key_env} saved`);
                             setKeys((prev) => ({ ...prev, [p.key_env!]: "" }));
                           }
                         }}
                         className="h-8 px-3.5 text-xs font-medium shrink-0"
                       >
-                        Сохранить ключ
+                        Save key
                       </Button>
                     </div>
                   )}
