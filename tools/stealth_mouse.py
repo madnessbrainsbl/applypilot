@@ -74,14 +74,22 @@ def human_move(page, target_x, target_y, steps=None):
     _CURRENT_POS["x"] = target_x
     _CURRENT_POS["y"] = target_y
 
-def human_click(page, locator_or_element):
+def human_click(page, locator_or_element, *, cancelled=None):
     """Moves to element via Bézier curve, pauses naturally, and clicks."""
+    if cancelled and cancelled():
+        return False
+    try:
+        locator_or_element.scroll_into_view_if_needed(timeout=2000)
+    except Exception:
+        pass
     try:
         box = locator_or_element.bounding_box()
     except Exception:
         box = None
 
     if not box:
+        if cancelled and cancelled():
+            return False
         try:
             locator_or_element.click()
         except Exception:
@@ -97,6 +105,11 @@ def human_click(page, locator_or_element):
     human_move(page, target_x, target_y)
     # Human hesitation before click
     time.sleep(random.uniform(0.06, 0.15))
+    if cancelled:
+        if cancelled():
+            return False
+        page.mouse.click(target_x, target_y)
+        return True
     try:
         page.mouse.down()
         time.sleep(random.uniform(0.04, 0.09))

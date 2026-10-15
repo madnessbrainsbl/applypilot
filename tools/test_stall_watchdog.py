@@ -21,7 +21,7 @@ def demo():
     con.execute("INSERT INTO applications (job_id, applied_at, needs_manual, manual_reason, submitted) VALUES (?, datetime('now'), 1, 'stalled the run at step fill form after 180s', 0)", (test_id,))
     try:
         skip = db.skip_ids(con)
-        assert test_id not in skip, "a stall is the run's own timeout, not the posting's fault — it must stay retryable"
+        assert test_id in skip, "an unconfirmed timeout must require review before retrying"
         con.execute("INSERT INTO applications (job_id, applied_at, needs_manual, manual_reason, submitted) VALUES (?, datetime('now'), 1, 'stalled the run at step fill form after 180s', 0)", (test_id,))
         assert test_id in db.skip_ids(con), "a posting that stalls twice must stop eating a timeout every run"
     finally:

@@ -47,7 +47,7 @@ def test_prune():
     orig_shots = A.SHOTS
     try:
         A.SHOTS = shots_dir
-        res = A.prune_screenshots(con, keep_recent=5, keep_needs_manual=True)
+        res = A.prune_screenshots(con, keep_recent=2, keep_needs_manual=True)
         assert res["deleted"] == 1, f"Expected 1 deleted, got {res['deleted']}"
         assert f_manual.exists(), "Manual screenshot must be kept"
         assert f_sub.exists(), "Submitted screenshot must be kept"

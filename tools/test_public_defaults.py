@@ -9,7 +9,8 @@ def demo():
     assert cfg['apply']['submit_without_review'] is False
     assert all(p.get('enabled') is False for p in cfg['llm']['providers'])
     for label in ['Are you 18 years of age or older?', 'Have you ever worked for Acme?',
-                  'Do you require visa sponsorship?', 'Are you authorized to work in the UK?']:
+                  'Do you require visa sponsorship?', 'Are you authorized to work in the UK?',
+                  'Agreement to Arbitrate', 'Do you hold a work permit?']:
         assert A.offline_answer(label, ['Yes', 'No'], cfg) is None, label
     with sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True)

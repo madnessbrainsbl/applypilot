@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { execFile, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -66,8 +66,8 @@ function tailLog(lines = 120) {
   return text.split(/\r?\n/).slice(-lines);
 }
 
-function isRunning() {
-  return existsSync(path.join(AUTOPILOT_ROOT, "autopilot", "progress.json"));
+async function isRunning() {
+  return Boolean((await cli(["status"])).running);
 }
 
 export async function GET() {
@@ -77,7 +77,7 @@ export async function GET() {
     return NextResponse.json({ error: `autopilot not found at ${CLI}` }, { status: 500 });
   }
   try {
-    const [status, pending, providers, manual, outreach, followups, resumes] = await Promise.all([
+    const [status, pending, providers, manual, outreach, followups, resumes, report] = await Promise.all([
       cli(["status"]),
       cli(["qa", "--pending", "--limit", "30"]),
       cli(["llm"]),
@@ -86,9 +86,11 @@ export async function GET() {
       cli(["followups", "--limit", "30"]).catch(() => ({ due_for_followup: 0, results: [] })),
       // an object (not []) on failure, so the UI can tell "none uploaded" from "broken"
       cli(["resume", "list"]).catch((e) => ({ error: String(e).slice(0, 300) })),
+      // invitations to act on + rejection analysis from the mailbox (`inbox --apply` fills it)
+      cli(["report", "--json"]).catch(() => ({ actions: [], rejections: { total: 0, kinds: {}, reasons: {}, recent: [] }, tips: [] })),
     ]);
     return NextResponse.json({
-      status, pending, providers, manual, outreach, followups, resumes, log: tailLog(), discovering: isRunning(),
+      status, pending, providers, manual, outreach, followups, resumes, report, log: tailLog(), discovering: Boolean(status.running),
     });
   } catch (error) {
     return NextResponse.json({ error: String(error).slice(0, 400) }, { status: 500 });
@@ -224,6 +226,13 @@ async function dispatch(action: string, body: Record<string, unknown>) {
     return NextResponse.json({ ok: true, ...result });
   }
 
+  if (action === "action_done") {
+    const jobId = String(body.jobId || "");
+    if (!/^[a-f0-9]{16}$/.test(jobId)) return NextResponse.json({ error: "invalid jobId" }, { status: 400 });
+    await cli(["report", "--done", jobId, "--json"]);
+    return NextResponse.json({ ok: true });
+  }
+
   if (action === "dismiss") {
     const jobId = String(body.jobId || "");
     if (!jobId) return NextResponse.json({ error: "jobId is required" }, { status: 400 });
@@ -235,29 +244,42 @@ async function dispatch(action: string, body: Record<string, unknown>) {
   if (action === "stop") {
     // control.json is latched-then-cleared by the next read, so writing "quit" with
     // nothing running left it on disk for the NEXT run to pick up and abort on.
-    if (!isRunning()) return NextResponse.json({ ok: true, note: "nothing is running" });
+    if (!await isRunning()) return NextResponse.json({ ok: true, note: "nothing is running" });
     writeFileSync(CONTROL, JSON.stringify({ action: "quit" }), "utf-8");
     return NextResponse.json({ ok: true });
   }
 
   if (action === "apply" || action === "discover") {
+    if (await isRunning()) return NextResponse.json({ error: "A run is already active" }, { status: 409 });
     const max = Math.min(Math.max(Number(body.max) || 5, 1), 25);
     const workers = Number(body.workers) ? ["--workers", String(Math.min(Math.max(Number(body.workers), 1), 8))] : [];
     // the CLI accepts any resume key (checked against config.json); the regex only
     // keeps arbitrary strings, "--flags" included, out of argv
     const persona = typeof body.persona === "string" && RESUME_KEY.test(body.persona)
       ? ["--persona", body.persona] : [];
+    const locRaw = typeof body.location === "string" ? body.location.trim() : "";
+    const locationArg = (locRaw && locRaw.toLowerCase() !== "all" && /^[a-zA-Z0-9_ ,.-]{2,60}$/.test(locRaw))
+      ? ["--location", locRaw] : [];
     const cfg = action === "apply" ? JSON.parse(readFileSync(CONFIG, "utf-8")) : null;
     const args = action === "apply"
-      ? ["apply", cfg?.apply?.submit_without_review === true ? "--submit" : "--dry-run", "--max", String(max), ...workers, ...persona]
-      : ["discover", ...persona];
-    const child = spawn(PYTHON, [CLI, ...args], {
-      cwd: AUTOPILOT_ROOT,
-      detached: true,
-      stdio: "ignore",
-      env: { ...process.env, PYTHONIOENCODING: "utf-8" },
-    });
-    child.unref();
+      ? ["apply", cfg?.apply?.submit_without_review === true ? "--submit" : "--dry-run", "--ats-only", "--max", String(max), ...workers, ...persona, ...locationArg]
+      : ["discover", ...persona, ...locationArg];
+    const log = openSync(LOG, "a");
+    try {
+      const child = spawn(PYTHON, [CLI, ...args], {
+        cwd: AUTOPILOT_ROOT,
+        detached: true,
+        stdio: ["ignore", log, log],
+        env: { ...process.env, PYTHONIOENCODING: "utf-8", PYTHONUNBUFFERED: "1" },
+      });
+      await new Promise<void>((resolve, reject) => {
+        child.once("spawn", resolve);
+        child.once("error", reject);
+      });
+      child.unref();
+    } finally {
+      closeSync(log);
+    }
     return NextResponse.json({ ok: true, started: args.join(" ") });
   }
 

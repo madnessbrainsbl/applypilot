@@ -192,7 +192,7 @@ def company_board(company, timeout=10, slugs=()):
     for slug in dict.fromkeys([*slugs, *_board_slugs(company)]):
         if not slug:
             continue
-        for fetch in (_gh_board, _ashby_board, _workable_board):
+        for fetch in (_gh_board, _ashby_board, _workable_board, _lever_board):
             try:
                 jobs = fetch(slug, timeout)
             except Exception:
@@ -222,6 +222,14 @@ def _workable_board(slug, timeout):
     return [(j.get("title") or "", j.get("url") or f"https://apply.workable.com/j/{j['shortcode']}",
              ", ".join(x for x in (j.get("city"), j.get("country")) if x))
             for j in data.get("jobs") or [] if j.get("url") or j.get("shortcode")]
+
+
+def _lever_board(slug, timeout):
+    data = _get_json(f"https://api.lever.co/v0/postings/{slug}?mode=json", timeout)
+    if not isinstance(data, list):
+        return []
+    return [(j.get("text") or "", j.get("hostedUrl") or "", (j.get("categories") or {}).get("location") or "")
+            for j in data if j.get("hostedUrl")]
 
 
 def _title_words(title):

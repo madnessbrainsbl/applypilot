@@ -31,6 +31,7 @@ def fake_openai(reply=None, raise_exc=None):
 
 def run(reply=None, raise_exc=None):
     sys.modules["openai"] = fake_openai(reply, raise_exc)
+    A._LLM_BENCH.clear()   # each case is a fresh provider; a failed one is benched for 10 min
     job = {"title": "Security Engineer", "company": "Acme"}
     cfg = {"llm": {"base_url": "http://127.0.0.1:8045/v1", "model": "m", "timeout_seconds": 5,
                    "providers": [{"name": "t", "kind": "openai", "url": "http://127.0.0.1:8045/v1",

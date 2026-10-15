@@ -45,14 +45,14 @@ export default async function RootLayout({
       <SidebarProvider initialExpanded={initialExpanded}>
         <RightRailProvider>
           <AgentChatProvider initialMessages={conversation.data ?? []}>
-            <div className="flex min-h-screen w-full flex-col bg-muted/40">
+            <div className="flex min-h-screen w-full flex-col bg-background">
               <Sidebar user={user} signOutAction={signOutAction} />
               <SidebarInset>
                 <Header />
                 <GlobalActivityBanner />
                 {/* Container, not viewport, queries: the docked chat panel
                     shrinks this box without changing the viewport width. */}
-                <main className="@container/main flex-1 p-4 sm:px-4 sm:py-0">
+                <main className="@container/main min-w-0 flex-1 p-4 sm:px-6 sm:py-2">
                   <div className="items-start gap-4 md:gap-4 @3xl/main:grid @3xl/main:grid-cols-3">
                     {children}
                   </div>

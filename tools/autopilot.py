@@ -8,12 +8,19 @@ Differences vs the Linux original:
   * All personal data comes from autopilot/config.json only (nothing
     hardcoded in the code).
 """
-import argparse, hashlib, html, json, multiprocessing as mp, os, queue as mp_queue, re, shutil, subprocess, sys, tempfile, threading, time, urllib.request, urllib.error
+import argparse, base64, collections, hashlib, html, json, multiprocessing as mp, os, queue as mp_queue, re, shutil, subprocess, sys, tempfile, threading, time, urllib.request, urllib.error
+import socket
+socket.setdefaulttimeout(25.0)
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urljoin, urlparse, urlunparse, parse_qsl, urlencode, quote
-from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+try:
+    from patchright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+    USING_PATCHRIGHT = True
+except ImportError:
+    from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+    USING_PATCHRIGHT = False
 import db
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -98,7 +105,7 @@ def read_control():
     except Exception:
         return None
 
-UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.8037.98 Safari/537.36"
 
 # Windows consoles default to cp1251/cp866 and choke on non-ASCII JSON output.
 for _s in (sys.stdout, sys.stderr):
@@ -237,9 +244,30 @@ window.chrome.runtime = window.chrome.runtime || {
     PlatformOs: { MAC: 'mac', WIN: 'win', ANDROID: 'android', CROS: 'cros', LINUX: 'linux', OPENBSD: 'openbsd' },
     PlatformArch: { ARM: 'arm', X86_32: 'x86-32', X86_64: 'x86-64', MIPS: 'mips', MIPS64: 'mips64' }
 };
+Object.defineProperty(navigator, 'hardwareConcurrency', {
+    get: () => 8,
+    configurable: true
+});
+Object.defineProperty(navigator, 'deviceMemory', {
+    get: () => 8,
+    configurable: true
+});
+Object.defineProperty(window.screen, 'colorDepth', {
+    get: () => 24,
+    configurable: true
+});
+Object.defineProperty(window.screen, 'pixelDepth', {
+    get: () => 24,
+    configurable: true
+});
 Object.defineProperty(navigator, 'plugins', {
     get: () => {
-        const p = [{ name: 'Chrome PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format' }];
+        const p = [
+            { name: 'Chrome PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format' },
+            { name: 'Chromium PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format' },
+            { name: 'Microsoft Edge PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format' },
+            { name: 'WebKit built-in PDF', filename: 'internal-pdf-viewer', description: 'Portable Document Format' }
+        ];
         p.item = (i) => p[i];
         p.namedItem = (n) => p[0];
         p.refresh = () => {};
@@ -247,10 +275,71 @@ Object.defineProperty(navigator, 'plugins', {
     },
     configurable: true
 });
+Object.defineProperty(navigator, 'mimeTypes', {
+    get: () => {
+        const m = [{ type: 'application/pdf', suffixes: 'pdf', description: 'Portable Document Format', enabledPlugin: navigator.plugins[0] }];
+        m.item = (i) => m[i];
+        m.namedItem = (n) => m[0];
+        return m;
+    },
+    configurable: true
+});
 Object.defineProperty(navigator, 'languages', {
     get: () => ['en-US', 'en'],
     configurable: true
 });
+try {
+    const origGetParameter = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function(param) {
+        if (param === 37445) return 'Google Inc. (NVIDIA)';
+        if (param === 37446) return 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0, D3D11)';
+        return origGetParameter.apply(this, arguments);
+    };
+    if (typeof WebGL2RenderingContext !== 'undefined') {
+        const origGetParameter2 = WebGL2RenderingContext.prototype.getParameter;
+        WebGL2RenderingContext.prototype.getParameter = function(param) {
+            if (param === 37445) return 'Google Inc. (NVIDIA)';
+            if (param === 37446) return 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0, D3D11)';
+            return origGetParameter2.apply(this, arguments);
+        };
+    }
+} catch (e) {}
+try {
+    const origQuery = navigator.permissions && navigator.permissions.query;
+    if (origQuery) {
+        navigator.permissions.query = function(param) {
+            if (param && param.name === 'notifications') {
+                return Promise.resolve({ state: Notification.permission || 'default', onchange: null });
+            }
+            return origQuery.apply(this, arguments);
+        };
+    }
+} catch (e) {}
+if (!navigator.userAgentData) {
+    const brands = [
+        { brand: "Chromium", version: "154" },
+        { brand: "Not(A:Brand", version: "24" },
+        { brand: "Google Chrome", version: "154" }
+    ];
+    Object.defineProperty(navigator, 'userAgentData', {
+        get: () => ({
+            brands: brands,
+            mobile: false,
+            platform: "Windows",
+            getHighEntropyValues: (hints) => Promise.resolve({
+                architecture: "x86",
+                bitness: "64",
+                brands: brands,
+                mobile: false,
+                model: "",
+                platform: "Windows",
+                platformVersion: "15.0.0",
+                uaFullVersion: "154.0.8037.98"
+            })
+        }),
+        configurable: true
+    });
+}
 """
 
 _STEALTH_CHROMIUM_ARGS = [
@@ -261,6 +350,17 @@ _STEALTH_CHROMIUM_ARGS = [
     "--ignore-gpu-blocklist",
     "--window-size=1920,1080",
 ]
+
+# Workable keeps an unsent form in localStorage ("evergreen-persistence-<job>") and
+# restores it on the next visit; the bot skips fields that already hold a value, so an
+# old run's answers (the AppSec headline on a photographer form) went out unchecked.
+_FORGET_DRAFTS_JS = """
+try {
+    if (location.hostname.endsWith('workable.com'))
+        for (const k of Object.keys(localStorage))
+            if (k.startsWith('evergreen-')) localStorage.removeItem(k);
+} catch (e) {}
+"""
 
 def _apply_stealth(ctx):
     try:
@@ -287,6 +387,7 @@ def new_browser_context(browser, cfg, **kwargs):
     kwargs["extra_http_headers"] = headers
     ctx = browser.new_context(**kwargs)
     _apply_stealth(ctx)
+    ctx.add_init_script(_FORGET_DRAFTS_JS)
     ctx.set_default_timeout(float(os.environ.get("AUTOPILOT_ACTION_TIMEOUT_MS", 5000)))
     ctx.set_default_navigation_timeout(20000)
     return ctx
@@ -368,15 +469,34 @@ def _profile_dir(cfg, worker_id=None):
 
 _cdp_warned = {"v": False}
 
+def browser_playwright(cfg):
+    if (cfg.get("browser") or {}).get("engine") == "camoufox":
+        # Patchright's isolated-world implementation only supports Chromium.
+        from playwright.sync_api import sync_playwright as firefox_playwright
+        return firefox_playwright()
+    return sync_playwright()
+
 def launch_browser(pw, cfg, headless, worker_id=None):
-    """Cross-platform Chromium launch driven by config['browser']."""
+    """Browser launch driven by config['browser']."""
     b = cfg.get("browser", {})
+    if b.get("engine") == "camoufox":
+        from camoufox.sync_api import NewBrowser
+        profile = _profile_dir(cfg, worker_id=worker_id)
+        # Firefox must not open an existing Chromium profile.
+        profile = str(profile) + "-camoufox" if profile else ""
+        ctx = NewBrowser(pw, headless=headless, humanize=True, disable_coop=True,
+                         os={"win32": "windows", "darwin": "macos"}.get(sys.platform, "linux"),
+                         persistent_context=True, user_data_dir=profile)
+        ctx.add_init_script(_FORGET_DRAFTS_JS)
+        ctx.set_default_timeout(float(os.environ.get("AUTOPILOT_ACTION_TIMEOUT_MS", 5000)))
+        ctx.set_default_navigation_timeout(20000)
+        return _PersistentBrowser(ctx)
     kwargs = {"headless": headless}
     exe = b.get("executable_path")
     channel = b.get("channel")
     if exe:
         kwargs["executable_path"] = exe
-    elif channel:
+    elif channel and not USING_PATCHRIGHT:
         kwargs["channel"] = channel  # e.g. "chrome" / "msedge" — uses installed browser
     # else: fall back to Playwright's bundled Chromium (needs `playwright install chromium`)
     cdp = b.get("cdp_url")
@@ -409,6 +529,7 @@ def launch_browser(pw, cfg, headless, worker_id=None):
                 args=args, **size,
                 ignore_default_args=["--enable-automation"], **kwargs)
             _apply_stealth(ctx)
+            ctx.add_init_script(_FORGET_DRAFTS_JS)
             ctx.set_default_timeout(float(os.environ.get("AUTOPILOT_ACTION_TIMEOUT_MS", 5000)))
             ctx.set_default_navigation_timeout(20000)
             return _PersistentBrowser(ctx)
@@ -512,10 +633,16 @@ def get_persona_cfg(cfg, persona_name="appsec"):
     merged = dict(cfg)
     merged["active_persona"] = persona_name
     merged["persona_info"] = p_data
+    if "browser" in p_data:
+        merged["browser"] = {**cfg.get("browser", {}), **p_data["browser"]}
     if "search" in p_data:
         merged["search"] = {**cfg.get("search", {}), **p_data["search"]}
     if "profile" in p_data:
         merged["profile"] = {**cfg.get("profile", {}), **p_data["profile"]}
+        if "full_name" not in p_data["profile"] and any(k in p_data["profile"] for k in ("first_name", "last_name")):
+            merged["profile"]["full_name"] = f"{merged['profile'].get('first_name', '')} {merged['profile'].get('last_name', '')}".strip()
+    if "jobspy" in p_data:
+        merged["jobspy"] = {**cfg.get("jobspy", {}), **p_data["jobspy"]}
     return merged
 
 def title_fit(job, cfg):
@@ -549,12 +676,65 @@ _NO_SPONSOR_RE = re.compile(
     r" (?:\w+ ){0,3}(?:sponsor|provide sponsorship|offer sponsorship|support visa)"
     r"|without (?:the need for )?(?:visa )?sponsorship|must (?:already )?have (?:the )?(?:right|authori[sz]ation) to work", re.I)
 
+_REMOTE_ANYWHERE_RE = re.compile(
+    r"\b(?:remote|work from home|wfh)\b.{0,30}\b(?:anywhere|worldwide|global(?:ly)?|any (?:country|location|timezone))\b"
+    r"|\b(?:anywhere in the world|work from anywhere|fully remote,? (?:worldwide|global)|remote \(?(?:worldwide|global|anywhere)\)?)", re.I)
+
+def needs_no_visa(job):
+    """A fully remote role open worldwide: no work permit is involved at all."""
+    text = " ".join(str(job.get(k) or "") for k in ("location", "title")) + " " + _strip_html(job.get("description") or "")[:3000]
+    return bool(_REMOTE_ANYWHERE_RE.search(text)) and not re.search(r"(?i)remote.{0,20}\b(?:us|usa|uk|eu) only\b|must (?:be|reside) (?:based )?in", text)
+
 def offers_sponsorship(job):
     """The posting itself says it sponsors a visa / pays relocation (or a board tags it)."""
     if job.get("sponsorship") == "Offers Sponsorship":
         return True
     desc = _strip_html(job.get("description") or "")
-    return bool(_SPONSOR_RE.search(desc)) and not _NO_SPONSOR_RE.search(desc)
+    from medical_search import support_reason
+    return (bool(_SPONSOR_RE.search(desc)) and not _NO_SPONSOR_RE.search(desc)) or support_reason(desc) is None
+
+def _sector_focus_bonus(job, search):
+    """Prefer the configured product sector without mistaking insurance benefits for it."""
+    if search.get("sector_focus") != "healthtech_medtech":
+        return 0
+    company = re.sub(r"[^a-z0-9]", "", str(job.get("company") or "").lower())
+    if company and company in {re.sub(r"[^a-z0-9]", "", name.lower())
+                               for name in search.get("sector_focus_companies", [])}:
+        return 40
+    text = " ".join(str(job.get(k) or "") for k in ("title", "company", "description", "sector_context"))
+    terms = search.get("sector_focus_terms", [])
+    if any(re.search(r"\b" + re.escape(term) + r"\b", text, re.I) for term in terms if term):
+        return 40
+    return 0
+
+
+def _strict_discovery_reason(job, cfg):
+    search = get_persona_cfg(cfg, job.get("persona", "appsec")).get("search", {})
+    if not search.get("require_explicit_visa_and_relocation"):
+        return None
+    if search.get("exclude_russia"):
+        from medical_search import in_russia
+        if in_russia(job):
+            return "russia_excluded"
+        location = str(job.get("location") or "").strip()
+        if not location or re.fullmatch(r"(?i)(?:unspecified|unknown|\d+ locations?|remote / unspecified)", location):
+            return "location_not_proven"
+    if not title_fit(job, cfg):
+        return "role_mismatch"
+    if not _sector_focus_bonus(job, search):
+        return "sector_not_proven"
+    if job.get("source") != "vendor":
+        return "primary_description_required"
+    text = "\n".join(_strip_html(line) for line in re.sub(
+        r"(?i)</(?:p|li)>|<br\s*/?>", "\n", job.get("description") or "").splitlines())
+    if _NO_SPONSOR_RE.search(text) or re.search(
+        r"\b(?:no|not|unable to|cannot|can't|do not|don't|will not|won't)\b[^.\n]{0,50}\brelocation\b"
+        r"|\b(?:(?:visa|immigration) sponsorship|visa support|relocation(?: assistance| support| package)?)\b[^.\n]{0,40}\b(?:unavailable|not available|not provided|not offered|not supported)\b"
+        r"|\b(?:only|existing|current)\b[^.\n]{0,40}\bh-?1b\b[^.\n]{0,40}\btransfer", text, re.I):
+        return "support_excluded"
+    from medical_search import support_reason
+    return support_reason(text)
+
 
 def score(job, cfg):
     # NOTE: deliberately excludes "url" — tracking links (Jooble etc.) embed the original
@@ -597,7 +777,7 @@ def score(job, cfg):
     # candidate is a security/software engineer or creative: must pass title fit for the active persona
     no_target_role = 120 if not title_fit(job, p_cfg) else 0
     spon_bonus = 15 if job.get("sponsorship") == "Offers Sponsorship" else 0
-    return good + niche + relocation + remote_eu + spon_bonus - bad - no_reloc - off_target - no_target_role
+    return good + niche + _sector_focus_bonus(job, search) + relocation + remote_eu + spon_bonus - bad - no_reloc - off_target - no_target_role
 
 def pick_cv(job, cfg):
     """The CV of the job's persona (one persona per uploaded resume, `personas.<name>.cv`).
@@ -606,7 +786,7 @@ def pick_cv(job, cfg):
     p_name = get_job_persona(job, cfg.get("active_persona", "appsec"), cfg)
     persona_cv = ((cfg.get("personas") or {}).get(p_name) or {}).get("cv")
     if p_name == "creative":
-        return persona_cv or docs.get("creative_cv") or ""
+        return persona_cv or docs.get("creative_cv") or "Creative_Producer.pdf"
     if p_name != "appsec" and persona_cv:
         return persona_cv
     title = (job.get("title") or "").lower()
@@ -630,6 +810,10 @@ def canonical_url(url):
         parts = urlparse(url or "")
         if not parts.netloc:
             return url or ""
+        if parts.netloc.lower() == "jobs.smartrecruiters.com":
+            legacy = re.fullmatch(r"/https://api\.smartrecruiters\.com/v1/companies/([\w-]+)/postings/(\d+)(?:/\2)?/?", parts.path)
+            if legacy:
+                parts = parts._replace(path=f"/{legacy.group(1)}/{legacy.group(2)}")
         kept = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True)
                 if k.lower() not in _TRACKING_PARAMS]
         return urlunparse(parts._replace(
@@ -697,7 +881,15 @@ def normalize(source, keyword, item, cfg, persona=None):
 def fetch_text(url, timeout=15):
     import gzip
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Encoding": "gzip, deflate"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    for attempt in range(2):
+        try:
+            response = urllib.request.urlopen(req, timeout=timeout)
+            break
+        except urllib.error.URLError as exc:
+            if attempt or not isinstance(exc.reason, FileNotFoundError):
+                raise
+            time.sleep(0.1)
+    with response as r:
         raw = r.read()
         if r.headers.get("Content-Encoding") == "gzip":
             try: raw = gzip.decompress(raw)
@@ -750,14 +942,20 @@ def external_apply_url(job):
 # Boards that failed are excluded from dead-sync; malformed partial feeds disable sync entirely.
 _vendor_failed_companies = set()
 _vendor_sync_safe = {"v": True}
+_vendor_board_status = []
 
 def vendor_source(cfg, limit):
     """Fetch public ATS board APIs (Greenhouse / Lever / Ashby / Pinpoint / Teamtailor) concurrently."""
     from concurrent.futures import ThreadPoolExecutor
-    boards = cfg.get("vendor_boards", {})
+    boards = cfg.get("search", {}).get("vendor_boards", cfg.get("vendor_boards", {}))
     jobs = []
     _vendor_failed_companies.clear()
-    _vendor_sync_safe["v"] = True
+    _vendor_board_status.clear()
+    _vendor_sync_safe["v"] = "vendor_boards" not in cfg.get("search", {})
+    if cfg.get("search", {}).get("include_global_vendor_boards"):
+        boards = {kind: list(dict.fromkeys([*cfg.get("vendor_boards", {}).get(kind, []), *boards.get(kind, [])]))
+                  for kind in dict.fromkeys([*cfg.get("vendor_boards", {}), *boards])}
+        _vendor_sync_safe["v"] = False
     tasks = []
     for kind, urls in boards.items():
         for url in urls:
@@ -770,9 +968,21 @@ def vendor_source(cfg, limit):
     def _fetch_board(task):
         kind, url, board_company = task
         try:
+            if kind in ("workday", "gem", "uhn", "smartrecruiters"):
+                import medical_boards
+                role_fit = lambda job: title_fit(job, cfg)
+                if kind == "workday":
+                    board_jobs = medical_boards.workday_board(url, fetch_text, role_fit)
+                elif kind == "gem":
+                    board_jobs = medical_boards.gem_board(url, role_fit)
+                elif kind == "smartrecruiters":
+                    board_jobs = medical_boards.smartrecruiters_board(url, fetch_text, role_fit)
+                else:
+                    board_jobs = medical_boards.uhn_board(url, fetch_text, role_fit)
+                return (True, board_jobs, board_company)
             raw_text = fetch_text(url, timeout=20)
             board_jobs = []
-            is_xml = (url.endswith(".xml") or kind == "personio" or 
+            is_xml = (url.endswith(".xml") or kind == "personio" or
                       raw_text.strip().startswith("<?xml") or raw_text.strip().startswith("<work-positions"))
             if is_xml:
                 root = ET.fromstring(raw_text)
@@ -788,8 +998,11 @@ def vendor_source(cfg, limit):
                 return (True, board_jobs, board_company)
 
             raw = json.loads(raw_text)
+            if not isinstance(raw, (dict, list)) or (isinstance(raw, dict) and not any(
+                    key in raw for key in ("jobs", "data", "items", "content", "offers", "postings"))):
+                raise ValueError("Malformed vendor board listing response")
             items = raw if isinstance(raw, list) else (
-                raw.get("jobs") or raw.get("data") or raw.get("items") or 
+                raw.get("jobs") or raw.get("data") or raw.get("items") or
                 raw.get("content") or raw.get("offers") or raw.get("postings") or []
             )
             for item in items:
@@ -800,8 +1013,8 @@ def vendor_source(cfg, limit):
                     comp_id = (item.get("company") or {}).get("identifier") or board_company.lower().replace(" ", "")
                     url2 = f"https://jobs.smartrecruiters.com/{comp_id}/{item.get('id')}"
                 else:
-                    url2 = (item.get("absolute_url") or item.get("hostedUrl") or item.get("applyUrl") or 
-                            item.get("jobUrl") or item.get("url") or item.get("careers_url") or 
+                    url2 = (item.get("absolute_url") or item.get("hostedUrl") or item.get("applyUrl") or
+                            item.get("jobUrl") or item.get("url") or item.get("careers_url") or
                             (item.get("actions") or {}).get("openJobDetails") or "")
                 loc = item.get("location", {})
                 if isinstance(loc, dict):
@@ -810,15 +1023,27 @@ def vendor_source(cfg, limit):
                     loc = ", ".join(str(x) for x in loc if x)
                 else:
                     loc = str(loc or "")
+                if not loc or loc == "{}":
+                    cats = item.get("categories") or {}
+                    if isinstance(cats, dict):
+                        loc = cats.get("location") or ", ".join(cats.get("allLocations") or []) or ""
+                if not url2:
+                    url2 = item.get("hostedUrl") or item.get("applyUrl") or ""
                 title = item.get("title") or item.get("text") or item.get("name") or ""
                 desc = item.get("content") or item.get("descriptionPlain") or item.get("description") or item.get("descriptionHtml") or item.get("body") or ""
                 board_jobs.append({"title": title, "company": company, "location": loc, "url": url2, "description": desc})
             return (True, board_jobs, board_company)
         except Exception as e:
+            from medical_boards import PartialBoardError
+            if isinstance(e, PartialBoardError):
+                _vendor_sync_safe["v"] = False
+                _vendor_board_status.append({"kind": kind, "url": url, "status": "partial", "error": str(e), "records": len(e.jobs)})
+                return (True, e.jobs, board_company)
+            _vendor_board_status.append({"kind": kind, "url": url, "status": "error", "error": str(e)[:250]})
             print(f"vendor {kind} {url}: {e}", file=sys.stderr)
             return (False, [], board_company)
 
-    with ThreadPoolExecutor(max_workers=10) as ex:
+    with ThreadPoolExecutor(max_workers=35) as ex:
         for ok, board_jobs, board_company in ex.map(_fetch_board, tasks):
             if ok:
                 jobs.extend(board_jobs)
@@ -835,19 +1060,24 @@ def remotive_source(keyword, limit):
         print(f"remotive: {e}", file=sys.stderr); return []
 
 def jobicy_source(keyword, limit):
-    """jobicy.com — free public API. `tag` only accepts single words (multi-word
-    phrases 404), so query on the first word and refine client-side."""
+    """jobicy.com — free public REST API v2 for remote jobs. Supports tag, industry, and geo."""
     tag = keyword.split()[0] if keyword.split() else ""
     url = f"https://jobicy.com/api/v2/remote-jobs?count={max(limit, 50)}&tag={quote(tag)}"
+    jobs = []
     try:
         jobs = json.loads(fetch_text(url, timeout=20)).get("jobs", [])
     except urllib.error.HTTPError as e:
-        if e.code != 404:  # 404 just means "<tag>" isn't one of Jobicy's fixed categories
+        if e.code == 404:
+            try:
+                fallback_url = f"https://jobicy.com/api/v2/remote-jobs?count={max(limit, 50)}&geo=europe"
+                jobs = json.loads(fetch_text(fallback_url, timeout=20)).get("jobs", [])
+            except Exception:
+                pass
+        else:
             print(f"jobicy: {e}", file=sys.stderr)
-        return []
     except Exception as e:
         print(f"jobicy: {e}", file=sys.stderr); return []
-    if len(keyword.split()) <= 1:
+    if not keyword or len(keyword.split()) <= 1:
         return jobs[:limit]
     return [j for j in jobs if _kw_match(keyword, j.get("jobTitle", "") + " " + j.get("jobExcerpt", ""))][:limit]
 
@@ -926,9 +1156,7 @@ def simplify_source(keyword, limit, cfg=None):
                 locations = item.get("locations") or []
                 loc_str = ", ".join(locations) if isinstance(locations, list) else str(locations)
                 category = item.get("category") or ""
-                is_spon = sponsorship == "Offers Sponsorship" or ("does not offer" not in sponsorship.lower() and "citizenship" not in sponsorship.lower())
-                spon_text = "visa sponsorship and relocation assistance available" if is_spon else sponsorship
-                desc = f"{title} at {company}. Category: {category}. Locations: {loc_str}. Sponsorship: {spon_text}."
+                desc = f"{title} at {company}. Category: {category}. Locations: {loc_str}. Sponsorship: {sponsorship or 'Not stated'}."
                 jobs.append({
                     "title": title,
                     "company": company,
@@ -1004,7 +1232,7 @@ def relocate_source(cfg, limit):
     if "relocate" not in _full_list_cache:
         jobs = []
         try:
-            with sync_playwright() as pw:
+            with browser_playwright(cfg) as pw:
                 b = launch_browser(pw, cfg, headless=True)
                 page = b.new_context(user_agent=UA).new_page()
                 safe_goto(page, "https://relocate.me/international-jobs?query=security+engineer")
@@ -1042,7 +1270,7 @@ def google_source(cfg, limit):
         jobs = []
         base = "https://www.google.com/about/careers/applications/jobs/results/?q=security&location=Europe"
         try:
-            with sync_playwright() as pw:
+            with browser_playwright(cfg) as pw:
                 b = launch_browser(pw, cfg, headless=True)
                 page = b.new_context(user_agent=UA).new_page()
                 seen_urls = set()
@@ -1084,15 +1312,154 @@ def google_source(cfg, limit):
         _full_list_cache["google"] = jobs
     return _full_list_cache["google"][:limit]
 
-def himalayas_source(keyword, limit):
-    """himalayas.app — 100k+ remote jobs, free API, no key. No server-side keyword
-    search, so cache the newest 500 once per run and filter client-side."""
+_HN_JOB_INDICATORS = re.compile(r"\b(remote|onsite|hybrid|engineer|developer|designer|analyst|full[- ]time|hiring|security|devops|sre|architect)\b", re.I)
+
+def hn_source(cfg, limit):
+    """Hacker News 'Ask HN: Who is hiring?' monthly feed.
+    Pulls top-level hiring posts and extracts direct ATS links (Greenhouse, Lever, Ashby, Workable)
+    and verified tech company opportunities."""
+    from concurrent.futures import ThreadPoolExecutor
+    jobs = []
+    try:
+        user_url = "https://hacker-news.firebaseio.com/v0/user/whoishiring.json"
+        raw_user = json.loads(fetch_text(user_url, timeout=15))
+        submitted = raw_user.get("submitted", [])
+        thread_id = None
+        for sid in submitted[:10]:
+            item = json.loads(fetch_text(f"https://hacker-news.firebaseio.com/v0/item/{sid}.json", timeout=10))
+            title = (item.get("title") or "").lower()
+            if "who is hiring" in title:
+                thread_id = sid
+                break
+        if not thread_id and submitted:
+            thread_id = submitted[0]
+        if not thread_id:
+            return []
+
+        story = json.loads(fetch_text(f"https://hacker-news.firebaseio.com/v0/item/{thread_id}.json", timeout=15))
+        kids = story.get("kids", [])[:max(limit * 4, 40)]
+
+        def _fetch_kid(kid):
+            try:
+                k_data = json.loads(fetch_text(f"https://hacker-news.firebaseio.com/v0/item/{kid}.json", timeout=10))
+                raw = k_data.get("text", "")
+                if not raw or k_data.get("deleted") or k_data.get("dead"):
+                    return None
+                t = html.unescape(raw)
+                first_line = re.sub(r"<[^>]+>", " ", t.split("<p>")[0]).strip()
+                if not _HN_JOB_INDICATORS.search(first_line) and not _HN_JOB_INDICATORS.search(t[:300]):
+                    return None
+
+                parts = [p.strip() for p in re.split(r"[|•\u2013-]", first_line) if p.strip()]
+                comp = parts[0] if parts else "Tech Company"
+                comp = re.sub(r"https?://\S+", "", comp).strip(" /") or "Tech Company"
+                role = parts[1] if len(parts) > 1 else "Software Engineer"
+                loc = parts[2] if len(parts) > 2 else "Remote"
+
+                links = re.findall(r'href="([^"]+)"', t)
+                ats_link = None
+                for l in links:
+                    l_lower = l.lower()
+                    if any(ats in l_lower for ats in ["greenhouse.io", "lever.co", "ashbyhq.com", "workable.com", "smartrecruiters.com", "/jobs", "/careers"]):
+                        ats_link = l
+                        break
+                if not ats_link and links:
+                    for l in links:
+                        if not any(ign in l.lower() for ign in ["github.com", "youtu", "twitter.com", "x.com", "linkedin.com/in", "perfectwiki"]):
+                            ats_link = l
+                            break
+                if not ats_link:
+                    return None
+
+                desc = _strip_html(t)
+                return {"title": role[:120], "company": comp[:80], "location": loc[:80],
+                        "url": ats_link, "description": desc[:3000]}
+            except Exception:
+                return None
+
+        with ThreadPoolExecutor(max_workers=10) as ex:
+            for res in ex.map(_fetch_kid, kids):
+                if res and res.get("url"):
+                    jobs.append(res)
+                    if len(jobs) >= limit:
+                        break
+    except Exception as e:
+        print(f"hn source error: {e}", file=sys.stderr)
+    return jobs[:limit]
+
+def cryptojobs_source(keyword, limit):
+    """cryptojobslist.com — free public RSS feed with 100+ active crypto, web3, fintech & tech vacancies."""
+    jobs = []
+    try:
+        raw_xml = fetch_text("https://cryptojobslist.com/rss.xml", timeout=15)
+        root = ET.fromstring(raw_xml)
+        channel = root.find("channel")
+        items = channel.findall("item") if channel is not None else []
+        kw = keyword.lower() if keyword else ""
+        for it in items:
+            title = it.findtext("title") or ""
+            link = it.findtext("link") or ""
+            desc = _strip_html(it.findtext("description") or "")
+            if not title or not link:
+                continue
+            comp = ""
+            if " at " in title:
+                parts = title.split(" at ")
+                role = parts[0].strip()
+                comp = parts[1].strip()
+            elif " - " in title:
+                parts = title.split(" - ")
+                role = parts[0].strip()
+                comp = parts[1].strip()
+            else:
+                role = title
+            if kw and kw not in role.lower() and kw not in desc.lower() and kw not in comp.lower():
+                continue
+            jobs.append({
+                "title": role[:120],
+                "company": comp[:80] or "Web3 Company",
+                "location": "Remote",
+                "url": link,
+                "description": desc[:3000]
+            })
+            if len(jobs) >= limit:
+                break
+    except Exception as e:
+        print(f"cryptojobs source error: {e}", file=sys.stderr)
+    return jobs[:limit]
+
+def himalayas_source(keyword, limit, cfg=None):
+    """Read the public cursor feed; the medical search continues its sweep between runs."""
     if "himalayas" not in _full_list_cache:
+        jobs = []
         try:
-            data = json.loads(fetch_text("https://himalayas.app/jobs/api?limit=500", timeout=25))
-            _full_list_cache["himalayas"] = data.get("jobs", [])
+            medical = (cfg or {}).get("search", {}).get("include_global_vendor_boards")
+            cursor_file = ROOT / "autopilot/archive/himalayas-medical-cursor.json"
+            cursor = ""
+            if medical and cursor_file.exists():
+                cursor = json.loads(cursor_file.read_text(encoding="utf-8")).get("cursor") or ""
+                # Always check the newest page before continuing into older listings.
+                jobs.extend(json.loads(fetch_text("https://himalayas.app/jobs/api?limit=20", timeout=25)).get("jobs") or [])
+            for _ in range(25):
+                url = "https://himalayas.app/jobs/api?limit=20" + ("&cursor=" + quote(cursor) if cursor else "")
+                data = json.loads(fetch_text(url, timeout=25))
+                if not isinstance(data.get("jobs"), list):
+                    raise ValueError("Malformed Himalayas public feed")
+                jobs.extend(data["jobs"])
+                next_cursor = data.get("nextCursor") or ""
+                if next_cursor == cursor and next_cursor:
+                    raise ValueError("Himalayas repeated its pagination cursor")
+                cursor = next_cursor
+                if not cursor:
+                    break
+            _full_list_cache["himalayas_summary"] = {"feed_total": data.get("totalCount"), "scanned_page_records": len(jobs), "more_pages": bool(cursor)}
+            if medical:
+                cursor_file.parent.mkdir(parents=True, exist_ok=True)
+                cursor_file.write_text(json.dumps({"cursor": cursor, **_full_list_cache["himalayas_summary"]}, indent=2), encoding="utf-8")
         except Exception as e:
-            print(f"himalayas: {e}", file=sys.stderr); _full_list_cache["himalayas"] = []
+            _full_list_cache["himalayas_summary"] = {"error": str(e)[:250], "scanned_page_records": len(jobs)}
+            print(f"himalayas: {e}", file=sys.stderr)
+        _full_list_cache["himalayas"] = jobs
     out = []
     for j in _full_list_cache["himalayas"]:
         if _kw_match(keyword, j.get("title", "") + " " + j.get("excerpt", "") + " " + str(j.get("description", ""))):
@@ -1253,6 +1620,83 @@ def tavily_source(keyword, limit, cfg):
         return []
     return [j for j in (_tavily_job(x) for x in results) if j][:limit]
 
+LI_STATE = ROOT / "autopilot/linkedin-state.json"   # `linkedin-login`
+LI_CACHE = ROOT / "autopilot/linkedin-apply.json"   # posting id -> company form URL ("" = Easy Apply)
+# ponytail: fixed per-run cap and 2-4 s pacing keep the account under LinkedIn's radar;
+# raise only if the account shows no "unusual activity" warnings
+LI_MAX_CALLS = 60
+_LI = {"off": False, "calls": 0, "cache": None}
+
+def linkedin_apply_url(listing):
+    """Where a LinkedIn posting's Apply button leads, read through the user's own session.
+    Returns the company's form URL, "" for Easy Apply / unknown, None when it can't ask."""
+    m = re.search(r"/jobs/view/(?:[^/?]*-)?(\d{6,})", listing or "")
+    if not m or _LI["off"] or not LI_STATE.exists():
+        return None
+    jid = m.group(1)
+    if _LI["cache"] is None:
+        try: _LI["cache"] = json.loads(LI_CACHE.read_text(encoding="utf-8"))
+        except Exception: _LI["cache"] = {}
+    if jid in _LI["cache"]:
+        return _LI["cache"][jid]
+    if _LI["calls"] >= LI_MAX_CALLS:
+        return None
+    try:
+        from curl_cffi import requests as creq
+        cookies = {c["name"]: c["value"] for c in json.loads(LI_STATE.read_text(encoding="utf-8"))["cookies"]
+                   if "linkedin.com" in c.get("domain", "")}
+        if _LI["calls"]:
+            time.sleep(2 + 2 * (hash(jid) % 100) / 100)
+        _LI["calls"] += 1
+        r = creq.get(f"https://www.linkedin.com/voyager/api/jobs/jobPostings/{jid}",
+                     params={"decorationId": "com.linkedin.voyager.deco.jobs.web.shared.WebLightJobPosting-23"},
+                     headers={"csrf-token": cookies.get("JSESSIONID", "").strip('"'),
+                              "x-restli-protocol-version": "2.0.0", "accept": "application/json"},
+                     cookies=cookies, impersonate="chrome", timeout=20, allow_redirects=False)
+    except Exception as e:
+        print(f"linkedin apply url {jid}: {str(e)[:80]}", file=sys.stderr)
+        return None
+    if r.status_code != 200:
+        if r.status_code in (301, 302, 303, 401, 403, 429, 999):
+            _LI["off"] = True
+            print(f"LinkedIn answered {r.status_code}: session expired or rate-limited, skipping it this run "
+                  f"(sign in again: python tools/autopilot.py linkedin-login)", file=sys.stderr)
+        return None
+    found = re.search(r'"companyApplyUrl"\s*:\s*("(?:[^"\\]|\\.)*")', r.text)
+    url = json.loads(found.group(1)) if found else ""
+    _LI["cache"][jid] = url
+    try: LI_CACHE.write_text(json.dumps(_LI["cache"]), encoding="utf-8")
+    except OSError: pass
+    return url
+
+def _jobspy_lenient_countries():
+    # jobspy raises on a country missing from its list ("Beirut, Beirut Governorate,
+    # Lebanon" on LinkedIn) and that one card dropped every posting found for the location
+    from jobspy.model import Country
+    if getattr(Country.from_string, "_lenient", False):
+        return
+    def from_string(cls, s, _strict=Country.from_string.__func__):
+        try:
+            return _strict(cls, s)
+        except ValueError:
+            return cls.WORLDWIDE
+    setattr(from_string, "_lenient", True)
+    setattr(Country, "from_string", classmethod(from_string))
+
+def _jobspy_scrape(kwargs, bounded=False):
+    from jobspy import scrape_jobs
+    if not bounded:
+        return scrape_jobs(**kwargs)
+    import pandas as pd
+    result = subprocess.run([sys.executable, "-X", "utf8", str(ROOT / "tools/jobspy_vacancy_bridge.py")],
+                            input=json.dumps(kwargs), capture_output=True, text=True, encoding="utf-8",
+                            errors="replace", timeout=60)
+    data = json.loads(result.stdout)
+    if result.returncode or data.get("error"):
+        raise RuntimeError(f"{data.get('error') or 'JobSpy provider failure'} HTTP {data.get('http_status') or 'unknown'}")
+    return pd.DataFrame(data["jobs"], columns=["site", "title", "company", "location", "job_url_direct", "job_url", "description"])
+
+
 def jobspy_source(keyword, limit, cfg):
     try:
         from jobspy import scrape_jobs
@@ -1261,38 +1705,60 @@ def jobspy_source(keyword, limit, cfg):
             _full_list_cache["jobspy_hint"] = 1
             print("jobspy: skipped — not installed (pip install python-jobspy)", file=sys.stderr)
         return []
+    _jobspy_lenient_countries()
     js = (cfg or {}).get("jobspy", {})
     require_sponsorship = bool(((cfg or {}).get("apply") or {}).get("require_sponsorship"))
     sites = js.get("sites") or ["indeed", "google"]
     locations = js.get("locations") or ["London, UK"]
     jobs = []
     for loc in locations:
+        country = js.get("country_indeed", "UK")
+        query = keyword
+        if isinstance(loc, dict):
+            query = loc.get("keywords", {}).get(keyword, keyword)
+            country, loc = loc["country"], loc["location"]
         kwargs = dict(
             site_name=sites,
-            search_term=keyword,
-            google_search_term=f"{keyword} jobs near {loc}",
+            search_term=query,
+            google_search_term=f"{query} jobs near {loc}",
             location=loc,
             results_wanted=limit,
             hours_old=js.get("hours_old", 336),
-            country_indeed=js.get("country_indeed", "UK"),
+            country_indeed=country,
             description_format="markdown",
             verbose=0,
         )
         if isinstance(js.get("is_remote"), bool):
             kwargs["is_remote"] = js["is_remote"]
         if "linkedin" in sites:
-            kwargs["linkedin_fetch_description"] = True   # needed for job_url_direct
-        try:
-            df = scrape_jobs(**kwargs)
-        except Exception as e:
-            print(f"jobspy {loc}: {e}", file=sys.stderr)
+            kwargs["linkedin_fetch_description"] = not (cfg or {}).get("search", {}).get("require_explicit_visa_and_relocation")
+        frames = []
+        for site in sites:
+            if site in _full_list_cache.get("jobspy_paused_sites", set()):
+                continue
+            try:
+                frames.append(_jobspy_scrape({**kwargs, "site_name": [site]}, bounded=bool((cfg or {}).get("search", {}).get("require_explicit_visa_and_relocation"))))
+            except Exception as e:
+                status = next((code for code in (429, 403, 401) if str(code) in str(e)), None)
+                error = {"source": "jobspy", "site": site, "market": loc, "http_status": status,
+                         "error": type(e).__name__}
+                _full_list_cache.setdefault("jobspy_errors", []).append(error)
+                if status in (429, 403) or isinstance(e, subprocess.TimeoutExpired):
+                    _full_list_cache.setdefault("jobspy_paused_sites", set()).add(site)
+                print(f"jobspy {site} {loc}: {type(e).__name__}, HTTP {status or 'unknown'}", file=sys.stderr)
+        if not frames:
             continue
+        import pandas as pd
+        df = pd.concat(frames, ignore_index=True)
         rows = []
         for _, r in df.iterrows():
             # empty pandas cells are NaN, which is truthy: `direct or job_url` took the
             # NaN and the whole row was dropped as "no url"
             direct, listing = r.get("job_url_direct"), r.get("job_url")
             company, desc = r.get("company"), r.get("description")
+            if (cfg or {}).get("search", {}).get("require_explicit_visa_and_relocation") and not title_fit(
+                    {"title": str(r.get("title") or ""), "persona": (cfg or {}).get("active_persona", "appsec")}, cfg):
+                continue
             rows.append({"site": r.get("site"), "direct": direct if isinstance(direct, str) else "",
                          "listing": listing if isinstance(listing, str) else "",
                          "company": company.strip() if isinstance(company, str) else "",
@@ -1310,6 +1776,13 @@ def jobspy_source(keyword, limit, cfg):
         for x in rows:
             if x["site"] == "linkedin" and x not in need and (not x["direct"] or "linkedin.com" in x["direct"].lower()):
                 x["drop"] = True
+        # with a signed-in session LinkedIn names the company form directly (Workday, own
+        # sites too); Easy Apply postings and the rest still go through the board lookup
+        for x in list(need):
+            url = linkedin_apply_url(x["listing"])
+            if url:
+                x["direct"] = url
+                need.remove(x)
         if need:
             from concurrent.futures import ThreadPoolExecutor
             from ats_schema import find_on_company_board
@@ -1328,7 +1801,7 @@ def jobspy_source(keyword, limit, cfg):
                 continue
             jobs.append({"title": x["title"], "company": x["company"], "location": x["location"],
                          "url": url, "description": x["desc"]})
-    return jobs[:limit]
+    return jobs if js.get("markets_per_run") else jobs[:limit]
 
 _YC_REGIONS = {"europe", "united kingdom", "remote", "partly remote", "fully remote"}
 
@@ -1363,6 +1836,17 @@ def startups_source(cfg, limit):
 
 def cli_source(source, keyword, limit, cfg=None):
     if source == "vendor": return vendor_source(cfg, limit)
+    if source in ("workspace_findall", "workspace_poisk"):
+        import workspace_sources
+        jobs, summary = workspace_sources.discover(source, cfg, limit, fetch_text,
+            lambda job: title_fit(job, cfg), ROOT / "autopilot/archive/workspace-vacancies")
+        _full_list_cache[source + "_summary"] = summary
+        return jobs
+    if source == "medical_startups":
+        import medical_search
+        jobs, summary = medical_search.startups(fetch_text, lambda job: title_fit(job, cfg))
+        _full_list_cache["medical_startups_summary"] = summary
+        return jobs
     if source == "startups": return startups_source(cfg, limit)
     if source == "simplify": return simplify_source(keyword, limit, cfg)
     if source == "remotive": return remotive_source(keyword, limit)
@@ -1373,81 +1857,181 @@ def cli_source(source, keyword, limit, cfg=None):
     if source == "djinni": return djinni_source(keyword, limit)
     if source == "relocate": return relocate_source(cfg, limit)
     if source == "google": return google_source(cfg, limit)
-    if source == "himalayas": return himalayas_source(keyword, limit)
+    if source == "himalayas": return himalayas_source(keyword, limit, cfg)
     if source == "themuse": return themuse_source(keyword, limit)
     if source == "workable": return workable_source(keyword, limit, cfg)
     if source == "adzuna": return adzuna_source(keyword, limit, cfg)
     if source == "jooble": return jooble_source(keyword, limit, cfg)
     if source == "jobspy": return jobspy_source(keyword, limit, cfg)
     if source == "tavily": return tavily_source(keyword, limit, cfg)
+    if source == "hn": return hn_source(cfg, limit)
+    if source == "cryptojobs": return cryptojobs_source(keyword, limit)
+    if source == "linkedin":
+        import linkedin_bot
+        return linkedin_bot.linkedin_source(keyword, limit, cfg)
     print(f"unknown source '{source}'; skipping", file=sys.stderr)
     return []
 
-_SINGLE_FETCH_SOURCES = {"vendor", "simplify", "relocate", "google", "startups"}  # ignore keyword: fetch once per run, not per-keyword
+_SINGLE_FETCH_SOURCES = {"vendor", "simplify", "relocate", "google", "startups", "medical_startups", "workspace_findall", "workspace_poisk", "hn"}  # ignore keyword: fetch once per run, not per-keyword
+
+def _listing_role_key(job):
+    company = re.sub(r"\b(?:inc|llc|ltd|gmbh|technologies)\b\.?", "", str(job.get("company") or ""), flags=re.I)
+    company = re.sub(r"[\W_]", "", company.lower())
+    title = re.sub(r"\((?:[mfxwd][/|, ]*){2,}\)", "", str(job.get("title") or ""), flags=re.I)
+    title = " ".join(re.findall(r"[^\W_]+", title.lower()))
+    return f"role:{company}:{title}" if company and title else None
+
+
+def _prior_listing_identities(con):
+    ids, urls, keys = set(), set(), set()
+    rows = con.execute("SELECT a.job_id, j.url, a.apply_url FROM applications a LEFT JOIN jobs j ON j.id=a.job_id").fetchall()
+    rows += [(row[0], row[1], None) for row in con.execute(
+        "SELECT id, url FROM jobs WHERE status <> 'queued' OR coalesce(hidden,0)=1 OR coalesce(dead_listing,0)=1")]
+    for row in rows:
+        ids.add(row[0])
+        for url in row[1:]:
+            if url:
+                urls.add(canonical_url(url))
+                keys.add(_ats_job_key(url))
+    keys.discard(None)
+    for row in con.execute("SELECT DISTINCT j.company,j.title FROM jobs j LEFT JOIN applications a ON a.job_id=j.id "
+                           "WHERE a.attempt_id IS NOT NULL OR j.status <> 'queued' OR coalesce(j.hidden,0)=1 OR coalesce(j.dead_listing,0)=1"):
+        role_key = _listing_role_key({"company": row[0], "title": row[1]})
+        if role_key:
+            keys.add(role_key)
+    return ids, urls, keys
+
 
 def discover(args):
     cfg = read_json(CFG)
     con = db.connect()
     target_persona = getattr(args, "persona", "all")
     personas_to_run = [target_persona] if target_persona and target_persona != "all" else list(cfg.get("personas", {"appsec": {}, "creative": {}}).keys())
-    sources = args.source or ["vendor", "startups", "simplify", "remotive", "jobicy", "remoteok", "arbeitnow", "wwr", "djinni", "relocate",
-                              "google", "himalayas", "themuse", "workable", "adzuna", "jobspy", "tavily"]
+    if isinstance(getattr(args, "source", None), str):
+        sources = [args.source]
+    else:
+        sources = getattr(args, "source", None) or ["vendor", "startups", "simplify", "remotive", "jobicy", "remoteok", "arbeitnow", "wwr", "djinni", "relocate",
+                                  "google", "himalayas", "themuse", "workable", "adzuna", "jobspy", "tavily", "hn", "cryptojobs"]
+    if not getattr(args, "source", None) and target_persona != "all" and get_persona_cfg(
+            cfg, target_persona).get("search", {}).get("require_explicit_visa_and_relocation"):
+        sources = get_persona_cfg(cfg, target_persona).get("search", {}).get("discovery_sources") or ["vendor"]
     seen_this_run = set()  # skip re-upserting the same listing twice within one run
+    seen_this_run_keys = set()
     vendor_seen_ids = set()  # every id the vendor boards reported this run, incl. low-score ones
     added, updated = 0, 0
+    excluded = collections.Counter()
+    screened = []
+    attempted_ids, attempted_urls, attempted_keys = _prior_listing_identities(con)
+    scanned = 0
+    source_counts, source_errors, markets = collections.Counter(), [], []
     single_fetch_done = set()
-    single = [s for s in sources if s in _SINGLE_FETCH_SOURCES]
-    non_single_count = len(sources) - len(single)
-
-    total_steps = 0
-    for p_name in personas_to_run:
-        p_cfg = get_persona_cfg(cfg, p_name)
-        kws = p_cfg["search"]["keywords"][:args.max_keywords]
-        total_steps += len(kws) * non_single_count
-    total_steps += len(single)
-    total_steps = max(1, total_steps)
+    total_steps = max(1, len(sources) * args.max_keywords * len(personas_to_run))
 
     step = 0
     write_progress(0, total_steps, "starting")
     for p_name in personas_to_run:
         p_cfg = get_persona_cfg(cfg, p_name)
         keywords = p_cfg["search"]["keywords"][:args.max_keywords]
-        for kw in keywords:
-            for src in sources:
+        if "jobspy" in sources and p_cfg.get("jobspy", {}).get("markets_per_run"):
+            locations = p_cfg["jobspy"].get("locations") or []
+            cursor_file = ROOT / "autopilot/archive" / f"{p_name}-search-markets.json"
+            try:
+                cursor = int(json.loads(cursor_file.read_text(encoding="utf-8"))["cursor"])
+            except (OSError, ValueError, KeyError, TypeError):
+                cursor = 0
+            count = min(len(locations), int(p_cfg["jobspy"]["markets_per_run"]))
+            markets = [locations[(cursor + i) % len(locations)] for i in range(count)]
+            p_cfg["jobspy"] = {**p_cfg["jobspy"], "locations": markets}
+        for src in sources:
+            source_keywords = [""] if src in _SINGLE_FETCH_SOURCES else p_cfg.get("search", {}).get("source_keywords", {}).get(src, keywords)[:args.max_keywords]
+            for kw in source_keywords:
                 if _quit_requested():
                     print(">>> discover stopped by user.", file=sys.stderr)
                     write_progress(total_steps, total_steps)
                     break
                 write_progress(step, total_steps, f"[{p_name}] {src} · {kw}" if kw else f"[{p_name}] {src}")
                 try:
+                    source_counts.setdefault(src, 0)
                     if src in _SINGLE_FETCH_SOURCES:
                         if src in single_fetch_done: continue
                         single_fetch_done.add(src)
                     q = "" if src in _SINGLE_FETCH_SOURCES else kw
                     for item in cli_source(src, q, args.limit, p_cfg):
                         item_persona = p_name
-                        if src in _SINGLE_FETCH_SOURCES:
+                        if src in _SINGLE_FETCH_SOURCES and target_persona == "all":
                             t = (item.get("title") or item.get("jobTitle") or "").lower()
                             item_persona = classify_persona(t, cfg, "appsec")
                         item_cfg = get_persona_cfg(cfg, item_persona)
+                        scanned += 1
+                        source_counts[src] += 1
+                        strict = item_cfg.get("search", {}).get("require_explicit_visa_and_relocation")
+                        raw_title = item.get("title") or item.get("jobTitle") or item.get("position") or item.get("name") or item.get("text") or ""
+                        if strict and not title_fit({"title": raw_title, "persona": item_persona}, item_cfg):
+                            excluded["role_mismatch"] += 1
+                            continue
                         job = normalize(src, q, item, item_cfg, persona=item_persona)
                         if not job["url"]: continue
                         if src == "vendor": vendor_seen_ids.add(job["id"])
+                        if strict:
+                            if src in ("medical_startups", "workspace_findall", "workspace_poisk"):
+                                job["source"] = "vendor"
+                                job["discovered_via"] = src
+                                job["sector_context"] = item.get("sector_context") or ""
+                            elif src != "vendor" and title_fit(job, item_cfg) and _sector_focus_bonus(job, item_cfg.get("search", {})):
+                                import medical_search
+                                try:
+                                    job = medical_search.primary_posting(job, fetch_text) or job
+                                    if job.get("source") == "vendor":
+                                        job = {**normalize("vendor", f"{src}:{q}", job, item_cfg, persona=item_persona), "discovered_via": src}
+                                except Exception as exc:
+                                    source_errors.append({"source": src, "url": job["url"], "error": str(exc)[:200]})
+                            reason = ("already_attempted_or_closed" if job["id"] in attempted_ids
+                                      or canonical_url(job["url"]) in attempted_urls
+                                      or _ats_job_key(job["url"]) in attempted_keys
+                                      or _listing_role_key(job) in attempted_keys
+                                      else _strict_discovery_reason(job, item_cfg))
+                            if title_fit(job, item_cfg):
+                                screened.append({**job, "discovery_reason": reason or "eligible"})
+                            if reason:
+                                excluded[reason] += 1
+                                continue
                         if job["id"] in seen_this_run or job["score"] < args.min_score: continue
+                        if strict:
+                            keys = {k for k in (_ats_job_key(job["url"]), _listing_role_key(job)) if k}
+                            if keys & seen_this_run_keys:
+                                excluded["duplicate_this_run"] += 1
+                                continue
+                            seen_this_run_keys.update(keys)
                         seen_this_run.add(job["id"])
                         is_new = not db.job_exists(con, job["id"])
                         db.upsert_job(con, job)
                         added += is_new; updated += not is_new
                 except Exception as e:
                     if src == "vendor": _vendor_sync_safe["v"] = False
+                    source_errors.append({"source": src, "keyword": kw, "error": str(e)[:250]})
                     print(f"[{p_name}] {src}:{kw}: {e}", file=sys.stderr)
                 step += 1
             if _QUIT_RUN["v"]: break
+            if src == "jobspy" and markets and not _QUIT_RUN["v"]:
+                cursor_file.parent.mkdir(parents=True, exist_ok=True)
+                cursor_file.write_text(json.dumps({"cursor": cursor + count, "total": len(locations), "markets": markets}, ensure_ascii=False, indent=2), encoding="utf-8")
         if _QUIT_RUN["v"]: break
     dead_marked = (db.mark_dead_if_missing(con, "vendor", vendor_seen_ids, _vendor_failed_companies)
                    if "vendor" in single_fetch_done and _vendor_sync_safe["v"] else 0)
     write_progress(total_steps, total_steps)
-    print(json.dumps({"added": added, "updated": updated, "marked_dead": dead_marked, "personas": personas_to_run}, indent=2))
+    result = {"added": added, "updated": updated, "marked_dead": dead_marked, "personas": personas_to_run,
+              "scanned": scanned, "excluded": dict(excluded),
+              "board_errors": list(_vendor_board_status) if "vendor" in single_fetch_done else [],
+              "source_counts": dict(source_counts), "source_errors": source_errors + _full_list_cache.get("jobspy_errors", []), "markets": markets,
+              "medical_startups": _full_list_cache.get("medical_startups_summary", {}),
+              "himalayas": _full_list_cache.get("himalayas_summary", {}),
+              "workspace_sources": {name: _full_list_cache.get(name + "_summary", {}) for name in ("workspace_findall", "workspace_poisk") if name in single_fetch_done}}
+    if screened:
+        report = ROOT / "autopilot" / "archive" / f"healthtech-discovery-{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}.json"
+        report.parent.mkdir(parents=True, exist_ok=True)
+        report.write_text(json.dumps({**result, "screened": screened}, indent=2, ensure_ascii=False), encoding="utf-8")
+        result["report"] = str(report)
+    print(json.dumps(result, indent=2))
 
 def _strip_html(text):
     t = html.unescape(text or "")
@@ -1459,16 +2043,31 @@ _FALLBACK_COVER_BODY = ("<p>I am applying for the {title} role at {company}. My 
     "the experience I would bring to it.</p>{bio}<p>I would welcome the opportunity to discuss how I can "
     "contribute to your team.</p>")
 
+_FALLBACK_CREATIVE_COVER_BODY = _FALLBACK_COVER_BODY
+
+def _llm_error_hint(e, base_url=None):
+    """A bare 'Connection error.' doesn't tell you WHERE to look — this names the
+    actual local proxy URL and distinguishes 'it's down' from 'it's up but stuck',
+    since those need different fixes (restart the proxy vs. just wait/retry)."""
+    msg = str(e)
+    where = f" ({base_url})" if base_url else ""
+    low = msg.lower()
+    if "connect" in low or "connection error" in low:
+        return f"LLM proxy unreachable{where} — check that your local proxy process is running. Raw: {msg}"
+    if "timed out" in low or "timeout" in low:
+        return f"LLM proxy{where} didn't respond within 30s — it may be running but stuck/overloaded. Raw: {msg}"
+    return msg
+
 def generate_cover_letter_body(job, cfg):
     """Ask the LLM for a cover letter body grounded in the real CV text and
     this specific job description — not the same canned paragraph for every
     company. Falls back to the static template if the LLM is unavailable."""
     llm = cfg.get("llm", {})
     p_name = get_job_persona(job, cfg.get("active_persona", "appsec"), cfg)
-    bio = (((cfg.get("personas") or {}).get(p_name) or {}).get("profile") or {}).get("bio", "")
-    fallback = _FALLBACK_COVER_BODY.format(title=html.escape(job.get("title") or "open"),
-                                           company=html.escape(job.get("company") or "your team"),
-                                           bio=f"<p>{html.escape(bio)}</p>" if bio else "")
+    fallback_tpl = _FALLBACK_CREATIVE_COVER_BODY if p_name == "creative" else _FALLBACK_COVER_BODY
+    default_role = "creative role" if p_name == "creative" else "security role"
+    fallback = fallback_tpl.format(title=html.escape(job.get("title") or default_role),
+                                   company=html.escape(job.get("company") or "your team"))
     if not llm.get("enabled", True):
         return fallback
     if not llm_providers(cfg):
@@ -1541,9 +2140,9 @@ def cover_html(job, cfg):
             f"<p>Kind regards,<br>{name}</p>")
 
 def make_cover(job, cfg):
-    path =Path(tempfile.gettempdir()) / f"autopilot-cover-{os.getpid()}-{job['id']}.pdf"
+    path = Path(tempfile.gettempdir()) / f"autopilot-cover-{os.getpid()}-{job['id']}.pdf"
     with sync_playwright() as pw:
-        browser = launch_browser(pw, cfg, headless=True)
+        browser = pw.chromium.launch(headless=True)
         page = browser.new_page()
         page.set_content(cover_html(job, cfg), wait_until="load")
         page.pdf(path=str(path), format="A4", print_background=True)
@@ -1551,7 +2150,7 @@ def make_cover(job, cfg):
     return str(path)
 
 def text_of(el):
-    try: return " ".join([el.get_attribute(x) or "" for x in ["name", "id", "placeholder", "aria-label", "autocomplete"]])
+    try: return " ".join([el.get_attribute(x, timeout=1000) or "" for x in ["name", "id", "placeholder", "aria-label", "autocomplete"]])
     except Exception: return ""
 
 def label_of(el):
@@ -1585,7 +2184,37 @@ def label_of(el):
     except Exception:
         return ""
 
+_DATE_PART_RE = re.compile(r"\b(?:start|end|from|to)\s+(?:date\s+)?(?:year|month)\b", re.I)
+_FIELD_VALID_JS = r"""el => {
+    if (!el.checkValidity() || el.getAttribute('aria-invalid') === 'true') return false;
+    const label = [...(el.labels || [])].map(e => e.innerText).join(' ') || el.getAttribute('aria-label') || '';
+    if (/\b(start|end|from|to)\s+(date\s+)?year\b/i.test(label) && el.value.trim()) {
+        return /^(19\d{2}|20\d{2}|2100)$/.test(el.value.trim());
+    }
+    return true;
+}"""
+
+
+def _llm_field_label(el):
+    label = label_of(el).strip().replace("*", "").strip()
+    if _DATE_PART_RE.search(label):
+        # Education dates must not reuse dates cached for employment history.
+        section = el.evaluate("""e => {
+            for (let p=e.parentElement; p; p=p.parentElement) {
+                if (/education/i.test(p.id + ' ' + p.className)) return 'Education';
+                const h=p.querySelector('legend,h2,h3,h4');
+                if (h && /^(education|employment|work experience)$/i.test(h.innerText.trim())) return h.innerText.trim();
+            }
+            return '';
+        }""")
+        if section:
+            label = f"{section}: {label}"
+    return label
+
+
 def _is_date_input(el):
+    if _DATE_PART_RE.search(label_of(el)):
+        return False
     try:
         return bool(el.evaluate("""e => e.type === 'date'
             || !!e.closest('.react-datepicker__input-container, [class*=datepicker], [class*=date-picker]')
@@ -1599,7 +2228,7 @@ def _is_date_input(el):
         return False
 
 def _numeric_for(el, val):
-    """A type=number input rejects "50,000 - 60,000 EUR" and stays empty (SoSafe's
+    """A type=number input rejects "70,000 - 90,000 EUR" and stays empty (SoSafe's
     required salary field): give it the first number only. Other inputs unchanged."""
     try:
         numeric = (el.get_attribute("type") or "").lower() == "number" or (el.get_attribute("inputmode") or "").lower() == "numeric"
@@ -1611,15 +2240,31 @@ def _numeric_for(el, val):
     return re.sub(r"\D", "", m.group(0)) if m else ""
 
 def _name_for(label, p):
-    """A field labelled just "Name" / "Your name" gets the first name (the user's call);
-    "Full name", "Legal name", "Complete name" get first + last."""
-    l = re.sub(r"[^a-z ]", " ", (label or "").lower()).strip()
-    l = re.sub(r"\s+", " ", l)
-    if l in ("name", "your name") and p.get("first_name"):
-        return p["first_name"]
-    return p.get("full_name", "")
+    """A single Name field on a job application should always receive the candidate's full name."""
+    return p.get("full_name") or f"{p.get('first_name', '')} {p.get('last_name', '')}".strip()
 
-def fill_field(el, cfg):
+def is_honeypot_element(el):
+    """Detects honeypots, bot-traps, off-screen inputs, zero-pixel traps, and hidden fields."""
+    try:
+        return bool(el.evaluate("""e => {
+            const name = (e.name || e.id || e.getAttribute('aria-label') || '').toLowerCase();
+            if (name.includes('honey') || name.includes('trap') || name.includes('antibot') || (name.includes('bot') && !name.includes('bottom'))) return true;
+            if (e.getAttribute('aria-hidden') === 'true') return true;
+            const rect = e.getBoundingClientRect();
+            if (rect.width <= 1 || rect.height <= 1) return true;
+            if (rect.x + window.scrollX < -100 || rect.y + window.scrollY < -100) return true;
+            const style = window.getComputedStyle(e);
+            if (style.opacity === '0' || style.visibility === 'hidden' || style.display === 'none') return true;
+            if (style.position === 'absolute' && (parseInt(style.left) < -500 || parseInt(style.top) < -500)) return true;
+            if (e.closest('[style*="display: none"], [style*="visibility: hidden"], [hidden]')) return true;
+            return false;
+        }"""))
+    except Exception:
+        return False
+
+def fill_field(el, cfg, job=None):
+    if is_honeypot_element(el):
+        return False
     # never type into a react-select's internal search <input> — those dropdowns are
     # owned by fill_react_selects. fill_field's DOM-walk label lookup can grab a
     # NEIGHBOURING field's <label> (e.g. resolve "Are you Hispanic/Latino?" as the
@@ -1631,6 +2276,8 @@ def fill_field(el, cfg):
     except Exception: pass
     lbl = label_of(el)
     key = (text_of(el) + " " + lbl).lower()
+    if _DATE_PART_RE.search(lbl):
+        return False  # historical date parts belong to the CV-grounded answer path
     p = cfg["profile"]
     val = None
     # the stock "why" answer is a HealthTech pitch; keyed on the bare word it landed in
@@ -1643,7 +2290,9 @@ def fill_field(el, cfg):
     # ("To what degree are you familiar with Kubernetes?" -> "Doctor of Medicine (MD)").
     # A real field label is short; anything longer is prose, and only the configured
     # whole-word answers are allowed near it.
-    if len(lbl.strip()) > 60 and not _is_date_input(el):
+    if "referring employee" in key and "n/a" in key:
+        val = "N/A"  # Our configured source is LinkedIn, not an employee referral.
+    elif len(lbl.strip()) > 60 and not _is_date_input(el):
         val = _match_dropdown_answer(key, _answers)
         if not val:
             if "salary" in key or "compensation" in key: val = p["salary_expectation"]
@@ -1651,15 +2300,21 @@ def fill_field(el, cfg):
             elif "university" in key or "institution" in key or "school" in key: val = p.get("school", "")
             elif "degree" in key and not _DEGREE_IDIOM.search(key): val = p.get("degree", "")
             elif re.search(r"\bmajor\b(?! incident| outage| project| change)", key) or "discipline" in key: val = p.get("discipline", "")
-            elif "location" in key or "currently based" in key or "where are you based" in key: val = p["location"]
+            elif "language" in key or "languages" in key: val = p.get("languages", "")
+            elif "location" in key or "currently based" in key or "where are you based" in key or "address" in key:
+                val = p["location"]
             elif "work authorization" in key or "work authorisation" in key or "visa" in key or "sponsor" in key:
                 val = cfg["apply"]["answers"].get("work_authorization", "")
     # require the actual "name" word, not a bare "first"/"last" — labels like "last 12
     # months" or "first generation..." (an essay/demographic question) used to match
     # "first"/"last" and stamp a surname into an essay box.
     elif "email" in key: val = p["email"]
-    elif "first name" in key or "firstname" in key or "first_name" in key: val = p["first_name"]
-    elif "last name" in key or "lastname" in key or "last_name" in key or "surname" in key: val = p["last_name"]
+    elif ("first" in key and "last" in key) or "first name & last name" in key or "first and last name" in key:
+        val = p["full_name"]
+    elif ("first name" in key or "firstname" in key or "first_name" in key) and not ("last name" in key or "surname" in key):
+        val = p["first_name"]
+    elif "last name" in key or "lastname" in key or "last_name" in key or "surname" in key:
+        val = p["last_name"]
     elif "legal name" in key: val = p["full_name"]  # "if different than above" — it isn't; leave same, not blank
     elif ("full name" in key or "fullname" in key
           or (re.search(r"\b(?:your\s+)?name\b", key) and not any(x in key for x in ["first", "last", "user", "company", "school", "employer", "file", "manager", "project"]))
@@ -1667,7 +2322,7 @@ def fill_field(el, cfg):
           or (el.get_attribute("autocomplete") or "").lower() == "name"
           or re.sub(r"[^a-z]", "", key.replace("type here", "")) in ("name", "yourname", "enteryourname", "entername")):
         val = _name_for(lbl, p)
-    elif "phone" in key or "mobile" in key:
+    elif "phone" in key or "mobile" in key or "contact number" in key or "telephone" in key or "cell" in key:
         val = p.get("phone", "")
         # some phone widgets (ADP's included) pair the number input with its OWN
         # country/dial-code picker (flag + select) right next to it — the number field
@@ -1694,35 +2349,30 @@ def fill_field(el, cfg):
         except Exception:
             has_cc_picker = False
         if has_cc_picker:
-            cc = str(p.get("phone_country_code", "")).lstrip("+")
-            if cc:
-                val = re.sub(rf"^\+?{re.escape(cc)}[-\s]?", "", val)
-            # the picker itself defaults to whatever country the JOB is based in (e.g.
-            # "Bulgaria +359" on a Sofia posting) — leaving that unchanged while typing
-            # a bare national number produces a number tagged with the WRONG
-            # dial code entirely, not just a formatting quirk. Best-effort switch a
-            # plain native <select> to the profile country; custom flag/combobox pickers are left
-            # alone (too varied to target reliably) — a known residual gap, not silently
-            # assumed fixed.
             try:
-                country = str(p.get("country", "")).strip()
-                want = "|".join(x for x in (re.escape(country) if country else "", ("\\+" + re.escape(cc) + "\\b") if cc else "") if x)
-                el.evaluate(
-                    """(e, want) => { const re = want && new RegExp(want, 'i'); let p = e.parentElement;
-                        for (let k = 0; p && k < 3; k++, p = p.parentElement) {
-                            const sel = p.querySelector('select');
+                dial = el.evaluate(
+                    """(e, profile) => { let parent = e.parentElement;
+                        const country = (profile.country || '').toLowerCase();
+                        const code = (profile.phone_country_code || '').replace(/^\\+/, '');
+                        for (let k = 0; parent && k < 3; k++, parent = parent.parentElement) {
+                            const sel = parent.querySelector('select');
                             if (sel) {
                                 for (const o of sel.options) {
-                                    if (re && re.test(o.textContent)) {
+                                    const text = (o.textContent || '').trim();
+                                    const dial = text.match(/\\+(\\d{1,3})\\b/);
+                                    const name = text.replace(/\\s*\\+\\d+/g, '').trim().toLowerCase();
+                                    if ((country && (name === country || o.value.toLowerCase() === country)) ||
+                                        (code && dial && dial[1] === code)) {
                                         sel.value = o.value;
                                         sel.dispatchEvent(new Event('change', {bubbles:true}));
-                                        return true;
+                                        return dial ? dial[1] : code;
                                     }
                                 }
                             }
                         }
-                        return false; }"""
-                , want)
+                        return ''; }""", p)
+                if dial:
+                    val = re.sub(r"^\+?" + re.escape(dial) + r"[-\s]?", "", val)
             except Exception: pass
     elif "how did you hear" in key or "hear about this job" in key: val = "LinkedIn"
     elif _is_date_input(el) or "when can you start" in key or "earliest start" in key or "available start" in key or re.search(r"\bdate\b", key):
@@ -1730,25 +2380,30 @@ def fill_field(el, cfg):
             val = datetime.now(timezone.utc).strftime("%m/%d/%Y")
         else:
             val = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%m/%d/%Y")
+    elif "pronoun" in key: val = p.get("pronouns", "")
     elif "linkedin" in key: val = p.get("linkedin", "")
     elif "github" in key: val = p.get("github", "")
-    elif "portfolio" in key or "website" in key or "personal site" in key:
-        val = p.get("portfolio") or p.get("website") or p.get("github", "")
+    elif ("portfolio" in key or "website" in key or "personal site" in key
+          or "exercise" in key or "work sample" in key or "project" in key
+          or "submission" in key or (el.get_attribute("type") == "url" and not any(k in key for k in ["linkedin", "twitter", "facebook"]))):
+        val = p.get("github") or p.get("portfolio") or p.get("website", "")
     # some ATS run their OWN resume-parsing autofill on Education fields and get it
     # wrong — confirmed live on a Devexperts/SmartRecruiters posting: "Major" held a
     # work-experience bullet point instead of the actual field of study, "Description"
-    # invented a "Nursing Diploma, 2008-2012" that doesn't match this profile at
-    # all (the credential recorded in the profile). fill()'s unconditional overwrite
+    # invented a "Medical Nurse Diploma, 2008-2012" that doesn't match this profile at
+    # all (real credential: Doctor of Medicine). fill()'s unconditional overwrite
     # replaces whatever the platform guessed with the profile's own real values.
     elif "institution" in key or "university" in key or "school" in key: val = p.get("school", "")
     elif re.search(r"\bmajor\b(?! incident| outage| project| change)", key) or "discipline" in key: val = p.get("discipline", "")
     elif "degree" in key and not _DEGREE_IDIOM.search(key): val = p.get("degree", "")
     elif "prefer to work" in key or "preferred" in key and (re.search(r"\bcity\b", key) or "country" in key or "work from" in key):
-        val = "Open to relocation across EU/UK/Switzerland; also open to remote Europe"
-    elif "location" in key or re.search(r"\bcity\b", key) or "address" in key or "currently based" in key or "where are you based" in key: val = p["location"]
+        val = p.get("preferred_work_location", "")
+    elif "location" in key or re.search(r"\bcity\b", key) or "address" in key or "currently based" in key or "where are you based" in key:
+        val = p["location"]
     elif "salary" in key or "compensation" in key: val = p["salary_expectation"]
     elif "notice" in key or ("availability" in key and "start" in key): val = p["notice_period"]
     elif "current employer" in key: val = cfg["apply"]["answers"].get("current_employer", "")
+    elif "language" in key or "languages" in key: val = p.get("languages", "")
     elif "visa" in key or "sponsor" in key or "authorization" in key or "authorisation" in key: val = cfg["apply"]["answers"]["work_authorization"]
     else: val = _match_dropdown_answer(key, _answers)
     if val:
@@ -1811,7 +2466,7 @@ _COOKIE_ACCEPT_PATS = ["accept all", "allow all", "reject all", "accept cookies"
 _PLACE_Q = re.compile(r"countr|residen|located|location|citizenship|nationality|based in|where do you live")
 
 def _pick_other_option(page, ctrl, scope):
-    """The honest pick when the real answer (Exampleland, a Springfield university) is not in
+    """The honest pick when the real answer (Russia, a Springfield university) is not in
     the list: its "Other" / "Not listed" option, if the form has one."""
     for q in ("Other", "Not listed", "None of the above"):
         try:
@@ -1837,7 +2492,7 @@ def _enter_on_highlighted(page, scope, answer=None):
         hl = scope.locator("[class*='option--is-focused'], [role='option'][aria-selected='true'], .pac-item-selected")
         if hl.count():
             if answer:
-                # react-select always highlights its FIRST option: "Exampleland" was about to
+                # react-select always highlights its FIRST option: "Russia" was about to
                 # become "Australia" and a Springfield university "Aalborg University"
                 t = (hl.first.inner_text(timeout=800) or "").strip()
                 if not (_phrase_in(answer.lower().split(",")[0].strip(), t.lower()) or _same_entity(t, answer)):
@@ -1921,7 +2576,13 @@ def click_apply(page, settled=False):
                             continue
                     if _is_form_submit(loc):
                         continue
-                    loc.click(timeout=2500); page.wait_for_timeout(500); return True
+                    try:
+                        import stealth_mouse
+                        stealth_mouse.human_click(page, loc)
+                    except Exception:
+                        loc.click(timeout=2500)
+                    page.wait_for_timeout(500)
+                    return True
                 except Exception:
                     # a closed modal library (Magnific Popup etc.) sometimes leaves its now-empty
                     # backdrop <div> attached, still intercepting pointer events over the real
@@ -1965,7 +2626,7 @@ def fill_select(el, cfg):
     except: pass
     return False
 
-def fill_scope(scope, cfg, cv_path, cover_path, page=None):
+def fill_scope(scope, cfg, cv_path, cover_path, page=None, job=None):
     page = page or scope
     filled = 0
     for el in _locator_items(scope.locator("input:not([type=file]):not([type=hidden]):not([type=checkbox]):not([type=radio]), textarea")):
@@ -1978,7 +2639,7 @@ def fill_scope(scope, cfg, cv_path, cover_path, page=None):
                 continue
         except Exception:
             pass
-        if fill_field(el, cfg): filled += 1
+        if fill_field(el, cfg, job=job): filled += 1
     for el in _locator_items(scope.locator("select")):
         if _fill_expired(): return filled
         if fill_select(el, cfg): filled += 1
@@ -2012,19 +2673,38 @@ def fill_scope(scope, cfg, cv_path, cover_path, page=None):
                     or (accept and "pdf" not in accept and "doc" not in accept
                         and re.search(r"image|\.(jpe?g|png|gif|bmp|webp|tiff?)", accept)))
         if is_photo:
+            # Workable forms (Rightangled) require a photo: the profile's own headshot
+            photo = (cfg.get("profile") or {}).get("photo")
+            if photo and (ROOT / photo).is_file():
+                try:
+                    el.set_input_files(_upload_copy(photo, cfg["profile"].get("full_name", ""), "Photo", {"id": "photo"}),
+                                       timeout=3000)
+                    filled += 1
+                    # Workable then opens "Crop your photo" over the whole form until confirmed
+                    crop = page.get_by_role("dialog").filter(has_text=re.compile(r"\bcrop\b", re.I))
+                    crop.wait_for(state="visible", timeout=4000)
+                    crop.get_by_role("button", name=re.compile(r"^\s*(upload|save|apply|done|crop)\s*$", re.I)).first.click(timeout=3000)
+                    crop.wait_for(state="hidden", timeout=8000)
+                except Exception: pass
             continue
         # decide by the field's OWN label, not position — Ashby prepends an
         # "Autofill from resume" file input, so "cover letter is always the 2nd
         # input" (i>0) wrongly dropped the cover PDF onto the real Resume/CV field.
-        is_cover = cover_path and (("cover" in key or "motivation" in key) or (not key.strip() and cv_done))
+        is_cover = ("cover" in key or "motivation" in key) or (cover_path and not key.strip() and cv_done)
         # a resume field also positively identifies itself; only fall back to
         # "first unlabeled file input = the CV" once, so a stray extra input
         # (autofill/portfolio) doesn't grab the CV.
-        is_resume = "resume" in key or "cv" in key or ("upload" in key and not cv_done)
+        is_supporting = bool(re.search(r"certificat|licen[cs]e|transcript|portfolio|reference|work sample|supporting|additional document", key))
+        is_resume = "resume" in key or bool(re.search(r"\bcv\b", key)) or ("upload" in key and not cv_done and not is_supporting)
         if is_cover and not is_resume:
+            if not cover_path:
+                continue
             doc = cover_path
-        else:
+        elif is_resume or (not key.strip() and not cv_done):
             doc = cv_path; cv_done = True
+        else:
+            # A CV is not evidence for a certificate, licence or other supporting document.
+            continue
         target = str(ROOT / doc)
         # some ATS upload widgets (an "Attach / Dropbox / Enter manually" button
         # trio, backed by a third-party upload SDK — confirmed live on Datadog's
@@ -2065,41 +2745,86 @@ def fill_scope(scope, cfg, cv_path, cover_path, page=None):
             except Exception: pass
             break
     cv_text = None
+    none_boxes = []
+    group_sel = ".ashby-application-form-input-checkbox-group, .ashby-application-form-field-entry, .application-question, .custom-question, fieldset, [class*='entry'], [class*='form-field']"
     for cb in _locator_items(scope.locator("input[type=checkbox]")):
         if _fill_expired(): break
         container_text, group_size = "", 1
         try:
-            container_text, group_size = cb.evaluate("""e => {
-                const p = e.closest('.ashby-application-form-input-checkbox-group, .ashby-application-form-field-entry, .application-question, .custom-question, fieldset');
+            container_text, group_size = cb.evaluate("""(e, sel) => {
+                const p = e.closest(sel);
                 return p ? [p.innerText, p.querySelectorAll('input[type=checkbox]').length] : ['', 1];
-            }""") or ("", 1)
+            }""", group_sel) or ("", 1)
         except Exception: pass
         own = (text_of(cb) + " " + label_of(cb)).lower()
         key = (own + " " + container_text).lower()
         required = (cb.get_attribute("required") is not None
                     or cb.get_attribute("aria-required") == "true"
                     or "required" in container_text.lower()
-                    or "*" in container_text)
+                    or "*" in container_text
+                    or cb.evaluate("""e => {
+                        const p = e.closest('.ashby-application-form-field-entry, .application-question, fieldset, [role="group"], [class*="entry"], [class*="form-field"]');
+                        return p ? !!p.querySelector('[class*="required"], [class*="_required"], [aria-required="true"]') : false;
+                    }"""))
         if _NO_AUTOCHECK.search(key):
             print(f"checkbox left for the human: {key[:120]}", file=sys.stderr)
             continue
-        if group_size > 1:
-            # a multi-option group ("Which certifications do you hold? *") must not be
-            # ticked wholesale — that claimed every certification. Tick only this
-            # box's own consent wording, or English in a language list.
-            ok_box = ((_CONSENT_WORDS.search(own) and not _NEGATED.search(own))
-                      or ("language" in container_text.lower() and re.search(r"\benglish\b", own))
-                      # "In what cities are you available to work?": the European ones,
-                      # where the profile relocates to (EU/UK/Switzerland/Nordics)
-                      or (_WORK_PLACE_Q.search(container_text.lower()) and _EU_PLACE.search(label_of(cb).lower() or own)))
+        lbl_clean = (label_of(cb) or own).strip()
+        ok_box = False
+        research_q = bool(_RESEARCH_SOURCES_Q.search(container_text))
+        if research_q:
+            # The posting itself was read; do not invent visits to social sites or blogs.
+            ok_box = lbl_clean.strip().lower() == "other"
+        elif group_size > 1:
+            if not ok_box:
+                cnt_low = container_text.lower()
+                lbl_low = lbl_clean.lower()
+                if any(w in cnt_low for w in ["employment history", "previously worked", "worked at", "former employee", "worked for"]):
+                    if any(w in lbl_low for w in ["never", "haven't", "not worked", "no previous", "none"]):
+                        ok_box = True
+                elif "current location" in cnt_low:
+                    if "other" in lbl_low or "russia" in lbl_low:
+                        ok_box = True
+            if not ok_box:
+                cnt_low = container_text.lower()
+                is_loc_q = _WORK_PLACE_Q.search(cnt_low)
+                if is_loc_q:
+                    cb_txt = (label_of(cb) or own).lower()
+                    has_serbia = "belgrade" in cnt_low or "serbia" in cnt_low
+                    if not has_serbia:
+                        try:
+                            par_txt = cb.evaluate("""e => {
+                                const p = e.closest('.application-question, fieldset, [class*="checkbox-group"]');
+                                return p ? p.innerText.toLowerCase() : '';
+                            }""") or ""
+                            has_serbia = "belgrade" in par_txt or "serbia" in par_txt
+                        except Exception: pass
+                    if has_serbia:
+                        if re.search(r"\b(belgrade|serbia|beograd)\b", cb_txt):
+                            ok_box = True
+                    elif _EU_PLACE.search(cb_txt):
+                        ok_box = True
+                if not ok_box:
+                    ok_box = ((_CONSENT_WORDS.search(own) and not _NEGATED.search(own))
+                              or ("language" in container_text.lower() and re.search(r"\benglish\b", own))
+                              or (re.search(r"how did you hear|referral source|where did you (?:find|hear)", container_text.lower())
+                                  and re.search(r"career|website|linkedin|online|job board", own)))
         else:
-            ok_box = required or (_CONSENT_WORDS.search(key) and not _NEGATED.search(own))
-        if not ok_box and group_size > 1 and required:
+            ok_box = bool(_CONSENT_WORDS.search(key) and not _NEGATED.search(own))
+            if not ok_box and required:
+                if cv_text is None:
+                    cv_text = (extract_cv_text(cv_path) or "").lower() if cv_path else ""
+                ok_box = _cv_supports(label_of(cb) or own, cv_text)
+        if not ok_box and group_size > 1 and required and not research_q:
             # "Which areas of AppSec have you worked on? *" / "Which languages..." —
             # an option counts only when the CV text itself names it
             if cv_text is None:
                 cv_text = (extract_cv_text(cv_path) or "").lower() if cv_path else ""
             ok_box = _cv_supports(label_of(cb) or own, cv_text)
+        if (not ok_box and group_size > 1 and required and not research_q
+                and re.search(r"none(?: of the above)?\b|never\b|not applicable\b|^n/?a$|have not\b|not submitted\b|do not\b|aware that.*(?:reject|disqualif)|decline", lbl_clean, re.I)):
+            none_boxes.append(cb)   # decided once the group's other options are settled
+            continue
         if ok_box:
             try:
                 cb.check(timeout=1000); filled += 1
@@ -2107,9 +2832,24 @@ def fill_scope(scope, cfg, cv_path, cover_path, page=None):
                 try: cb.check(timeout=1000, force=True); filled += 1
                 except Exception:
                     try:
-                        cb.evaluate("e => { if (!e.checked) { e.checked = true; e.dispatchEvent(new Event('change', {bubbles: true})); } }")
+                        cb.evaluate("e => { if (!e.checked && !e.disabled) e.click(); }")
                         filled += 1
                     except Exception: pass
+    # "Have we met you at one of our events? *" (CZI) or a required list none of whose
+    # options the CV names: the honest answer is the group's own "None" box
+    def _none_sort_key(box):
+        lbl = (label_of(box) or text_of(box) or "").lower()
+        if "selected" in lbl or "prior" in lbl:
+            return 0  # highest priority for conditional dependent questions
+        if "not applicable" in lbl or "have not" in lbl or "aware" in lbl:
+            return 1
+        return 2
+    none_boxes.sort(key=_none_sort_key)
+    for cb in none_boxes:
+        try:
+            if cb.evaluate("(e, sel) => !(e.closest(sel) || document).querySelector('input[type=checkbox]:checked')", group_sel):
+                cb.check(timeout=1000, force=True); filled += 1
+        except Exception: pass
     return filled
 
 _CV_SYNONYMS = [
@@ -2134,8 +2874,9 @@ def _cv_supports(option, cv_text):
             return True
     return False
 
-_WORK_PLACE_Q = re.compile(r"\b(cit(?:y|ies)|locations?|offices?|hubs?|countr(?:y|ies))\b.{0,60}\b(work|available|based|relocat\w*|join)"
-                           r"|\b(work|available|relocate)\b.{0,40}\b(cit(?:y|ies)|locations?|offices?)\b")
+_WORK_PLACE_Q = re.compile(r"\b(preferred\s+)?(cit(?:y|ies)|locations?|offices?|hubs?|countr(?:y|ies))\b.{0,60}\b(work|available|based|relocat\w*|join|role|position|job)"
+                           r"|\b(preferred\s+location|location\s+preference|preferred\s+office|desired\s+location)\b"
+                           r"|\b(work|available|relocate|preferred)\b.{0,40}\b(cit(?:y|ies)|locations?|offices?)\b", re.I)
 _EU_PLACE = re.compile(
     r"\b(london|manchester|edinburgh|cambridge|oxford|bristol|dublin|paris|lyon|berlin|munich|hamburg|frankfurt|cologne|"
     r"amsterdam|rotterdam|utrecht|eindhoven|the hague|brussels|antwerp|luxembourg|zurich|geneva|basel|lausanne|vienna|"
@@ -2148,7 +2889,8 @@ _EU_PLACE = re.compile(
 _MSG_OPT_IN = re.compile(r"(?i)text messages?|\bsms\b|whatsapp|marketing (?:communications?|e?mails?|messages?)"
                          r"|newsletter|promotional (?:e?mails?|messages?)|talent (?:community|newsletter)")
 
-_CONSENT_WORDS = re.compile(r"\b(privacy|consent\w*|agree\w*|terms|acknowledg\w*|confirm\w*|certif\w*|arbitration)\b")
+_CONSENT_WORDS = re.compile(r"\b(privacy|consent\w*|agree\w*|terms|acknowledg\w*|arbitration)\b")
+_RESEARCH_SOURCES_Q = re.compile(r"how well do you know us|sources?(?:/tools)?.{0,80}used.{0,40}research", re.I)
 _NEGATED = re.compile(r"\b(not|disagree|decline|refuse|don't|do not|opt out)\b")
 
 _NO_AUTOCHECK = re.compile(
@@ -2164,10 +2906,10 @@ so 'I certify I will not require sponsorship' is a false statement), and a
 marketing opt-in nobody asked for. A required one left unticked surfaces as an
 incomplete required field, which is the honest outcome - the human decides."""
 
-def fill_form(page, cfg, cv_path, cover_path):
-    filled = fill_scope(page, cfg, cv_path, cover_path, page=page)
+def fill_form(page, cfg, cv_path, cover_path, job=None):
+    filled = fill_scope(page, cfg, cv_path, cover_path, page=page, job=job)
     for fr in _fillable_frames(page):
-        try: filled += fill_scope(fr, cfg, cv_path, cover_path, page=page)
+        try: filled += fill_scope(fr, cfg, cv_path, cover_path, page=page, job=job)
         except Exception: pass
     return filled
 
@@ -2242,7 +2984,7 @@ def _fill_autocomplete(page, sels, label_pat, value, native_value=None, fallback
             page.wait_for_timeout(1600)              # let suggestions load
             # blindly pressing ArrowDown+Enter takes whatever the widget put FIRST —
             # a Google-Places-style autocomplete for "Springfield" once put a differently
-            # named village ("Springfield Village, Other Oblast") ahead of the real
+            # named village ("Russko-Springfieldiy, Sverdlovsk Oblast") ahead of the real
             # city, and the blind pick confirmed it as the candidate's location on a real
             # application. Inspect the actual suggestion list first; only fall back to the
             # blind keyboard pick if nothing there looks like a real match.
@@ -2292,10 +3034,6 @@ def _fill_autocomplete(page, sels, label_pat, value, native_value=None, fallback
                         if t and (t.split(",")[0].strip() == fl or fl in t):
                             opts.nth(o).click(timeout=1500); picked = True; break
                     except Exception: pass
-            if not picked and cnt > 0:
-                try:
-                    opts.first.click(timeout=1500); picked = True
-                except Exception: pass
             if not picked:
                 page.keyboard.press("ArrowDown")
                 page.wait_for_timeout(300)
@@ -2318,12 +3056,13 @@ def _fill_autocomplete(page, sels, label_pat, value, native_value=None, fallback
             pass
     return done
 
-def fill_location(page, cfg):
+def fill_location(page, cfg, job=None):
     """Greenhouse/Lever/Ashby location is an autocomplete: type the city
     and pick the first suggestion (a raw value won't pass React validation)."""
     loc = cfg["profile"].get("location", "")
     city = loc.split(",")[0].strip()
     country = loc.split(",")[-1].strip() if "," in loc else ""
+    native = cfg["profile"].get("location_native")
     sels = [
         "input[id*='location' i]:not([id*='ethnicity' i])",
         "input[name*='location' i]:not([name*='ethnicity' i])",
@@ -2336,7 +3075,7 @@ def fill_location(page, cfg):
         "input[class*='input-autocomplete']",
     ]
     return _fill_autocomplete(page, sels, re.compile(r"\b(city|location|residence|located|country)\b", re.I),
-                               city, cfg["profile"].get("location_native"), fallback_value=country)
+                               city, native, fallback_value=country)
 
 def fill_institution(page, cfg):
     """Education-section 'Institution' (and 'School location') on SmartRecruiters'
@@ -2358,6 +3097,14 @@ _NEEDS_SPONSOR_Q = re.compile(r"\b(need|needs|require|requires|requiring)\b.*\b(
                               r"|\b(sponsor\w*|visa)\b.*\b(need|needs|require|requires|required)\b")
 _AUTH_PATTERN_WORDS = ("right to work", "work permit", "legally", "authorized", "authorised",
                        "authorization", "authorisation", "eligible to work")
+# "Do you have an EU passport or German work visa/permit?" / "Are you an EU citizen?":
+# the candidate holds none (that is why sponsorship is needed). The config's generic
+# "visa" -> "Yes, but not one of the visas listed here" answered it Yes (HelloFresh).
+_HOLDS_PERMIT_Q = re.compile(
+    r"\b(?:do|does|are) you (?:currently )?(?:have|hold|possess|in possession of)\b.{0,80}?"
+    r"\b(?:(?:eu|eea|european|uk|british|swiss)\W+(?:passport|citizenship)|work\W+(?:visa|permit)"
+    r"|residence\W+permit|permanent\W+residen)"
+    r"|\bare you an? (?:eu|eea|european|uk|british|swiss) (?:citizen|national)\b")
 _DEGREE_IDIOM = re.compile(r"\bto what degree\b|\bdegree (?:of|to) which\b|\bto a (?:large|certain|high) degree\b")
 
 def _match_dropdown_answer(label, da):
@@ -2366,12 +3113,14 @@ def _match_dropdown_answer(label, da):
     plain "Where are you located?" questions) would otherwise win over a much more
     specific compound question like "...within 50 miles of Austin /or open for
     relocation?" purely because it happens to come earlier in the config file,
-    producing an answer ("Exampleland") that doesn't even match any real option there."""
+    producing an answer ("Russia") that doesn't even match any real option there."""
     label = " ".join(re.findall(r"[a-z0-9]+", (label or "").lower()))
     # "will you need visa sponsorship for the right to work in the UK?" is a NEED
     # question: the longer "right to work" -> "No" pattern used to win and answered it
     # backwards. Authorization patterns only answer "do you HAVE the right" questions.
     needs_q = _NEEDS_SPONSOR_Q.search(label)
+    if not needs_q and _HOLDS_PERMIT_Q.search(label):
+        return "No"
     yesno_q = re.match(r"(are|do|does|will|would|have|has|can|could|is|did|if)\b", label)
     best_pat, best_ans = None, None
     for pat, ans in da.items():
@@ -2383,20 +3132,20 @@ def _match_dropdown_answer(label, da):
         if pat_norm == "degree" and _DEGREE_IDIOM.search(label):
             continue  # "to what degree are you familiar with..." is not about a diploma
         if yesno_q and not re.match(r"(?i)\s*(yes|no)\b", str(ans)):
-            continue  # "Are you legally authorized ... in the country ..." got "Exampleland" from "country"
+            continue  # "Are you legally authorized ... in the country ..." got "Russia" from "country"
         if pat_norm == "located" and "relocat" in label:
             continue  # "located" answers a simple "where are you?"; a label that ALSO
                       # mentions relocation is really a Yes/No openness-to-relocate
-                      # question, where "Exampleland" isn't a valid option at all
+                      # question, where "Russia" isn't a valid option at all
         if pat_norm == "currently working" and re.search(r"\b(relative|relatives|partner|partners)\b", label):
             continue
         if re.search(r"(?:^| )" + re.escape(pat_norm) + r"(?: |$)", label) and (best_pat is None or len(pat_norm) > len(best_pat)):
             best_pat, best_ans = pat_norm, ans
     return best_ans
 
-_DECLINE_SYNS = ["decline", "prefer not", "don't wish", "do not wish", "not to say", "rather not", "i don't want"]
-_DEMOGRAPHIC_LABELS = ["gender", "sexual orientation", "disability", "neurodiversity", "ethnic",
-                       "race", "veteran", "hispanic", "first generation", "disclosure"]
+_DECLINE_SYNS = ["decline", "prefer not", "don't wish", "do not wish", "not to say", "rather not", "i don't want", "prefer not to disclose", "prefer not to answer"]
+_DEMOGRAPHIC_LABELS = ["gender", "sexual orientation", "sexual identity", "sexuality", "disability", "disabled", "neurodiversity", "neurodivergent", "ethnic", "ethnicity",
+                       "race", "veteran", "hispanic", "first generation", "caregiver", "self-disclosure", "voluntary disclosure", "disability disclosure", "access requirement"]
 
 _GENDER_SYNS = {"man": "male", "male": "man", "woman": "female", "female": "woman"}
 _STOPWORDS = {"the", "a", "an", "of", "to", "in", "is", "are", "i", "you", "your", "or", "for", "and"}
@@ -2490,8 +3239,8 @@ def _pick_option(scope, answer):
 def _pick_city(scope, city):
     """City autocomplete: prefer an option whose leading name-token EXACTLY matches
     the city (avoids picking a similarly-spelled but different place — confirmed live:
-    "Springfield" picked "Springfield Village, Other Oblast", a different region
-    entirely, purely because "springfield" is a substring of its name), then one that
+    "Springfield" picked "Russko-Springfieldiy, Sverdlovsk Oblast", a different region
+    entirely, purely because "krasnoyarsk" is a substring of its name), then one that
     starts with it, only falling back to a bare substring contains as a last resort."""
     cl = city.lower()
     opts = scope.locator(".select__option, [role='option'], [id*='-option-'], [class*='-option']")
@@ -2560,26 +3309,6 @@ def _same_entity(chosen, wanted):
     generic = {"university", "college", "school", "institute", "state", "national"}
     return bool((a & b) - generic)
 
-def _pick_only_option(page, ctrl, scope, label):
-    try:
-        ctrl.click(timeout=2000)
-        page.wait_for_timeout(350)
-        opts = scope.locator(".select__option")
-        if opts.count() != 1:
-            page.keyboard.press("Escape")
-            return False
-        text = (opts.first.inner_text() or "").strip()
-        opts.first.click(timeout=2000)
-        page.wait_for_timeout(200)
-        picked = ctrl.locator(".select__single-value, .select__multi-value").count() > 0
-        if picked:
-            print(f"only one option for '{label}' — selected {text[:60]!r}", file=sys.stderr, flush=True)
-        return picked
-    except Exception:
-        try: page.keyboard.press("Escape")
-        except Exception: pass
-        return False
-
 def fill_react_selects(page, scope, cfg):
     """Fill Greenhouse/Lever react-select dropdowns by their <label> text.
     `scope` is the page or an iframe (forms are often embedded in an iframe);
@@ -2587,18 +3316,24 @@ def fill_react_selects(page, scope, cfg):
     da = cfg.get("apply", {}).get("dropdown_answers", {})
     city = cfg["profile"].get("location", "").split(",")[0].strip()
     filled = 0
-    try: n = scope.locator(".select__control").count()
+    try: n = scope.locator(".select__control, [class*='select__control']").count()
     except Exception: return 0
     for idx in range(n):
         if _fill_expired(): break
         try:
-            ctrl = scope.locator(".select__control").nth(idx)
+            ctrl = scope.locator(".select__control, [class*='select__control']").nth(idx)
             if ctrl.locator(".select__single-value, .select__multi-value").count() > 0:
                 continue  # already has a value
             label = ctrl.evaluate(_SELECT_LABEL_JS)
             label = (label or "").lower().replace("*", "").strip()
             if not label: continue
-            is_city = ("location" in label and "city" in label) or "preferred working location" in label or "preferred location" in label
+            attempts = getattr(_TL, "select_attempts", None)
+            if attempts is not None:
+                key = (scope.url, idx, label)
+                if attempts.get(key, 0) >= 2:
+                    continue
+                attempts[key] = attempts.get(key, 0) + 1
+            is_city = bool(re.fullmatch(r"(?:current\s+)?location[.\s]*", label)) or ("location" in label and "city" in label) or "preferred working location" in label or "preferred location" in label
             # Education section "School" is a searchable university autocomplete, same
             # UI pattern as the city field — reuse the same type-then-pick-suggestion path.
             is_school = label.strip() == "school" or "school name" in label
@@ -2606,7 +3341,7 @@ def fill_react_selects(page, scope, cfg):
             answer = None
             if is_city: answer = city
             elif is_school: answer = cfg["profile"].get("school", "")
-            elif re.search(r"^(?:select\s+)?(?:your\s+)?country(?:\s+of\s+(?:residence|citizenship))?$", label) and not re.search(r"\b(?:one of the following|is your|are you|do you|which|what|list)\b", label): answer = da.get("country") or cfg["profile"].get("country", "")
+            elif re.search(r"^(?:select\s+)?(?:your\s+)?country(?:\s+of\s+(?:residence|citizenship))?$", label) and not re.search(r"\b(?:one of the following|is your|are you|do you|which|what|list)\b", label): answer = da.get("country", p.get("country", ""))
             else: answer = _match_dropdown_answer(label, da)
             if answer is None and any(v in label for v in _DEMOGRAPHIC_LABELS): answer = "Decline"
             if not answer:
@@ -2626,7 +3361,6 @@ def fill_react_selects(page, scope, cfg):
                         try: ctrl.evaluate("e => { if (e.blur) e.blur(); if (document.activeElement) document.activeElement.blur(); }")
                         except Exception: pass
                         continue
-                if not _offline_rule_for(label) and _pick_only_option(page, ctrl, scope, label): filled += 1
                 try: page.keyboard.press("Escape")
                 except Exception: pass
                 continue
@@ -2674,7 +3408,7 @@ def fill_react_selects(page, scope, cfg):
                         chosen = ctrl.locator(".select__single-value").first.inner_text(timeout=800)
                     except Exception:
                         pass
-                    if chosen and not _same_entity(chosen, answer):
+                    if chosen and not _same_entity(chosen, answer) and not (native and _same_entity(chosen, native)):
                         print(f"'{label}' offered {chosen.strip()[:40]!r} for {answer[:32]!r} — "
                               f"leaving it empty rather than claiming it", file=sys.stderr, flush=True)
                         try:
@@ -2691,7 +3425,7 @@ def fill_react_selects(page, scope, cfg):
                 page.wait_for_timeout(1100)
                 if not _pick_option(scope, answer) and not _enter_on_highlighted(page, scope, answer):
                     if _PLACE_Q.search(label):
-                        _pick_other_option(page, ctrl, scope)   # "Exampleland" is not listed -> Other
+                        _pick_other_option(page, ctrl, scope)   # "Russia" is not listed -> Other
             try: page.keyboard.press("Escape")
             except Exception: pass
             page.wait_for_timeout(200)
@@ -2727,6 +3461,13 @@ def fill_react_selects(page, scope, cfg):
             except Exception: pass
     return filled
 
+def _radio_option_label(el):
+    return el.evaluate("""el => {
+        const label = el.closest('label') || (el.id ? document.querySelector(`label[for="${el.id}"]`) : null);
+        return (label && label.innerText.trim()) || el.value || el.getAttribute('aria-label') || '';
+    }""")
+
+
 def fill_radio_groups(scope, cfg):
     """Ashby (OpenAI/Anthropic-via-Greenhouse-alternative, Ramp, Notion, Linear, Alan...)
     renders Yes/No and single-choice questions as native <input type=radio> groups, not
@@ -2742,7 +3483,7 @@ def fill_radio_groups(scope, cfg):
         if _fill_expired(): break
         try:
             group = scope.locator(f"input[type=radio][name='{name}']")
-            if group.count() == 0 or group.first.is_checked(): continue
+            if group.count() == 0 or group.evaluate_all('els => els.some(e => e.checked)'): continue
             label = group.first.evaluate("""el => {
                 const rg = el.closest('[role="radiogroup"], fieldset');
                 if (rg) {
@@ -2796,23 +3537,15 @@ def fill_radio_groups(scope, cfg):
             elif any(v in label for v in _DEMOGRAPHIC_LABELS): answer = "decline"
             elif _MSG_OPT_IN.search(label): answer = "no"   # SMS/marketing opt-in, not the application
             else: answer = _match_dropdown_answer(label, da)
-            if not answer:
-                try:
-                    qa_ans = db.get_qa_answer(db.connect(), label)
-                    if qa_ans: answer = qa_ans
-                except Exception:
-                    pass
             texts = []
             for i in range(group.count()):
                 r_el = group.nth(i)
-                opt_label = r_el.evaluate("""el => {
-                    const l = el.closest('label') || (el.id ? document.querySelector(`label[for="${el.id}"]`) : null);
-                    if (l && l.innerText && l.innerText.trim()) return l.innerText.trim();
-                    return el.value || el.getAttribute('aria-label') || '';
-                }""")
+                opt_label = _radio_option_label(r_el)
                 texts.append((i, (opt_label or "").strip().lower()))
             if not answer:
-                answer = offline_answer(label, [t[1] for t in texts], cfg)
+                # "Are you currently based in UAE?" as Workable radios: the offline rules
+                # (location-match, permits, relocation) only ran for buttons and dropdowns
+                answer = offline_answer(label, [t for _, t in texts], cfg)
             if not answer:
                 if any(w in label for w in ["confidential", "trade secret", "acknowledge that all information", "nda"]):
                     answer = "acknowledge"
@@ -2822,15 +3555,23 @@ def fill_radio_groups(scope, cfg):
             i = _best_option_index("decline to self identify" if answer == "decline" else answer, texts)
             if i >= 0:
                 try:
-                    group.nth(i).check(timeout=1500)
+                    group.nth(i).click(timeout=1500, force=True)
                 except Exception:
                     try:
                         group.nth(i).check(timeout=1500, force=True)
                     except Exception:
-                        try:
-                            group.nth(i).evaluate("el => { el.checked = true; el.dispatchEvent(new Event('change', {bubbles: true})); }")
-                        except Exception:
-                            pass
+                        pass
+                try:
+                    group.nth(i).evaluate("""el => {
+                        const l = el.closest('label') || (el.id ? document.querySelector(`label[for="${el.id}"]`) : null);
+                        if (l) l.click();
+                        const s = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'checked')?.set;
+                        if (s) s.call(el, true); else el.checked = true;
+                        el.dispatchEvent(new Event('input', {bubbles: true}));
+                        el.dispatchEvent(new Event('change', {bubbles: true}));
+                    }""")
+                except Exception:
+                    pass
                 filled += 1
         except Exception:
             pass
@@ -2859,10 +3600,23 @@ def fill_yesno_buttons(scope, cfg):
             btns = grp.locator("button")
             if btns.count() < 2: continue
             label = grp.evaluate("""el => {
+                const entry = el.closest('.ashby-application-form-field-entry, [class*="field-entry"], [class*="question"], [class*="form-field"], [role="group"]');
+                if (entry) {
+                    for (const sel of ['.ashby-application-form-question-title', 'label', 'legend', 'h3', 'h4', '[class*="title"]', '[class*="label"]']) {
+                        const h = entry.querySelector(sel);
+                        if (h && h.innerText && h.innerText.trim().length > 2) return h.innerText;
+                    }
+                    const nonBtns = Array.from(entry.querySelectorAll('p, span, div, h1, h2, h3, h4, h5, h6'))
+                        .filter(n => !n.closest('button') && n.innerText && n.innerText.trim().length > 3);
+                    if (nonBtns.length) return nonBtns[0].innerText;
+                }
                 let p = el;
-                for (let k = 0; k < 8 && p; k++, p = p.parentElement) {
-                    const h = p.querySelector('.ashby-application-form-question-title, label, legend, h3, h4');
-                    if (h && h.innerText && h.innerText.trim().length > 3) return h.innerText;
+                for (let k = 0; k < 4 && p; k++) {
+                    for (const sel of ['.ashby-application-form-question-title', 'label', 'legend', 'h3', 'h4']) {
+                        const h = p.querySelector(sel);
+                        if (h && h.innerText && h.innerText.trim().length > 2) return h.innerText;
+                    }
+                    p = p.parentElement;
                 }
                 return '';
             }""") or ""
@@ -2874,17 +3628,21 @@ def fill_yesno_buttons(scope, cfg):
             else: answer = _match_dropdown_answer(label, da)
             if not answer:
                 answer = offline_answer(label, ["Yes", "No"], cfg)
-                if not answer:
-                    continue   # left for llm_fill or the human
+            if not answer:
+                continue
             al = answer.split(",")[0].strip().lower()   # these buttons only ever say bare "Yes"/"No"
             for j in range(btns.count()):
                 t = (btns.nth(j).inner_text() or "").strip().lower()
                 data_opt = (btns.nth(j).get_attribute("data-option") or "").strip().lower()
                 val = (btns.nth(j).get_attribute("value") or "").strip().lower()
-                if t == al or data_opt == al or val == al:
+                if t == al or data_opt == al or val == al or (al in t if len(al) > 2 else False):
                     is_active = (btns.nth(j).get_attribute("aria-pressed") == "true" or
                                  "active" in (btns.nth(j).get_attribute("class") or "").lower() or
-                                 btns.nth(j).get_attribute("aria-checked") == "true")
+                                 btns.nth(j).get_attribute("aria-checked") == "true" or
+                                 btns.nth(j).get_attribute("aria-selected") == "true" or
+                                 btns.nth(j).get_attribute("data-state") in ("checked", "on") or
+                                 any(cls in (btns.nth(j).get_attribute("class") or "").lower()
+                                     for cls in ["selected", "checked"]))
                     if is_active:
                         filled += 1
                         break
@@ -2926,10 +3684,14 @@ def fill_all_react_selects(page, cfg):
 _LLM_SKIP_KEYS = ["first", "last", "email", "phone", "linkedin", "github", "name",
                   "location", "city", "address", "salary", "notice", "based"]
 
-def _qa_key(label, options=(), company=""):
+def _qa_key(label, options=(), company="", persona="appsec"):
     # "why us?" answers are written for one company — a global key reused the
     # Palantir motivation paragraph at the next employer. Facts stay global.
     scope = f"{slug(company)}::" if company and _is_company_specific(label, company) else ""
+    # every answer is one profession's: the AppSec "Headline" and "5 years" were reused
+    # on the photographer's forms. appsec keeps the unprefixed keys it already has.
+    if persona and persona != "appsec":
+        scope = f"{persona}@" + scope
     # strip parenthetical content ("...to the job's location (Bengaluru)?") — the
     # same generic relocation/city question repeats across every company/city with
     # only the city name differing, and keying on the raw label made every posting
@@ -3001,6 +3763,9 @@ _NOT_APPLICABLE_RE = re.compile(
     r"(?i)^(?:none|n/?a|not applicable|never|did not|do not recall|other/not applicable|not applicable/do not recall|i have never)")
 
 _OFFLINE_RULES = [
+    (r"arbitration agreement|agreement to arbitrate", "answer:arbitration_agreement"),
+    (_RESEARCH_SOURCES_Q.pattern, "pick:^Other$"),
+    (_HOLDS_PERMIT_Q.pattern, "answer:holds_work_permit"),
     (r"text messages?|\bsms\b|whatsapp|marketing (?:communications?|e?mails?)|newsletter", "No"),
     (r"countr(?:y|ies) you (?:anticipate|expect|plan|intend|would like|want) (?:to )?(?:be )?work|anticipate working in", "job-country"),
     (r"(?:plan|intend|want) to work remotely", "pick:office|on-?site|in[- ]person|^no\\b"),
@@ -3027,7 +3792,7 @@ _OFFLINE_RULES = [
     (r"citizenship status", "option:other"),
     (r"open to relocation|willing to relocate|relocat", "answer:open_to_relocation"),
     (r"open to working in-person|onsite|on-site|hybrid|in office|come (?:in)?to (?:the|our) office|office .*(?:times|days) (?:per|a) week|commut", "answer:open_to_onsite"),
-    (r"notice period|when (?:can|could) you start|earliest.*start|availability to start", "profile:notice_period"),
+    (r"notice period|when (?:can|could) you start|how soon (?:can|could) you (?:join|start)|earliest.*start|availability to start", "profile:notice_period"),
     (r"salary|compensation expectation|expected pay|desired.*compensation", "profile:salary_expectation"),
     (r"worked (?:for|at) .* (?:before|in the past|previously)|previously (?:been )?employed|former employee|employed by .* (?:before|previously)|have you (?:ever )?(?:been employed|worked) (?:by|at|for)", "answer:previous_employment"),
     (r"interviewed .* before|applied .* before", "answer:previous_application"),
@@ -3078,10 +3843,6 @@ we may contact" was answered "Yes" and submitted."""
 _SHORT_LABEL_RULES = frozenset({
     r"years of (?:professional )?(?:software|security|engineering|development|work)? experience|how many years",
 })
-"""Rules that answer with a fact about the candidate. A real "Years of experience"
-field has a short label; a sentence that merely contains the phrase is a different,
-narrower question, and answering it from the profile invents a credential ("How many
-years of experience do you have managing a team of engineers?" was answered "5")."""
 
 def _offline_rule_for(label):
     """True when an offline rule covers this question. Its lone dropdown option is then
@@ -3104,8 +3865,8 @@ def _job_country_option(job_location, options):
     """The option naming the vacancy's own country (Dublin -> Ireland); else the first
     European one the profile would relocate to; never a random first entry."""
     loc = (job_location or "").lower()
-    wanted = [c for city, c in _CITY_COUNTRY.items() if city in loc]
-    wanted += [c for c in set(_CITY_COUNTRY.values()) if c in loc]
+    wanted = [c for city, c in _CITY_COUNTRY.items() if re.search(r"\b" + re.escape(city) + r"\b", loc)]
+    wanted += [c for c in set(_CITY_COUNTRY.values()) if re.search(r"\b" + re.escape(c) + r"\b", loc)]
     for c in wanted:
         for alias in _COUNTRY_ALIASES.get(c, (c,)):
             hit = next((o for o in options if re.fullmatch(r"(?:the )?" + re.escape(alias), (o or "").strip().lower())), None)
@@ -3113,11 +3874,34 @@ def _job_country_option(job_location, options):
                 return hit
     return next((o for o in options if _EU_PLACE.search((o or "").lower())), None)
 
+_CITIZENSHIP_TEXT_RE = re.compile(r"\b(?:citizen(?:ship)?|nationality|permanent residen(?:t|ce|cy))\b", re.I)
+
+
+def _notice_period_option(value, options):
+    normalized = re.sub(r"\s+", " ", str(value or "").strip().lower())
+    exact = next((o for o in options if re.sub(r"\s+", " ", o.strip().lower()) == normalized), None)
+    if exact:
+        return exact
+    period = re.fullmatch(r"(\d+(?:\.\d+)?)\s+(days?|weeks?|months?)", normalized)
+    if not period:
+        return None
+    amount, unit = float(period.group(1)), period.group(2).rstrip('s')
+    for option in options:
+        bounds = re.fullmatch(r"(\d+(?:\.\d+)?)(?:\s*(?:to|[-–—])\s*(\d+(?:\.\d+)?))?\s+(days?|weeks?|months?)", option.strip().lower())
+        if bounds and bounds.group(3).rstrip('s') == unit:
+            low = float(bounds.group(1))
+            high = float(bounds.group(2) or bounds.group(1))
+            if low <= amount <= high:
+                return option
+    return None
+
+
 def offline_answer(label, options, cfg):
     text = re.sub(r"\s+", " ", (label or "").lower().replace("*", "").strip())
     if not text:
         return None
-    fired = False
+    if not options and _CITIZENSHIP_TEXT_RE.search(text):
+        return (cfg.get("profile", {}).get("citizenship_statement") or None) if re.search(r"citizen|nationality", text) else None
     for pattern, value in _OFFLINE_RULES:
         if not re.search(pattern, text):
             continue
@@ -3128,7 +3912,6 @@ def offline_answer(label, options, cfg):
         if value == "location-match" and "relocat" in text:
             continue   # "based in Germany, OR willing to relocate there?" is a
                        # relocation question; location-match answers it "No"
-        fired = True
         # a rule that fires but cannot be mapped onto the offered options BREAKS rather
         # than returning None, so the fallbacks below still get their turn
         if value == "job-country":
@@ -3178,12 +3961,14 @@ def offline_answer(label, options, cfg):
             value = "Yes" if bool(needs) == (value == "needs-sponsorship") else "No"
         elif value == "location-match":
             home = cfg["profile"].get("location", "").lower()
-            value = "Yes" if any(w and w in text for w in re.split(r"[\s,]+", home) if len(w) > 3) else "No"
+            value = "Yes" if any(re.search(r"\b" + re.escape(w) + r"\b", text) for w in re.split(r"[\s,]+", home) if len(w) > 3) else "No"
         elif value.startswith("answer:"):
             value = (cfg.get("apply", {}).get("answers", {}) or {}).get(value.split(":", 1)[1], "")
         elif value.startswith("profile:"):
             field = value.split(":", 1)[1]
             value = cfg["profile"].get(field, "")
+            if field == "notice_period" and options:
+                return _notice_period_option(value, options)
             if field == "portfolio" and not value:
                 value = cfg["profile"].get("website") or cfg["profile"].get("github", "")
         if not value:
@@ -3200,19 +3985,13 @@ def offline_answer(label, options, cfg):
             pos = next((o for o in options if any(k in o.lower() for k in ["agree", "read", "understand", "yes", "accept", "consent"]) and not any(n in o.lower() for n in ["do not", "not", "decline", "refuse"])), None)
             if pos:
                 return pos
-        if re.search(r"school|university|institution|college|education", pattern):
+        if re.search(r"school|university|institution|college|education|degree|discipline", pattern):
             other_opt = next((o for o in options if re.search(r"\bother\b|\bnot listed\b", (o or "").lower())), None)
             if other_opt:
                 return other_opt
         break
     if any(v in text for v in _DEMOGRAPHIC_LABELS):
         return next((o for o in options if "decline" in o.lower()), None) if options else "Decline"
-    # a rule knew the answer but no option matched it: the lone option is the wrong
-    # one ("Will you require sponsorship?" offering only "No" was answered "No")
-    if options and len(options) == 1 and not fired:
-        return options[0]   # ponytail: a one-option dropdown has exactly one submittable
-                            # value, so this is safe - but only AFTER the rules, which
-                            # used to be skipped entirely in favour of a blind pick
     return None
 
 _CLI_MODELS = {
@@ -3311,18 +4090,36 @@ def _call_cli_llm(provider, system, user, timeout):
     raise RuntimeError(blob[:110] or "no answer")
 
 
-def _call_openai_llm(provider, system, user, timeout, max_tokens):
+def _call_openai_llm(provider, system, user, timeout, max_tokens, images=None):
     from openai import OpenAI
     key = provider.get("api_key") or (os.environ.get(provider.get("key_env", ""), "") if provider.get("key_env") else "")
     if not key and provider.get("key_env"):
         raise RuntimeError(f"{provider.get('key_env')} is empty")
-    client = OpenAI(base_url=provider.get("url") or None, api_key=key or "not-needed",
-                    timeout=timeout, max_retries=0)
-    resp = client.chat.completions.create(
+    # Cloudflare 1010 rejects urllib's default agent on Groq image calls. Text calls
+    # keep the SDK default, which already works.
+    client_kwargs = dict(base_url=provider.get("url") or None, api_key=key or "not-needed",
+                         timeout=timeout, max_retries=0)
+    if images:
+        client_kwargs["default_headers"] = {"User-Agent": UA}
+    client = OpenAI(**client_kwargs)
+    user_content = user
+    if images:
+        parts = [{"type": "text", "text": user or ""}]
+        for blob in images:
+            mime = "image/jpeg" if blob[:2] == b"\xff\xd8" else "image/png"
+            parts.append({"type": "image_url", "image_url": {
+                "url": f"data:{mime};base64,{base64.b64encode(blob).decode('ascii')}"}})
+        user_content = parts
+    create_kwargs = dict(
         model=provider.get("model") or "gpt-4o-mini", max_tokens=max_tokens,
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": user}])
+        messages=[{"role": "system", "content": system}, {"role": "user", "content": user_content}])
+    if images:
+        create_kwargs["temperature"] = 0.2
+    resp = client.chat.completions.create(**create_kwargs)
     choice = resp.choices[0]
     text = (choice.message.content or "").strip()
+    if not text and images:
+        text = (getattr(choice.message, "reasoning", None) or "").strip()
     if not text and choice.finish_reason == "length":
         raise RuntimeError("model spent the whole token budget on reasoning and returned no answer "
                            "— pick a non-reasoning model or raise max_tokens")
@@ -3336,51 +4133,286 @@ def llm_providers(cfg):
         # an explicitly empty list means "no providers", not "use the built-in default"
         # - the old truthiness test posted the CV text and full profile JSON to
         # api.openai.com whenever the chain was deliberately emptied.
-        return [x for x in configured if x.get("enabled", True)]
+        enabled = [x for x in configured if x.get("enabled", True)]
+        # a CLI that is not installed fails instantly; one that hangs must not sit
+        # in front of a working API and spend the stall budget
+        return [p for p in enabled if p.get("kind") != "cli"] + [p for p in enabled if p.get("kind") == "cli"]
     return [{"name": "default", "kind": "openai", "url": llm.get("base_url"),
              "key_env": "OPENAI_API_KEY", "model": llm.get("model")}]
 
+
+# url -> (expires_at, [model id]). Groq renames models; a pinned id then 404s forever.
+_MODEL_CACHE = {}
+_SKIP_MODEL = ("whisper", "tts", "orpheus", "playai", "embed", "guard",
+               "transcribe", "speech", "audio")
+
+
+def _chat_model_ids(ids):
+    """Drop speech and safety models. Prefer a current large chat model, then smaller ones."""
+    kept = []
+    for mid in ids or []:
+        low = (mid or "").lower()
+        if not low or any(s in low for s in _SKIP_MODEL):
+            continue
+        kept.append(mid)
+    def rank(mid):
+        low = mid.lower()
+        score = 0
+        if any(s in low for s in ("70b", "72b", "120b", "405b", "large")):
+            score -= 20
+        if any(s in low for s in ("8b", "9b", "27b", "32b", "20b")):
+            score -= 10
+        if "instant" in low or "versatile" in low:
+            score -= 5
+        if any(s in low for s in ("1b", "3b", "mini", "tiny")):
+            score += 10
+        if "preview" in low or "deprecated" in low:
+            score += 15
+        return (score, low)
+    return sorted(kept, key=rank)
+
+
+def _listed_models(provider, force=False):
+    url = (provider.get("url") or "").rstrip("/")
+    if not url.startswith("http"):
+        return []
+    now = time.monotonic()
+    hit = _MODEL_CACHE.get(url)
+    if hit and hit[0] > now and not force:
+        return hit[1]
+    ids = []
+    try:
+        key = provider.get("api_key") or (os.environ.get(provider.get("key_env", ""), "") if provider.get("key_env") else "")
+        req = urllib.request.Request(
+            url + "/models",
+            headers={"Authorization": f"Bearer {key or 'none'}", "User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=5) as r:
+            data = json.loads(r.read().decode("utf-8", "ignore"))
+        ids = [m.get("id") for m in data.get("data", []) if m.get("id")]
+    except Exception:
+        ids = []
+    _MODEL_CACHE[url] = (now + (600 if ids else 60), ids)
+    return ids
+
+
+def _model_rejected(msg):
+    low = (msg or "").lower()
+    return any(s in low for s in (
+        "model_not_found", "does not exist", "decommissioned", "unknown model",
+        "invalid model", "no such model", "model not found", "is not supported"))
+
+
+def _candidate_models(provider):
+    """A pinned model is tried as written. "auto" follows the live /models list,
+    because Groq and the other OpenAI-compatible hosts rename ids. A blank model
+    stays a single call so the provider's own default is used."""
+    pinned = (provider.get("model") or "").strip()
+    if pinned.lower() == "auto":
+        return _chat_model_ids(_listed_models(provider))[:3]
+    if pinned:
+        return [pinned]
+    return [None]
+
+
+# provider name -> monotonic time it may be asked again. A provider that is missing,
+# keyless, region-blocked or timing out fails the same way on every call: grok's 90 s
+# timeout on each cover letter and question pushed whole vacancies past the 240 s
+# stall limit. Permanent failures wait ten minutes; transient failures recover after fifteen seconds.
+_LLM_BENCH = {}
+_LLM_BENCH_S = 600
+
+def _llm_failure_cooldown(message):
+    """Authorization failures need intervention; a timeout needs a short recovery window."""
+    low = message.lower()
+    if any(word in low for word in ("401", "403", "policy review", "quota exhausted",
+                                    "is empty", "not installed", "invalid api key")):
+        return _LLM_BENCH_S
+    return 15.0
 
 def llm_complete(cfg, system, user, max_tokens=3000):
     """Ask each configured provider in turn and return the first real answer.
     Ported from the speaker project's provider layer: an unreachable provider is
     normal here, so a dead one is skipped rather than failing the application."""
     llm = cfg.get("llm", {})
-    default_timeout = float(llm.get("timeout_seconds", 10))
+    default_timeout = float(llm.get("timeout_seconds", 6))
+    max_total_wait = float(llm.get("max_total_timeout_seconds", 60.0))
+    t_start = time.monotonic()
     errors = []
     todo = llm_providers(cfg)
     for attempt in range(2):
-        rate_limited, retry_after = [], 0.0
-        for provider in todo:
-            timeout = float(provider.get("timeout_seconds", default_timeout))
-            try:
-                if provider.get("kind") == "cli":
-                    text = _call_cli_llm(provider, system, user, timeout)
-                else:
-                    text = _call_openai_llm(provider, system, user, timeout, max_tokens)
-                if text:
-                    print(f"llm: answered by {provider.get('name', provider.get('kind'))}",
-                          file=sys.stderr, flush=True)
-                    return text
-                errors.append(f"{provider.get('name')}: empty answer")
-            except Exception as e:
-                msg = str(e)
-                errors.append(f"{provider.get('name')}: {msg[:70]}")
-                # a 429 is transient — with several workers on one free key it used to
-                # drop the question to providers that never answer (no key, wrong
-                # region) and leave it blank. "Request too large" is also a 429 but
-                # a retry can't fix it.
-                if ("429" in msg or "rate limit" in msg.lower()) and "too large" not in msg.lower():
-                    rate_limited.append(provider)
-                    m = re.search(r"retry after (\d+(?:\.\d+)?)", msg, re.I)
-                    retry_after = max(retry_after, float(m.group(1)) if m else 4.0)
-        if not rate_limited or attempt:
+        if time.monotonic() - t_start > max_total_wait:
+            errors.append("global timeout exceeded")
             break
-        import random
-        time.sleep(min(retry_after, 10.0) + random.uniform(0, 2))
+        rate_limited, retry_after = [], 0.0
+        for index, provider in enumerate(todo):
+            if time.monotonic() - t_start > max_total_wait:
+                break
+            if _LLM_BENCH.get(provider.get("name"), 0.0) > time.monotonic():
+                continue
+            if provider.get("kind") == "cli":
+                models = [None]
+            else:
+                models = _candidate_models(provider)
+                if not models:
+                    errors.append(f"{provider.get('name')}: no live models")
+                    continue
+            expanded = False
+            for model in models:
+                if time.monotonic() - t_start > max_total_wait:
+                    break
+                remaining = max_total_wait - (time.monotonic() - t_start)
+                # Leave time for a fallback; calculate again after model discovery.
+                has_fallback = any(_LLM_BENCH.get(p.get("name"), 0.0) <= time.monotonic()
+                                   for p in todo[index + 1:])
+                available = remaining / 2 if has_fallback else remaining
+                timeout = min(float(provider.get("timeout_seconds", default_timeout)), available)
+                if timeout < 1.0:
+                    errors.append("global timeout exhausted before next provider")
+                    break
+                spec = provider if model is None else {**provider, "model": model}
+                try:
+                    if provider.get("kind") == "cli":
+                        text = _call_cli_llm(spec, system, user, timeout)
+                    else:
+                        text = _call_openai_llm(spec, system, user, timeout, max_tokens)
+                    if text:
+                        _LLM_BENCH.pop(provider.get("name"), None)
+                        shown = provider.get("name", provider.get("kind"))
+                        if model:
+                            shown += f"/{model}"
+                        print(f"llm: answered by {shown}", file=sys.stderr, flush=True)
+                        if _WATCH["t"]:
+                            _WATCH["t"] = time.monotonic()
+                        return text
+                    errors.append(f"{provider.get('name')}: empty answer")
+                    break
+                except Exception as e:
+                    msg = str(e)
+                    errors.append(f"{provider.get('name')}: {msg[:70]}")
+                    if _model_rejected(msg) and not expanded:
+                        expanded = True
+                        fresh = [m for m in _chat_model_ids(_listed_models(provider, force=True))
+                                 if m not in models]
+                        models.extend(fresh[:3])
+                        continue
+                    if "policy review" in msg.lower():
+                        _LLM_BENCH[provider.get("name")] = time.monotonic() + _LLM_BENCH_S
+                        break
+                    if "429" in msg or "rate limit" in msg.lower():
+                        if "too large" not in msg.lower():
+                            rate_limited.append(spec)
+                            m = re.search(r"retry after (\d+(?:\.\d+)?)", msg, re.I)
+                            retry_after = max(retry_after, float(m.group(1)) if m else 4.0)
+                        continue
+                    _LLM_BENCH[provider.get("name")] = time.monotonic() + _llm_failure_cooldown(msg)
+                    break
+        if not rate_limited or attempt or (time.monotonic() - t_start + 3.0 > max_total_wait):
+            break
+        sleep_dur = min(retry_after, max_total_wait - (time.monotonic() - t_start))
+        if max_total_wait - (time.monotonic() - t_start) <= 0:
+            break
+        if sleep_dur > 0:
+            time.sleep(sleep_dur)
         todo = rate_limited
+    if todo:
+        detail = "; ".join(errors) or "all configured providers are cooling down"
+        print("llm: no provider answered — " + detail, file=sys.stderr, flush=True)
+    return ""
+
+
+def _vision_model_ids(provider):
+    """Models on this host that accept an image. Groq renames ids, so the list is live.
+    Antigravity's pinned Gemini is the local vision model even when /models is down."""
+    pinned = (provider.get("model") or "").strip()
+    if provider.get("name") == "antigravity" and pinned and pinned.lower() != "auto":
+        return [pinned]
+    url = (provider.get("url") or "").rstrip("/")
+    if not url.startswith("http"):
+        return []
+    cache_key = 'vision:' + url
+    cached = _MODEL_CACHE.get(cache_key)
+    if cached and cached[0] > time.time():
+        return cached[1]
+    try:
+        key = provider.get("api_key") or (os.environ.get(provider.get("key_env", ""), "") if provider.get("key_env") else "")
+        req = urllib.request.Request(
+            url + "/models",
+            headers={"Authorization": f"Bearer {key or 'none'}", "User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=5) as r:
+            data = json.loads(r.read().decode("utf-8", "ignore"))
+    except Exception:
+        return []
+    ids = []
+    for row in data.get("data") or []:
+        mid = row.get("id") or ""
+        modalities = (row.get("architecture") or {}).get("input_modalities") or row.get("input_modalities") or []
+        if isinstance(modalities, str):
+            modalities = [modalities]
+        if mid and "image" in modalities:
+            ids.append(mid)
+    # LM Studio's bundled llama.cpp reports vision in /props on older runtimes.
+    if (not ids and provider.get("name") == "lmstudio"
+            and urlparse(url).hostname in ("127.0.0.1", "localhost", "::1")
+            and len(data.get("data") or []) == 1):
+        try:
+            props_url = url.removesuffix("/v1") + "/props"
+            req = urllib.request.Request(props_url, headers={"Authorization": f"Bearer {key or 'none'}", "User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                props = json.loads(r.read().decode("utf-8", "ignore"))
+            if (props.get("modalities") or {}).get("vision") is True:
+                mid = data["data"][0].get("id")
+                if mid:
+                    ids.append(mid)
+        except Exception:
+            pass
+    if ids:
+        _MODEL_CACHE[cache_key] = (time.time() + 600, ids)
+    return ids
+
+
+def llm_vision(cfg, system, user, images, max_tokens=4000, accept=None):
+    """First configured host that can see images. A vision miss does not bench the
+    text chain: codestral rejecting a PNG is not a dead cover-letter provider."""
+    providers = [p for p in llm_providers(cfg) if p.get("kind") != "cli"]
+    if (cfg.get("apply") or {}).get("captcha_local_only"):
+        # A loopback cloud gateway (Antigravity) is not local inference.
+        providers = [p for p in providers if (p.get("name") or "").lower() in ("lmstudio", "ollama")
+                     and urlparse(p.get("url", "")).hostname in ("127.0.0.1", "localhost", "::1")]
+        if not providers:
+            print("llm vision: local-only mode; external providers disabled", file=sys.stderr, flush=True)
+            return ""
+    providers.sort(key=lambda p: 0 if p.get("name") == "antigravity" else 1)
+    errors = []
+    for provider in providers:
+        if _quit_requested():
+            return ""
+        models = _vision_model_ids(provider)
+        if not models:
+            errors.append(f"{provider.get('name')}: no available vision models")
+            continue
+        timeout = max(45.0, float(provider.get("timeout_seconds", cfg.get("llm", {}).get("timeout_seconds", 10))))
+        for model in models[:2]:
+            if _quit_requested():
+                return ""
+            try:
+                text = _call_openai_llm({**provider, "model": model}, system, user, timeout, max_tokens, images=images)
+                if _quit_requested():
+                    return ""
+                if text and (accept is None or accept(text)):
+                    print(f"llm vision: answered by {provider.get('name')}/{model}", file=sys.stderr, flush=True)
+                    if _WATCH["t"]:
+                        _WATCH["t"] = time.monotonic()
+                    return text
+                if text:
+                    errors.append(f"{provider.get('name')}: answer rejected")
+                    continue
+                errors.append(f"{provider.get('name')}: empty answer")
+                break
+            except Exception as e:
+                errors.append(f"{provider.get('name')}: {str(e)[:70]}")
+                break
     if errors:
-        print("llm: no provider answered — " + "; ".join(errors), file=sys.stderr, flush=True)
+        print("llm vision: no provider answered — " + "; ".join(errors), file=sys.stderr, flush=True)
     return ""
 
 
@@ -3392,7 +4424,8 @@ _COMPANY_SPECIFIC_RE = re.compile(
     # self-presentation: a pitch written for one role ("Additional information" got the
     # CV headline, cached, on every form)
     r"|additional information|anything else|tell us (?:about|more)|about yourself|introduce yourself"
-    r"|why should we|what makes you|stand out|summary of (?:your|yourself)|elevator pitch")
+    r"|why should we|what makes you|stand out|summary of (?:your|yourself)|elevator pitch"
+    r"|^\W*(?:comments?|notes?|message|summary)\W*$|message to (?:the )?(?:hiring|recruit)|anything (?:else )?you(?:'d)? like")
 
 def _is_company_specific(label, company=""):
     """Motivation / cover-letter questions — their answer names or targets one
@@ -3415,7 +4448,7 @@ _DEGREES = [("PhD", re.compile(r"(?i)\bph\.?\s?d\b|\bdoctorate\b")),
             ("MBA", re.compile(r"(?i)\bmba\b")),
             ("MD", re.compile(r"\bM\.?D\b")),
             ("Bachelor's", re.compile(r"(?i)\bbachelor|\bb\.?sc\b|\bb\.s\."))]
-_CERTS = [(c, re.compile(r"(?<!\w)" + re.escape(c) + r"(?!\w)")) for c in (
+_CERTS = [(c, re.compile(r"(?<!\w)" + re.escape(c) + r"(?!\w)", re.I)) for c in (
     "CISSP", "CISM", "CISA", "CRISC", "CCSP", "CEH", "OSCP", "OSCE", "OSWE", "OSEP", "OSED", "GPEN",
     "GWAPT", "GXPN", "GCIH", "PNPT", "CRTO", "CRTP", "eJPT", "eWPT", "Security+", "AWS Certified")]
 _EMPLOYER_RE = re.compile(r"\b(?i:worked|working|employed|interned|role|position|job|tenure)\s+(?:\w+\s+){0,2}?"
@@ -3448,9 +4481,34 @@ def _supported(name, grounding):
 def _unsupported_claim(q, answer, grounding, company=""):
     """Why `answer` claims more than the CV/profile backs, else None. Conservative:
     only clear numeric/credential overreach, never style — normal answers pass."""
+    label, opts = q.get("label", ""), q.get("options")
+    if answer and not opts and _CITIZENSHIP_TEXT_RE.search(label):
+        # Residence and visa answers cannot establish citizenship or its acquisition date.
+        match = re.search(r'"citizenship_statement"\s*:\s*("(?:\\.|[^"\\])*")', grounding or "") if re.search(
+            r"\b(?:citizen(?:ship)?|nationality)\b", label, re.I) else None
+        expected = json.loads(match.group(1)) if match else None
+        if not expected or answer.strip() != expected.strip():
+            return "citizenship/status answer not explicitly provided by candidate"
+        if re.search(r"\b(?:when|date|obtained|acquired)\b", label, re.I) and not re.search(
+                r"\b(?:since birth|at birth|from birth|(?:19|20)\d{2})\b", expected, re.I):
+            return "citizenship/status acquisition date unknown"
     if not (grounding or "").strip() or not answer:
         return None  # no CV to check against: rejecting everything would be worse
-    label, opts = q.get("label", ""), q.get("options")
+    if _DATE_PART_RE.search(label):
+        evidence = grounding
+        if re.search(r"^Education:", label, re.I):
+            evidence = "\n".join(line for line in grounding.splitlines() if _EDU_LINE_RE.search(line))
+        if re.search(r"\byear\b", label, re.I):
+            years = re.findall(r"\b(?:19|20)\d{2}\b", answer)
+            if len(years) != 1 or years[0] not in evidence:
+                return "historical year not in CV"
+            if re.search(r"^Education:", label, re.I):
+                ranges = re.findall(r"\b((?:19|20)\d{2})\s*[-–—]\s*((?:19|20)\d{2})\b", evidence)
+                edge = 0 if re.search(r"\b(start|from)\b", label, re.I) else 1
+                if ranges and years[0] not in {dates[edge] for dates in ranges}:
+                    return "historical year does not match CV date range"
+        elif not re.search(r"\b" + re.escape(answer.strip()) + r"\b", evidence, re.I):
+            return "historical month not in CV"
     c = _claims(answer)
     max_years = _max_supported_years(grounding)
     if opts and re.search(r"(?i)\byears?\b", label) and re.search(r"(?i)experience", label):
@@ -3458,12 +4516,12 @@ def _unsupported_claim(q, answer, grounding, company=""):
         if m: c["years"].append(int(m.group()))
     if re.match(r"(?i)\s*yes\b", answer):  # "Yes" to "Do you have 7+ years / an OSCP?" claims the question
         qc = _claims(label)
-        if max_years and qc["years"] and min(qc["years"]) > max_years:
+        if qc["years"] and min(qc["years"]) > max_years:
             return f"'Yes' to {min(qc['years'])}+ years, CV supports {max_years}"
         asked = qc["degrees"] | qc["certs"]
         if asked and not any(_supported(x, grounding) for x in asked):  # "CISSP or OSCP?" needs just one
             return f"'Yes' to {' / '.join(sorted(asked))}, not in CV"
-    if max_years and c["years"] and max(c["years"]) > max_years:
+    if c["years"] and max(c["years"]) > max_years:
         return f"{max(c['years'])} years, CV supports {max_years}"
     for x in sorted(c["degrees"] | c["certs"]):
         if not _supported(x, grounding):
@@ -3483,9 +4541,7 @@ def _answer_grounding(job, cfg):
     """CV text + persona profile + stock answers: everything the LLM was allowed to cite."""
     p_cfg = get_persona_cfg(cfg, get_job_persona(job, cfg.get("active_persona", "appsec"), cfg))
     cv_text = extract_cv_text(job.get("cv") or pick_cv(job, p_cfg))
-    if not cv_text:
-        return ""
-    return "\n".join([cv_text, json.dumps(p_cfg.get("profile", {}), ensure_ascii=False, indent=1),
+    return "\n".join([cv_text or "", json.dumps(p_cfg.get("profile", {}), ensure_ascii=False, indent=1),
                       json.dumps(cfg.get("apply", {}).get("answers", {}), ensure_ascii=False, indent=1)])
 
 
@@ -3517,10 +4573,13 @@ def ask_llm_answers(job, questions, cfg):
               "exactly one of those option strings, copied verbatim. For free-text questions, write a "
               "concise professional answer (1-3 sentences) in the candidate's voice, citing real experience "
               "from the CV where relevant. For work-eligibility / visa / relocation questions, follow the "
-              "candidate's work_authorization. Never invent degrees, employers, or facts not in the CV/profile — "
-              "if the CV genuinely doesn't cover something, say so honestly rather than guessing.\n"
-              "SELF-PRESENTATION questions (additional information, tell us about yourself, why should we "
-              "hire you, anything else, summary, why this company/role): write a persuasive 3-5 sentence pitch "
+              "candidate's work_authorization. Never invent degrees, employers, or facts not in the CV/profile. "
+              "When the CV/profile doesn't cover something, state only what is known, briefly and in the first "
+              "person, without claiming it. Never refer to the CV, resume or profile as a source (no 'as listed "
+              "on my CV', 'my CV does not include', 'not listed on my CV'): a recruiter reads that as a bot.\n"
+              "SELF-PRESENTATION questions (comments, additional information, notes, message to the hiring team, "
+              "cover letter, tell us about yourself, why should we hire you, anything else, summary, why this "
+              "company/role): never SKIP them — write a persuasive 3-5 sentence pitch "
               "for THIS role, not a CV headline. Open with the strongest match between the candidate's real "
               "experience and the job description's key requirements, cite 2-3 concrete achievements from the "
               "CV (with the numbers the CV gives), say what the candidate would deliver for this team, and end "
@@ -3546,7 +4605,8 @@ def ask_llm_answers(job, questions, cfg):
             if not mm: continue
             idx, ans = int(mm.group(1)), mm.group(2).strip()
             if not (0 <= idx < len(questions) and ans): continue
-            if ans.strip().upper().rstrip(".") == "SKIP": continue   # demographic: left blank
+            if ans.strip().upper().rstrip(".") == "SKIP":
+                continue   # demographic: left blank (anything else is re-asked below as a pitch)
             q = questions[idx]
             opts = q.get("options")
             if opts and ans not in opts:
@@ -3594,7 +4654,7 @@ _PREV_ANSWER_JS = """e => {
         for (let sib = node.previousElementSibling; sib; sib = sib.previousElementSibling) {
             const v = val(sib);
             if (v !== null) {
-                const l = sib.querySelector('label, legend');
+                const l = sib.querySelector('.ashby-application-form-question-title, .application-label, legend, label');
                 return [v, l ? l.innerText : ''];
             }
         }
@@ -3608,10 +4668,11 @@ def _followup_triggered(label, prev):
     prev = (prev or "").strip().lower()
     if not prev:
         return False
-    trig = [t.strip().lower() for t in re.findall(r'["\u201c\u201d\']([^"\u201c\u201d\']{1,30})["\u201c\u201d\']', label)]
-    if not trig:
-        m = re.search(r"(?i)\bif (?:you (?:stated|selected|answered|chose|checked|ticked|picked) )?\(?(yes|no|other)\b", label)
-        trig = [m.group(1).lower()] if m else []
+    if re.search(r'(?i)\bif no\b.*\b(?:respond|type|enter|write)\b.*\bn/?a\b', label):
+        return True  # Both branches require an answer, including a narrative previous response.
+    m = re.search(r"(?i)\bif (?:you (?:stated|selected|answered|chose|checked|ticked|picked) )?\(?(yes|no|other)\b", label)
+    trig = ([m.group(1).lower()] if m else
+            [t.strip().lower() for t in re.findall(r'["\u201c\u201d\']([^"\u201c\u201d\']{1,30})["\u201c\u201d\']', label)])
     if not trig:
         return True    # a condition we can't read: let the LLM see the question
     return any(prev == t or prev.startswith(t) for t in trig)
@@ -3627,6 +4688,12 @@ def llm_fill(page, cfg, job):
     return filled
 
 def _llm_fill_once(page, cfg, job, deferred):
+    if _fill_expired():
+        return 0
+    if job:
+        cfg["_job_title"] = job.get("title", "")
+        cfg["_job_company"] = job.get("company", "")
+        cfg["_job_location"] = job.get("location", "")
     llm = cfg.get("llm", {})
     if not llm.get("enabled", True):
         return 0
@@ -3638,12 +4705,12 @@ def _llm_fill_once(page, cfg, job, deferred):
     for scope in scopes:
         if _fill_expired(): break
         if len(text_items) + len(select_items) + len(radio_items) + len(native_select_items) >= maxq: break
-        try: els = _locator_items(scope.locator("textarea, input[type=text], input:not([type])"))
+        try: els = _locator_items(scope.locator("textarea, input[type=text], input[type=number], input[type=url], input[type=tel], input:not([type])"))
         except Exception: els = []
         for el in els:
             if len(text_items) + len(select_items) >= maxq: break
             try:
-                if (el.input_value() or "").strip(): continue
+                if (el.input_value() or "").strip() and el.evaluate(_FIELD_VALID_JS): continue
             except Exception: continue
             try:
                 if el.evaluate("""e => e.classList.contains('ashby-application-form-input-autocomplete') ||
@@ -3653,14 +4720,15 @@ def _llm_fill_once(page, cfg, job, deferred):
                     continue
             except Exception:
                 pass
-            lbl = label_of(el).strip().replace("*", "").strip()
+            lbl = _llm_field_label(el)
             key = (text_of(el) + " " + lbl).lower()
             # skip-keys are for SHORT basic-field labels already handled by fill_field
             # (name/email/phone). Applying them to a long essay question wrongly skips
             # it — e.g. "...within the last 12 months" contains "last", so the whole
             # vulnerability essay was never sent to the LLM and left blank.
             if len(key) < 45 and any(s in key for s in _LLM_SKIP_KEYS): continue
-            if len(lbl) < 8: continue
+            # tiny labels are stray inputs, except Workable's required one-word "Summary"
+            if len(lbl) < 8 and lbl.lower() not in ("summary", "about", "bio", "profile"): continue
             if _DEMOGRAPHIC_TEXT_Q.search(lbl): continue   # "Self describe - pronouns": left blank
             try:
                 sel_id = el.evaluate("""el => {
@@ -3679,6 +4747,13 @@ def _llm_fill_once(page, cfg, job, deferred):
                 if not prev.strip():
                     deferred.append(lbl)   # its trigger is answered later in this batch
                     continue
+                if re.match(r'(?i)^no\b', prev.strip()) and re.search(r'(?i)\bif no\b.*\b(?:respond|type|enter|write)\b.*\bn/?a\b', lbl):
+                    try:
+                        el.fill("N/A", timeout=1500)
+                        direct_filled += 1
+                    except Exception:
+                        pass
+                    continue
                 if not _followup_triggered(lbl, prev):
                     continue   # "If you selected Other or Referral" after "LinkedIn": stays empty
                 visa_note = (cfg.get("apply", {}).get("answers", {}).get("visa") or "").strip()
@@ -3695,14 +4770,16 @@ def _llm_fill_once(page, cfg, job, deferred):
                 lbl = f'{lbl} (previous question: "{prev_q[:120]}" was answered "{prev.strip()[:80]}")'
                 followups.add(lbl)
             text_items.append((scope, sel_id, lbl))
-        try: n = scope.locator(".select__control").count()
+        try: n = scope.locator(".select__control, [class*='select__control']").count()
         except Exception: n = 0
         for idx in range(n):
             if len(text_items) + len(select_items) >= maxq: break
             try:
-                ctrl = scope.locator(".select__control").nth(idx)
+                ctrl = scope.locator(".select__control, [class*='select__control']").nth(idx)
                 if ctrl.locator(".select__single-value, .select__multi-value").count() > 0: continue
                 lbl = (ctrl.evaluate("el => { let p=el; for(let k=0;k<7&&p;k++){ if(p.querySelector){const l=p.querySelector('label'); if(l) return l.innerText;} p=p.parentElement;} return ''; }") or "").replace("*", "").strip()
+                if _DATE_PART_RE.search(lbl):
+                    lbl = _llm_field_label(ctrl) or lbl
                 if not lbl: continue
                 ctrl.click(timeout=2000); page.wait_for_timeout(400)
                 opts = [(o.inner_text() or "").strip() for o in _locator_items(scope.locator(".select__option"))]
@@ -3740,8 +4817,11 @@ def _llm_fill_once(page, cfg, job, deferred):
             if len(text_items) + len(select_items) + len(radio_items) + len(native_select_items) >= maxq: break
             try:
                 group = scope.locator(f"input[type=radio][name='{name}']")
-                if group.count() == 0 or group.first.is_checked(): continue
+                if group.count() == 0 or group.evaluate_all('els => els.some(e => e.checked)'): continue
                 label = group.first.evaluate("""el => {
+                    const card = el.closest('.application-question, .custom-question, .ashby-application-form-field-entry, fieldset');
+                    const title = card && card.querySelector('.ashby-application-form-question-title, .application-label, .text, legend');
+                    if (title && title.innerText.trim()) return title.innerText.trim();
                     for (const sel of ['.ashby-application-form-question-title', 'label']) {
                         let p = el;
                         for (let k = 0; k < 8 && p; k++) {
@@ -3757,16 +4837,17 @@ def _llm_fill_once(page, cfg, job, deferred):
                 # already directly answerable (decline pattern or a configured phrase
                 # match) — fill_radio_groups() handles those; only escalate genuinely
                 # unmatched multi-choice questions here.
-                if any(v in label.lower() for v in _DEMOGRAPHIC_LABELS) or _match_dropdown_answer(label.lower(), da):
+                if any(v in label.lower() for v in _DEMOGRAPHIC_LABELS):
                     continue
                 opts = []
                 for i in range(group.count()):
                     opt = group.nth(i)
-                    opt_id = opt.get_attribute("id") or ""
-                    opt_label = (scope.locator(f"label[for='{opt_id}']").first.inner_text()
-                                 if opt_id and scope.locator(f"label[for='{opt_id}']").count() > 0 else "")
+                    opt_label = _radio_option_label(opt)
                     if opt_label: opts.append(opt_label.strip())
                 if opts:
+                    configured = _match_dropdown_answer(label.lower(), da)
+                    if configured and _best_option_index(configured, list(enumerate(o.lower() for o in opts))) >= 0:
+                        continue
                     radio_items.append((scope, group, label, opts))
             except Exception:
                 pass
@@ -3784,7 +4865,7 @@ def _llm_fill_once(page, cfg, job, deferred):
                 except Exception: pass
                 if sel_val and not re.search(r"select|choose|please select|^$", sel_text, re.I):
                     continue
-                lbl = label_of(sel).strip().replace("*", "").strip()
+                lbl = _llm_field_label(sel)
                 if not lbl or len(lbl) < 5:
                     lbl = sel.get_attribute("aria-label") or sel.get_attribute("name") or ""
                 if not lbl: continue
@@ -3802,7 +4883,7 @@ def _llm_fill_once(page, cfg, job, deferred):
                         direct_filled += 1
                         continue
                 if explicit is None and any(v in lbl.lower() for v in _DEMOGRAPHIC_LABELS):
-                    decline_opts = [o for o in opts if "decline" in o.lower()]
+                    decline_opts = [o for o in opts if any(syn in o.lower() for syn in _DECLINE_SYNS)]
                     if decline_opts:
                         sel.select_option(label=decline_opts[0])
                         direct_filled += 1
@@ -3822,23 +4903,34 @@ def _llm_fill_once(page, cfg, job, deferred):
     # typed into every one of them
     con = db.connect()
     answers, to_ask = {}, []
+    grounding = _answer_grounding(job, cfg)
     for q in questions:
         if q["label"] in followups:
             to_ask.append(q)   # depends on this form's own earlier answer: never from memory
             continue
-        cached = db.get_qa_answer(con, _qa_key(q["label"], q.get("options"), job.get("company", "")))
+        cached = db.get_qa_answer(con, _qa_key(q["label"], q.get("options"), job.get("company", ""), cfg.get("active_persona", "appsec")))
+        if cached and _unsupported_claim(q, cached, grounding, job.get("company", "")):
+            print(f"Cached answer rejected (unsupported claim): {q['label'][:60]}", file=sys.stderr)
+            cached = None
         if cached:
             opts = q.get("options")
             if not opts or cached in opts:
                 answers[q["label"]] = cached
             else:
                 salvage = _best_overlap_option(cached, opts)
-                if salvage:
+                if salvage and not _unsupported_claim(q, salvage, grounding, job.get("company", "")):
                     answers[q["label"]] = salvage
                 else:
                     to_ask.append(q)
         else:
             to_ask.append(q)
+    memory_count = len(answers)
+    attempts = getattr(_TL, "llm_attempts", None)
+    if attempts is None:
+        _TL.llm_attempts = attempts = {}
+    def attempt_key(q):
+        return (page, job.get("id") or job.get("url"), page.url, q["type"], q["label"], tuple(q.get("options") or ()))
+    to_ask = [q for q in to_ask if attempts.get(attempt_key(q), 0) < 2]
     if to_ask:
         new = {}
         # gating on OPENAI_API_KEY skipped the ENTIRE provider chain - lmstudio (no key),
@@ -3849,10 +4941,12 @@ def _llm_fill_once(page, cfg, job, deferred):
             print(f"LLM skipped (no providers enabled): falling back to offline rules "
                   f"for {len(to_ask)} question(s)", file=sys.stderr)
         else:
+            for q in to_ask:
+                key = attempt_key(q)
+                attempts[key] = attempts.get(key, 0) + 1
             new = ask_llm_answers(job, to_ask, cfg)
         # an answer claiming years/degrees/certs the CV doesn't back must never be
         # filled or cached — it drops into `unanswered` below, i.e. qa --pending
-        grounding = _answer_grounding(job, cfg) if new else ""
         rejected = set()
         for q in to_ask:
             why = new.get(q["label"]) and _unsupported_claim(q, new[q["label"]], grounding, job.get("company", ""))
@@ -3861,26 +4955,29 @@ def _llm_fill_once(page, cfg, job, deferred):
                 print(f"LLM answer rejected (unsupported claim: {why}): {q['label'][:60]}", file=sys.stderr, flush=True)
         offline = 0
         for q in to_ask:
-            if q["label"] in rejected: continue
-            a = new.get(q["label"])
+            a = None if q["label"] in rejected else new.get(q["label"])
             if not a:
                 a = offline_answer(q["label"], q.get("options"), cfg)
+                why = a and _unsupported_claim(q, a, grounding, job.get("company", ""))
+                if why:
+                    print(f"Offline answer rejected (unsupported claim: {why}): {q['label'][:60]}", file=sys.stderr)
+                    a = None
                 offline += bool(a)
             if a:
                 answers[q["label"]] = a
-                db.save_qa_answer(con, _qa_key(q["label"], q.get("options"), job.get("company", "")), q["label"], a, job.get("company", ""))
+                db.save_qa_answer(con, _qa_key(q["label"], q.get("options"), job.get("company", ""), cfg.get("active_persona", "appsec")), q["label"], a, job.get("company", ""))
         if offline:
             print(f"offline rules answered {offline} question(s) the LLM could not", file=sys.stderr)
         unanswered = [q for q in to_ask if not answers.get(q["label"])]
         for q in unanswered:
-            db.record_pending_question(con, _qa_key(q["label"], q.get("options"), job.get("company", "")), q["label"],
+            db.record_pending_question(con, _qa_key(q["label"], q.get("options"), job.get("company", ""), cfg.get("active_persona", "appsec")), q["label"],
                                        q.get("options"), job.get("company", ""), job.get("url", ""),
                                        commit=False)
         if unanswered:
             con.commit()
             print(f"{len(unanswered)} question(s) left for you: python tools/autopilot.py qa --pending",
                   file=sys.stderr, flush=True)
-    print(f"LLM: {len(questions)} question(s) — {len(questions) - len(to_ask)} from memory, "
+    print(f"LLM: {len(questions)} question(s) — {memory_count} from memory, "
           f"{len(to_ask)} asked; {len(answers)} answered", file=sys.stderr)
     if not answers:
         return direct_filled
@@ -3890,7 +4987,7 @@ def _llm_fill_once(page, cfg, job, deferred):
         if not a: continue
         try:
             target = scope.locator(sel_id).first
-            if (target.input_value(timeout=500) or "").strip():
+            if (target.input_value(timeout=500) or "").strip() and target.evaluate(_FIELD_VALID_JS):
                 continue
             still = label_of(target).strip().replace("*", "").strip()
             if still and still != lbl and not (lbl in still or still in lbl):
@@ -3902,7 +4999,7 @@ def _llm_fill_once(page, cfg, job, deferred):
             try:
                 el_type = (target.get_attribute("type") or "").lower()
                 el_placeholder = (target.get_attribute("placeholder") or "").lower()
-                is_date = (el_type == "date" or "date" in el_placeholder or "yyyy" in el_placeholder
+                is_date = not _DATE_PART_RE.search(lbl) and (el_type == "date" or "date" in el_placeholder or "yyyy" in el_placeholder
                            or re.search(r"\b(start date|earliest|available from|start working)\b", lbl, re.I))
                 if is_date and not re.search(r"\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{4}", a):
                     from datetime import timedelta
@@ -3963,9 +5060,7 @@ def _llm_fill_once(page, cfg, job, deferred):
         try:
             texts = []
             for i in range(group.count()):
-                opt_id = group.nth(i).get_attribute("id") or ""
-                opt_label = (scope.locator(f"label[for='{opt_id}']").first.inner_text()
-                             if opt_id and scope.locator(f"label[for='{opt_id}']").count() > 0 else "")
+                opt_label = _radio_option_label(group.nth(i))
                 texts.append((i, (opt_label or "").strip().lower()))
             i = _best_option_index(a, texts)
             if i >= 0:
@@ -4001,7 +5096,7 @@ def _llm_fill_once(page, cfg, job, deferred):
 def dismiss_cookies(page):
     try:
         page.evaluate("""() => {
-            const sels = ['#iubenda-cs-banner', '.iubenda-cs-overlay', '[id*="iubenda"]', '[id*="onetrust"]', '[class*="onetrust"]', '[id*="cookie-banner"]', '[class*="cookie-banner"]', '#onetrust-consent-sdk'];
+            const sels = ['#iubenda-cs-banner', '.iubenda-cs-overlay', '[id*="iubenda"]', '[id*="onetrust"]', '[class*="onetrust"]', '[id*="cookie-banner"]', '[class*="cookie-banner"]', '#onetrust-consent-sdk', '[data-ui="cookie-consent"]', '[data-ui="backdrop"]', '[aria-label*="Cookie Consent"]'];
             for (const s of sels) {
                 document.querySelectorAll(s).forEach(e => e.remove());
             }
@@ -4066,21 +5161,40 @@ _SUCCESS_PHRASES = ["thank you for applying", "thank you for your application",
                     "application was sent", "application sent", "your response has been recorded",
                     "thank you for your interest", "we've received your submission",
                     "submission was successful", "application has been sent",
-                    "your application has been received", "thanks for your application"]
+                    "your application has been received", "thanks for your application",
+                    "thanks a lot for applying",
+                    "vielen dank für deine bewerbung", "vielen dank für ihre bewerbung",
+                    "deine bewerbung ist eingegangen", "ihre bewerbung ist eingegangen",
+                    "bewerbung erfolgreich eingereicht", "bewerbung wurde übermittelt",
+                    "vielen dank für dein interesse", "vielen dank für ihr interesse",
+                    "erfolgreich abgesendet", "merci pour votre candidature",
+                    "votre candidature a été envoyée", "votre candidature a bien été reçue",
+                    "gracias por postularte", "tu solicitud ha sido recibida"]
 
 def _success_hits(text):
     b = (text or "").lower()
     return {s for s in _SUCCESS_PHRASES if s in b}
 
 def _is_success(text, url="", baseline=frozenset()):
-    """baseline = _success_hits() of the form before submit: phrases like "thank you
-    for your interest" often sit on the form itself, so only NEW ones count."""
-    if _success_hits(text) - set(baseline):
-        return True
-    u = (url or "").lower()
-    if any(k in u for k in ["/submitted", "/application/success", "/thank-you", "/thanks", "/confirmation"]):
-        return True
-    return False
+    """Only a new ATS acknowledgement counts; a URL or an email-code prompt does not."""
+    b = (text or "").lower()
+    if re.search(r"enter (?:the |your |a )?(?:\d[- ]digit )?(?:security |verification |confirmation )?code"
+                 r"|verify your email|application (?:was |has |has been )?not (?:submitted|received|sent)"
+                 r"|failed to submit|submission failed", b):
+        return False
+    weak = {"thank you for your interest", "vielen dank für dein interesse", "vielen dank für ihr interesse",
+            "we have received your", "successfully submitted", "thank you for submitting", "thanks for submitting",
+            "submission received", "submission has been received", "your response has been recorded",
+            "we've received your submission", "submission was successful", "erfolgreich abgesendet"}
+    hits = _success_hits(text) - set(baseline) - weak
+    # Some ATS insert "was" between application and successfully submitted.
+    if re.search(r"(?:your |the )?application (?:was |has been )?successfully submitted", b) and "successfully submitted" not in baseline:
+        hits.add("application successfully submitted")
+    if not hits:
+        return False
+    _TL.confirmation = {"kind": "ats_acknowledgement", "confirmed_at": now(),
+                        "url": url or "", "phrases": sorted(hits)}
+    return True
 
 def page_body_all(page):
     """Combined visible text of the main page and all iframes. Short explicit
@@ -4212,12 +5326,23 @@ def _bounced_off_listing(direct_ats, target_url, page):
     except Exception:
         return False
 
-_CODE_PROMPT_RE = re.compile(r"verification code (?:was )?sent|enter (?:the )?(?:security )?code|security code (?:was sent|sent to|has been sent)|code to confirm|verification code:", re.I)
+_CODE_PROMPT_RE = re.compile(
+    r"verification code|security code|check your email|sent (?:a|an|the) (?:email|code)|"
+    r"enter (?:the )?(?:\d-digit )?(?:security |verification )?code|code to confirm|"
+    r"one-time (?:passcode|code)|confirm your identity|we(?:'ve| have) sent a code",
+    re.I
+)
 
 def _has_code_input(page):
     try:
         for scope in [page] + list(page.frames):
-            if scope.locator("input[id*='security-input'], input[id*='security_code'], input[name*='verification_code'], input[aria-label*='verification code'], input[name*='security_code']").count() > 0:
+            if scope.locator(
+                "input[id*='security-input'], input[id*='security_code'], input[id*='security'], "
+                "input[name*='verification_code'], input[aria-label*='verification code'], "
+                "input[name*='security_code'], input[name*='security'], "
+                "input[id*='code'], input[name*='code'], input[aria-label*='code' i], "
+                "input[aria-label*='digit' i], input[maxlength='1'], input[autocomplete='one-time-code']"
+            ).count() > 0:
                 return True
     except Exception:
         pass
@@ -4293,7 +5418,17 @@ def _imap_fetch_code(cfg, max_age_s=900, exclude=None, prefer=None, since_dt=Non
                     except Exception: pass
             hay = subj + " " + _strip_html(body)
             if not re.search(r"verif|security code|confirm", hay, re.I): continue
+            explicit_m = re.search(r"(?:code(?:\s+field\s+on\s+your\s+application)?[:\s]+|\bcode\s+is\s+)([A-Za-z0-9]{6,10})\b", hay, re.I)
+            if explicit_m:
+                cand = explicit_m.group(1)
+                if (not prefer or cand.lower() != prefer.lower()) and (not exclude or cand.lower() not in exclude):
+                    if prefer and prefer.lower() in hay.lower():
+                        return cand
+                    if fallback is None:
+                        fallback = cand
             candidates = [t for t in re.findall(r"\b[A-Za-z0-9]{6,10}\b", hay) if _looks_like_code(t)]
+            if prefer:
+                candidates = [t for t in candidates if t.lower() != prefer.lower()]
             if exclude:
                 candidates = [t for t in candidates if t.lower() not in exclude]
             if not candidates: continue
@@ -4377,17 +5512,17 @@ def try_email_code(page, cfg, job=None, since_dt=None):
     pull it from the user's mailbox over IMAP and type it in. Returns True on entry.
     `since_dt` should be the timestamp of the Submit click that triggered this
     verification step — see _imap_fetch_code()."""
-    if not _has_code_input(page) or not _CODE_PROMPT_RE.search(page_body_all(page)): return False
+    if _quit_requested() or not _has_code_input(page) or not _CODE_PROMPT_RE.search(page_body_all(page)): return False
     company = (job or {}).get("company", "")
     exclude = {company.lower()} if company else None
     if cfg.get("email", {}).get("app_password"):
         code = _imap_fetch_code(cfg, exclude=exclude, prefer=company or None, since_dt=since_dt)
     else:
         code = _browser_fetch_code(page, cfg, company)
-    if not code: return False
+    if not code or _quit_requested(): return False
     for scope in [page] + list(page.frames):
         try:
-            boxes = scope.locator("input[id*='security-input'], input[maxlength='1']")
+            boxes = scope.locator("input[id*='security-input'], input[id*='security'], input[maxlength='1']")
             n = boxes.count()
             if n >= 6:  # one-char-per-box widget: click first box, keyboard auto-advances
                 boxes.first.click(timeout=1500)
@@ -4396,7 +5531,7 @@ def try_email_code(page, cfg, job=None, since_dt=None):
                 try:
                     for i in range(min(n, len(code))):
                         val = boxes.nth(i).input_value()
-                        if not val:
+                        if not val or val != code[i]:
                             boxes.nth(i).fill(code[i], timeout=1000)
                 except Exception:
                     pass
@@ -4753,6 +5888,12 @@ _OUTCOME_PATTERNS = [
         r"leider", r"absage", r"nicht ber(?:ü|ue)cksichtigen",
         r"ne (?:pouvons|donnerons) pas (?:donner )?suite",
     ]),
+    ("assessment", [
+        r"take[- ]home", r"coding (?:challenge|exercise|test|assessment|task)",
+        r"(?:online|technical|skills?) (?:assessment|test)", r"hackerrank|codility|codesignal|testgorilla|coderbyte|hirevue|canditech|qualified\.io",
+        r"complete (?:the|this|our|a|an) (?:short |brief )?(?:assessment|questionnaire|exercise|task|challenge|test)",
+        r"(?:move|moving|progress|invite) (?:you )?(?:forward )?to the next (?:stage|step|round)",
+    ]),
     ("interview", [
         r"schedule (?:a|an) (?:call|interview|chat|conversation|meeting)",
         r"invite you (?:to|for)", r"would like to (?:speak|meet|chat|invite)",
@@ -4768,14 +5909,14 @@ _OUTCOME_PATTERNS = [
     ]),
 ]
 
-_COMPANY_NOISE = {"inc", "ltd", "llc", "gmbh", "bv", "ab", "as", "sa", "ag", "co",
+_COMPANY_NOISE = {"inc", "ltd", "llc", "gmbh", "bv", "ab", "as", "sa", "ag", "co", "careers",
                   "the", "group", "technologies", "technology", "labs", "software",
                   # "Blockchain.com" -> "com" matched every .com sender (OneAZ's mail)
                   "com", "net", "org", "io", "ai", "app", "dev", "tech"}
 
 def _company_tokens(company):
     words = [w for w in re.split(r"[^a-z0-9]+", (company or "").lower()) if w]
-    return [w for w in words if w not in _COMPANY_NOISE and len(w) > 2]
+    return [w for w in words if w not in _COMPANY_NOISE and (len(w) > 2 or (len(w) == 2 and any(c.isdigit() for c in w)))]
 
 _ACK_RE = re.compile(r"thank you for (?:applying|your application|your interest)|thanks for applying"
                      r"|received your (?:application|cv|resume)|application (?:has been )?received"
@@ -4783,6 +5924,121 @@ _ACK_RE = re.compile(r"thank you for (?:applying|your application|your interest)
 _CODE_MAIL_RE = re.compile(r"(?:security|verification|confirmation) code|one[- ]time (?:code|password)|verify your email")
 _STRONG_INTERVIEW_RE = re.compile(r"calendly\.com|savvycal\.com|/schedule|schedule (?:a|an) (?:call|interview|chat)"
                                   r"|book (?:a|some) time|phone screen|technical interview|interview invitation")
+
+_ASSESSMENT_LINK_RE = re.compile(r"hackerrank\.com|codility\.com|codesignal\.com|testgorilla\.com|coderbyte\.com|hirevue\.com|canditech|qualified\.io", re.I)
+_ACTION_LINK_RE = re.compile(
+    r"https?://(?:[\w-]+\.)*(?:calendly\.com|savvycal\.com|cal\.com|goodtime\.io|hackerrank\.com|codility\.com|codesignal\.com"
+    r"|testgorilla\.com|coderbyte\.com|hirevue\.com|qualified\.io|zoom\.us|meet\.google\.com|teams\.microsoft\.com"
+    r"|greenhouse\.io/[^\s\"'>]+/(?:schedule|scheduling)|ashbyhq\.com/[^\s\"'>]+/(?:schedule|interview))[^\s\"'<>)\]]*", re.I)
+_REJECT_REASONS = [
+    ("виза / право на работу", r"sponsor|visa|work (?:authori[sz]ation|permit)|right to work|eligib\w* to work"),
+    ("локация / часовой пояс", r"locat(?:ion|ed)|based in|time ?zone|relocat|on-?site|in[- ]office|country"),
+    ("опыт / уровень", r"(?:more|additional|greater|level of|years of) experience|more senior|seniority|skill set|qualifications"),
+    ("язык", r"\b(?:german|dutch|french|spanish|swedish|polish|language) (?:skills|proficiency|fluency|speaker)|fluent in"),
+    ("вакансия закрыта / на паузе", r"(?:position|role|vacancy|job) (?:has been|is now|was) (?:filled|closed|cancel)|no longer (?:open|available|hiring)|on hold|paused"),
+    ("после интервью", r"(?:after|following) (?:your |the |our )?(?:interview|conversation|call|assessment)|thank you for (?:taking the time to )?(?:interview|speak|meet)"),
+    ("выбрали других (без причины)", r"other candidates|more closely (?:match|align)|stronger match|better (?:fit|match)|high (?:volume|number) of"),
+]
+
+def analyze_outcome_mail(mail, job, status):
+    """kind (auto / manual / unclear), the reason a rejection states, hours since applying,
+    and for an invitation the link to act on."""
+    body = (mail.get("body") or "")
+    text = f"{mail.get('subject') or ''} {body}".lower()
+    hours = None
+    try:
+        sent = datetime.fromisoformat(mail.get("date") or "")
+        applied = datetime.fromisoformat(job.get("applied_at") or "")
+        if sent.tzinfo is None: sent = sent.replace(tzinfo=timezone.utc)
+        if applied.tzinfo is None: applied = applied.replace(tzinfo=timezone.utc)
+        hours = round((sent - applied).total_seconds() / 3600, 1)
+    except Exception:
+        pass
+    reason = next((name for name, rx in _REJECT_REASONS if re.search(rx, text)), "не указана") if status == "rejected" else None
+    kind = None
+    if status == "rejected":
+        sender = (mail.get("from") or "").lower()
+        noreply = bool(re.search(r"no-?reply|notifications?@|jobs@|careers@|recruiting@|talent@|hiring@", sender)) or _is_ats_domain(_sender_domain(sender))
+        templated = bool(re.search(r"other candidates|more closely|high (?:volume|number) of|we encourage you to apply|keep your (?:cv|resume|details) on file|future (?:openings|opportunities)", text))
+        if reason == "после интервью" or re.search(r"(?:after|following) (?:your |the |our )?(?:interview|conversation|call)", text):
+            kind = "manual"
+        elif hours is not None and hours < 48:
+            kind = "auto"          # nobody reads a CV and decides within two days at scale
+        elif noreply and templated:
+            kind = "template"      # a recruiter looked, then sent the stock rejection
+        elif not noreply and not templated:
+            kind = "manual"
+        else:
+            kind = "unclear"
+    m = _ACTION_LINK_RE.search(body)
+    return {"kind": kind, "reason": reason, "hours": hours, "link": m.group(0) if m else None}
+
+_STATUS_RU = {"interview": "ИНТЕРВЬЮ", "assessment": "ТЕСТОВОЕ / СЛЕДУЮЩИЙ ЭТАП", "offer": "ОФФЕР"}
+
+def outcomes_report(con, cfg, limit=12):
+    """Human report: invitations to act on, rejections auto/manual with reasons, and what
+    to change in the search."""
+    rows = db.outcome_details(con)
+    lines = []
+    todo = [r for r in rows if r["status"] in ("interview", "assessment", "offer") and not r["done"]]
+    lines.append(f"=== НУЖНО ВАШЕ ДЕЙСТВИЕ: {len(todo)} ===")
+    if not todo:
+        lines.append("  (приглашений пока нет)")
+    for r in todo:
+        lines.append(f"  [{_STATUS_RU.get(r['status'], r['status'])}] {r['company']} — {r['title']}  (письмо {(r['email_date'] or '')[:10]})")
+        lines.append(f"      тема: {r['subject']}")
+        lines.append(f"      ссылка: {r['link'] or r['url']}")
+        lines.append(f"      отметить сделанным: python tools/autopilot.py report --done {r['job_id']}")
+    rej = [r for r in rows if r["status"] == "rejected"]
+    kinds = collections.Counter(r["kind"] or "unclear" for r in rej)
+    lines.append("")
+    lines.append(f"=== ОТКАЗЫ: {len(rej)} (автоматических {kinds.get('auto', 0)}, шаблонных после просмотра {kinds.get('template', 0)}, "
+                 f"ручных {kinds.get('manual', 0)}, неясно {kinds.get('unclear', 0)}) ===")
+    reasons = collections.Counter(r["reason"] or "не указана" for r in rej)
+    if reasons:
+        lines.append("  причины: " + ", ".join(f"{k} {v}" for k, v in reasons.most_common()))
+    kind_ru = {"auto": "авто", "template": "шаблон", "manual": "ручной", "unclear": "неясно"}
+    for r in rej[:limit]:
+        h = f"{r['hours']:.0f} ч" if r["hours"] is not None else "?"
+        lines.append(f"  {(r['email_date'] or '')[:10]} {kind_ru.get(r['kind'] or 'unclear', '?'):7s} через {h:>6s} | {r['reason'] or '-':28s} | {r['company'][:18]} — {r['title'][:45]}")
+    lines.append("")
+    lines.append("=== ЧТО УЛУЧШИТЬ ===")
+    for tip in _outcome_tips(rej, kinds, reasons):
+        lines.append("  - " + tip)
+    return "\n".join(lines)
+
+def _outcome_tips(rej, kinds, reasons):
+    tips = []
+    n = len(rej)
+    if not n:
+        return ["отказов пока нет — данных для выводов мало"]
+    auto_share = kinds.get("auto", 0) / n
+    if auto_share >= 0.5:
+        tips.append(f"{kinds['auto']} из {n} отказов автоматические (обычно в первые 48 ч): заявку отсекает анкета — "
+                    "чаще всего вопросы о праве на работу/визе. Подаваться только туда, где спонсорство прямо обещано "
+                    "(apply.require_sponsorship включён) и на удалёнку без привязки к стране.")
+    if reasons.get("виза / право на работу"):
+        tips.append(f"{reasons['виза / право на работу']} отказ(ов) прямо из-за визы: такие компании не спонсируют — "
+                    "держать require_sponsorship включённым, а их добавить в blocked_companies, если отказ повторится.")
+    if reasons.get("локация / часовой пояс"):
+        tips.append(f"{reasons['локация / часовой пояс']} отказ(ов) из-за локации: смещать поиск на remote worldwide / EMEA и релокацию.")
+    if reasons.get("опыт / уровень"):
+        tips.append(f"{reasons['опыт / уровень']} отказ(ов) из-за опыта: Lead/Staff/Manager уже исключены; проверить, что Senior-роли "
+                    "совпадают со стеком из резюме (ATS-оценка вакансии), а не только со словом «security».")
+    senior = [r for r in rej if re.search(r"(?i)\b(senior|sr\.?|staff|principal|lead|head|manager|director)\b", r["title"] or "")]
+    if len(senior) >= max(3, n // 3):
+        tips.append(f"{len(senior)} из {n} отказов — на Senior/Lead/Manager-роли: уровень выше, чем подтверждает резюме.")
+    by_company = collections.Counter(r["company"] for r in rej)
+    repeat = [f"{c} ({k})" for c, k in by_company.most_common() if k >= 3]
+    if repeat:
+        tips.append("повторные отказы от одних компаний: " + ", ".join(repeat) +
+                    " — лимит 3 заявки за 30 дней уже стоит; если отказы шаблонные, лучше пауза на 3 месяца.")
+    no_sponsor = [r for r in rej if not offers_sponsorship(r)]
+    if len(no_sponsor) >= n * 0.6:
+        tips.append(f"{len(no_sponsor)} из {n} отклонённых вакансий не упоминали спонсорство — новые отклики уже фильтруются по нему.")
+    if not tips:
+        tips.append("явной закономерности нет; продолжать и смотреть, как меняется доля автоматических отказов.")
+    return tips
 
 def classify_email(subject, body):
     """offer / rejected / interview / received (an automatic acknowledgement), or None.
@@ -4792,9 +6048,11 @@ def classify_email(subject, body):
     hay = f"{subject} {body}".lower()
     if _CODE_MAIL_RE.search((subject or "").lower()):
         return None
+    decision_hay = re.sub(r"\bif (?:you (?:are|were)|your (?:application|qualifications|background|experience))\b[^.!?\n]*(?:[.!?]|$)", "", hay)
     for status, patterns in _OUTCOME_PATTERNS:
-        if any(re.search(p, hay) for p in patterns):
-            if status == "interview" and _ACK_RE.search(hay) and not _STRONG_INTERVIEW_RE.search(hay):
+        if any(re.search(p, decision_hay) for p in patterns):
+            if status in ("interview", "assessment") and _ACK_RE.search(hay) and not (
+                    _STRONG_INTERVIEW_RE.search(decision_hay) or _ASSESSMENT_LINK_RE.search(decision_hay)):
                 return "received"
             return "received" if status == "replied" else status
     return None
@@ -4827,6 +6085,12 @@ def _email_matches_job(subject, from_addr, job):
     tokens = _company_tokens(job.get("company"))
     if tokens and all(re.search(r"(?<![a-z0-9])" + re.escape(t) + r"(?![a-z0-9])", head) for t in tokens):
         return True
+    # ATS board slugs join words: Scaleai must match the sender's "Scale AI".
+    head_words = re.findall(r"[a-z0-9]+", head)
+    compact_company = ''.join(tokens)
+    if compact_company and any(''.join(head_words[i:i+n]) == compact_company
+                               for i in range(len(head_words)) for n in range(1, 6)):
+        return True
     dom = _sender_domain(from_addr)
     if dom and not _is_ats_domain(dom):
         core = ".".join(dom.split(".")[:-1])   # the domain without its TLD
@@ -4854,6 +6118,10 @@ def match_mail_to_job(mail, jobs):
     (Cloudflare's "AI Security Research" rejection landed on a video producer role)."""
     subject = mail.get("subject") or ""
     cands = [j for j in jobs if _email_matches_job(subject, mail.get("from"), j)]
+    # Prefer the complete brand (WPP Media) over a prefix brand (WPP).
+    names = {j['id']: ''.join(_company_tokens(j.get('company'))) for j in cands}
+    cands = [j for j in cands if not any(names[k['id']].startswith(names[j['id']])
+             and len(names[k['id']]) > len(names[j['id']]) for k in cands)]
     if len(cands) <= 1:
         return cands[0] if cands else None
     text = f"{subject} {mail.get('body') or ''}".lower()
@@ -4872,7 +6140,7 @@ def _fetch_recent_mail(cfg, days, only_job_mail=True):
     M = imaplib.IMAP4_SSL(em.get("imap_host", "imap.gmail.com"), timeout=30)
     try:
         M.login(em["address"], em["app_password"].replace(" ", ""))
-        M.select("INBOX")
+        M.select("INBOX", readonly=True)
         since = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%d-%b-%Y")
         typ, data = M.search(None, f'(SINCE "{since}")')
         ids = data[0].split()
@@ -4902,13 +6170,39 @@ def _fetch_recent_mail(cfg, days, only_job_mail=True):
         except Exception: pass
     return out
 
+def outcomes_summary(con, limit=15):
+    """The report as data (dashboard): invitations to act on, rejections, tips."""
+    rows = db.outcome_details(con)
+    rej = [r for r in rows if r["status"] == "rejected"]
+    kinds = collections.Counter(r["kind"] or "unclear" for r in rej)
+    reasons = collections.Counter(r["reason"] or "не указана" for r in rej)
+    keep = ("job_id", "status", "company", "title", "email_date", "subject", "link", "url", "kind", "reason", "hours")
+    return {
+        "actions": [{k: r[k] for k in keep} for r in rows if r["status"] in ("interview", "assessment", "offer") and not r["done"]],
+        "rejections": {"total": len(rej), "kinds": dict(kinds), "reasons": dict(reasons.most_common()),
+                       "recent": [{k: r[k] for k in keep} for r in rej[:limit]]},
+        "tips": _outcome_tips(rej, kinds, reasons),
+    }
+
+def report_cmd(args):
+    con = db.connect()
+    if args.done:
+        db.mark_action_done(con, args.done)
+        print(json.dumps({"done": args.done}) if args.json else f"отмечено сделанным: {args.done}")
+        return
+    if args.json:
+        print(json.dumps(outcomes_summary(con, limit=args.limit), ensure_ascii=False))
+        return
+    print(outcomes_report(con, read_json(CFG), limit=args.limit))
+
 def inbox(args):
     cfg = read_json(CFG)
     con = db.connect()
-    jobs = [j for j in db.submitted_jobs(con)
-            if (j["current_status"] or "") not in db.FINAL_STATUSES]
+    # every submitted application: mail about one already marked rejected still gets its
+    # reason analysed; recording below skips statuses already in its history
+    jobs = db.submitted_jobs(con)
     if not jobs:
-        print(json.dumps({"error": "no submitted applications awaiting an outcome"}, indent=2))
+        print(json.dumps({"error": "no submitted applications"}, indent=2))
         return
     try:
         mails = _fetch_recent_mail(cfg, args.days)
@@ -4924,20 +6218,18 @@ def inbox(args):
         if not hit:
             unmatched += 1
             continue
-        cal_match = re.search(r"https?://(?:[a-zA-Z0-9_-]+\.)?(?:calendly\.com|savvycal\.com|cal\.com|greenhouse\.io/[^\s\"'>]+/schedule|ashbyhq\.com/[^\s\"'>]+/schedule)[^\s\"'>]*", m["body"], re.I)
-        schedule_url = cal_match.group(0) if cal_match else None
-        if status == "interview" and schedule_url:
-            print(f">>> INTERVIEW INVITATION: {hit['company']} — {hit['title']}! Booking link: {schedule_url}", file=sys.stderr, flush=True)
+        info = analyze_outcome_mail(m, hit, status) if status != "received" else {}
         found.append({"job_id": hit["id"], "company": hit["company"], "title": hit["title"],
                       "status": status, "email_date": m["date"],
                       "subject": m["subject"][:120], "from": m["from"][:80],
-                      "schedule_link": schedule_url})
+                      "schedule_link": info.get("link"), "kind": info.get("kind"),
+                      "reason": info.get("reason"), "hours": info.get("hours")})
 
     # an automatic "thank you for applying" is not an outcome: counted, never recorded
     received = [f for f in found if f["status"] == "received"]
     found = [f for f in found if f["status"] != "received"]
     best = {}
-    rank = {"interview": 2, "offer": 3, "rejected": 4}
+    rank = {"assessment": 1, "interview": 2, "offer": 3, "rejected": 4}
     for f in found:
         cur = best.get(f["job_id"])
         if not cur or rank.get(f["status"], 0) > rank.get(cur["status"], 0):
@@ -4945,15 +6237,27 @@ def inbox(args):
     picks = list(best.values())
 
     if args.apply:
+        for f in found:   # every outcome mail, not only the strongest per job
+            db.save_outcome_detail(con, {"job_id": f["job_id"], "status": f["status"], "kind": f["kind"],
+                                         "reason": f["reason"], "hours": f["hours"], "email_date": f["email_date"],
+                                         "subject": f["subject"], "sender": f["from"], "link": f["schedule_link"]},
+                                   commit=False)
+        con.commit()
         for p in picks:
+            status = "screening" if p["status"] == "assessment" else p["status"]
             history = db.outcome_history(con, p["job_id"])
-            if any(h["status"] == p["status"] for h in history):
+            if any(h["status"] == status for h in history):
                 p["skipped"] = "already recorded"
                 continue
-            db.record_outcome(con, p["job_id"], p["status"],
+            db.record_outcome(con, p["job_id"], status,
                               f"auto from email {p['email_date']}: {p['subject']}")
             p["recorded"] = True
 
+    if not getattr(args, "json", False):
+        print(f"просмотрено писем по заявкам: {len(mails)}, автоответов: {len(received)}, исходов: {len(picks)}"
+              f"{'' if args.apply else ' (без записи: добавьте --apply)'}\n")
+        print(outcomes_report(con, cfg))
+        return
     print(json.dumps({
         "scanned_emails": len(mails),
         "awaiting_outcome": len(jobs),
@@ -4964,13 +6268,15 @@ def inbox(args):
         "results": picks,
     }, indent=2, ensure_ascii=False))
 
-def _fill_identity(page, cfg):
+def _fill_identity(page, cfg, strict=False):
     prof = cfg["profile"]
     wanted = [("first name", prof["first_name"]), ("last name", prof["last_name"]),
               ("email", prof["email"]), ("phone", prof.get("phone", ""))]
     filled = 0
     for scope in [page] + _fillable_frames(page):
         for el in _locator_items(scope.locator("input:not([type=file]):not([type=hidden]):not([type=checkbox]):not([type=radio])")):
+            if is_honeypot_element(el):
+                continue
             try:
                 if el.evaluate("e => !!e.closest('.select__control, [class*=select__]')"):
                     continue
@@ -4981,18 +6287,24 @@ def _fill_identity(page, cfg):
                 continue   # a whole question card, not a name/email label - see fill_field
             name_attr = (el.get_attribute("name") or "").lower()
             autocomplete_attr = (el.get_attribute("autocomplete") or "").lower()
+            attr_key = " ".join(el.get_attribute(k) or "" for k in ("name", "id", "type", "autocomplete")).lower()
+            split_name = bool(re.search(r"\b(?:first|last|given|family)[ _-]*name\b|\bsurname\b", attr_key))
+            split_name = split_name or (bool(re.search(r"\b(?:first|last|given|family)[ _-]*name\b|\bsurname\b", key))
+                                         and not ("first" in key and "last" in key))
 
             # Single Full Name field check (Ashby, etc.)
             is_single_name = (
                 name_attr in ("_systemfield_name", "name", "candidate_name", "full_name")
                 or autocomplete_attr == "name"
+                or ("first" in key and "last" in key)
                 or (re.search(r"\b(?:your\s+)?name\b", key) and not any(x in key for x in ["first", "last", "user", "company", "school", "employer", "file", "manager", "project", "degree"]))
                 or re.sub(r"[^a-z]", "", key.replace("type here", "")) in ("name", "yourname", "enteryourname", "entername")
             )
-            if is_single_name and prof.get("full_name"):
+            if is_single_name and not split_name and prof.get("full_name"):
                 want = _name_for(label_of(el), prof)
                 try:
-                    if not (el.input_value(timeout=500) or "").strip():
+                    curr_val = (el.input_value(timeout=500) or "").strip()
+                    if curr_val != want:
                         el.fill("", timeout=1000)
                         el.fill(want, timeout=1500)
                         if (el.input_value(timeout=500) or "").strip() != want:
@@ -5000,14 +6312,21 @@ def _fill_identity(page, cfg):
                             el.press("Control+a", timeout=1000)
                             el.type(want, delay=15, timeout=2000)
                         filled += 1
-                        continue
-                except Exception:
-                    pass
+                    if strict and (el.input_value(timeout=500) or "").strip() != want:
+                        raise ValueError("full name does not match selected persona")
+                except Exception as exc:
+                    if strict:
+                        raise ValueError("could not verify candidate full name") from exc
+                continue
 
             for needle, value in wanted:
-                if needle in key and value:
+                pattern = {"first name": r"\b(?:first|given)[ _-]*name\b",
+                           "last name": r"\b(?:last|family)[ _-]*name\b|\bsurname\b"}.get(needle, r"\b" + needle + r"\b")
+                match_key = attr_key if needle in ("first name", "last name") and re.search(r"\b(?:first|last|given|family)[ _-]*name\b|\bsurname\b", attr_key) else key + " " + attr_key
+                if re.search(pattern, match_key) and value:
                     try:
-                        if (el.input_value(timeout=500) or "").strip():
+                        current = (el.input_value(timeout=500) or "").strip()
+                        if current == value or (needle == "phone" and current):
                             break
                         el.fill("", timeout=1000)
                         el.fill(value, timeout=1500)
@@ -5016,8 +6335,11 @@ def _fill_identity(page, cfg):
                             el.press("Control+a", timeout=1000)
                             el.type(value, delay=15, timeout=2000)
                         filled += 1
-                    except Exception:
-                        pass
+                        if strict and needle != "phone" and (el.input_value(timeout=500) or "").strip() != value:
+                            raise ValueError(needle + " does not match selected persona")
+                    except Exception as exc:
+                        if strict and needle != "phone":
+                            raise ValueError("could not verify candidate " + needle) from exc
                     break
     if filled:
         print(f"identity fields restored: {filled}", file=sys.stderr, flush=True)
@@ -5028,7 +6350,8 @@ def required_field_issues(page):
     for scope in [page] + _fillable_frames(page):
         try:
             scope.locator("body").evaluate("el => { if (document.activeElement) document.activeElement.blur(); }")
-            found = scope.locator("input[required], textarea[required], select[required], input[aria-required=true], textarea[aria-required=true], select[aria-required=true]").evaluate_all("""els => {
+            found = scope.locator("input, textarea, select").evaluate_all("""els => {
+                const validValue = """ + _FIELD_VALID_JS + """;
                 const visible = el => {
                     if (!el || el.disabled || el.type === 'hidden') return false;
                     for (let p = el; p; p = p.parentElement) {
@@ -5040,30 +6363,45 @@ def required_field_issues(page):
                 };
                 const label = el => {
                     const own = [...(el.labels || [])].map(x => x.innerText).join(' ').trim();
-                    const q = el.closest('.application-question');
-                    const promptEl = q ? q.querySelector('.text, .application-label, label') : null;
+                    const q = el.closest('.application-question, [data-ui*="question"], [data-ui*="field"], .field, [role="group"], fieldset, .ashby-application-form-field-entry');
+                    const promptEl = q ? q.querySelector('.text, .application-label, label, legend, h3, h4, [data-ui*="title"]') : null;
                     const card = promptEl ? promptEl.innerText.trim() : (q ? q.innerText.trim() : '');
                     const optionish = ['checkbox', 'radio'].includes(el.type);
                     const first = optionish ? (card || own) : (own || card);
                     return (first || el.getAttribute('aria-label') || el.name || el.id || el.type || el.tagName).replace(/\\s+/g, ' ').trim();
                 };
-                const out = [], radio = new Set();
+                const out = [], radio = new Set(), cbGroups = new Set();
                 for (const el of els) {
                     if (!visible(el)) continue;
                     const idLower = (el.id || '').toLowerCase();
                     const nameLower = (el.name || '').toLowerCase();
-                    if (idLower.includes('security-input') || idLower.includes('security_code') || nameLower.includes('security-input')) continue;
+                    if (/^(security[-_](input|code)|verification[-_]code)([-_]\\d+)?$/.test(idLower) || /^(security[-_]code|verification[-_]code)$/.test(nameLower)) continue;
                     const reactSelect = el.closest('.select__control');
                     if (reactSelect && reactSelect.querySelector('.select__single-value, .select__multi-value')) continue;
                     const shell = el.closest('[class*=select-shell]');
                     if (shell && shell.querySelector('.select__single-value, .select__multi-value')) continue;
                     const isText = (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') && !['checkbox','radio','file'].includes(el.type);
                     const hasValue = isText && !!el.value.trim();
-                    let invalid = (!hasValue && el.getAttribute('aria-invalid') === 'true') || !el.checkValidity();
-                    if ((el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') && !['checkbox','radio','file'].includes(el.type) && !el.value.trim()) invalid = true;
-                    if (el.type === 'file' && !el.files.length) invalid = true;
-                    if (el.type === 'checkbox' && !el.checked) invalid = true;
-                    if (el.type === 'radio') {
+                    const required = el.required || el.getAttribute('aria-required') === 'true';
+                    let invalid = !validValue(el);
+                    if (required && isText && !hasValue) invalid = true;
+                    if (required && el.type === 'file' && !el.files.length) invalid = true;
+                    if (required && el.type === 'checkbox') {
+                        if (el.name && (el.name.includes('[]') || el.name.includes('question_'))) {
+                            const cbKey = (el.form ? (el.form.id || 'form') : 'page') + ':' + el.name;
+                            if (cbGroups.has(cbKey)) continue;
+                            cbGroups.add(cbKey);
+                            const group = el.name ? [...document.getElementsByName(el.name)].filter(x => x.type === 'checkbox' && x.form === el.form) : [el];
+                            if (group.length > 1) {
+                                invalid = !group.some(x => x.checked);
+                            } else {
+                                if (!el.checked) invalid = true;
+                            }
+                        } else {
+                            if (!el.checked) invalid = true;
+                        }
+                    }
+                    if (required && el.type === 'radio') {
                         const key = (el.form ? (el.form.id || 'form') : 'page') + ':' + el.name;
                         if (radio.has(key)) continue;
                         radio.add(key);
@@ -5116,7 +6454,14 @@ def _has_unfilled_yesno(page):
                 const entry = grp.closest('.ashby-application-form-field-entry') || grp.parentElement;
                 const req = entry && (entry.querySelector('[class*=required]') || (entry.querySelector('label') && entry.querySelector('label').innerText.includes('*')));
                 if (!req) continue;
-                const pressed = Array.from(grp.querySelectorAll('button')).some(b => b.getAttribute('aria-pressed') === 'true' || (b.className && b.className.includes('active')) || b.getAttribute('aria-checked') === 'true');
+                const pressed = Array.from(grp.querySelectorAll('button')).some(b =>
+                    b.getAttribute('aria-pressed') === 'true' ||
+                    b.getAttribute('aria-checked') === 'true' ||
+                    b.getAttribute('aria-selected') === 'true' ||
+                    b.getAttribute('data-state') === 'checked' ||
+                    b.getAttribute('data-state') === 'on' ||
+                    (b.className && (b.className.includes('active') || b.className.includes('selected') || b.className.includes('checked')))
+                );
                 if (!pressed) return true;
             }
             return false;
@@ -5142,7 +6487,7 @@ def _has_unfilled_autocomplete(page):
 def _has_unfilled_selects(page):
     for scope in [page] + _fillable_frames(page):
         try:
-            ctrls = scope.locator(".select__control")
+            ctrls = scope.locator(".select__control, [class*='select__control']")
             for i in range(ctrls.count()):
                 ctrl = ctrls.nth(i)
                 if not ctrl.is_visible(timeout=500):
@@ -5176,7 +6521,7 @@ _BOTWALL_PHRASES = ["checking if you are human", "checking if you're human", "п
                      "выполнение проверки безопасности", "подтвердите, что вы человек",
                      "confirm you are human", "confirm that you are human",
                      "unusual traffic", "attention required! | cloudflare", "enable javascript and cookies",
-                     "sorry, you have been blocked",
+                     "sorry, you have been blocked", "access is temporarily restricted",
                      "review the security of your connection",
                      "failed to verify your browser", "vercel security checkpoint",
                      # DataDome's own native challenge (SmartRecruiters and others sit behind
@@ -5215,6 +6560,7 @@ def is_spam_blocked(page):
     return any(p in body for p in _SPAM_BLOCK_PHRASES)
 
 _HARD_DISQUALIFY_PHRASES = [
+    "ts with sci eligibility required", "ts/sci eligibility required", "ts/sci clearance required",
     "unable to offer visa sponsorship", "unable to provide visa sponsorship",
     "do not offer visa sponsorship", "does not offer visa sponsorship",
     "we do not sponsor", "we are unable to sponsor", "not able to sponsor",
@@ -5227,6 +6573,14 @@ _HARD_DISQUALIFY_PHRASES = [
     "residency requirement of living in the united states",
     "must have lived in the united states",
 ]
+
+
+def _required_clearance(text):
+    pattern = r'\b(?:active\s+)?(?:top[ -]+secret|ts\s*(?:/|with\s+)\s*sci)(?:\s+(?:security|clearance|eligibility|is)){0,4}\s+required\b'
+    for match in re.finditer(pattern, text or '', re.I):
+        if not re.search(r'\b(?:no|not)\s*$', (text or '')[:match.start()], re.I):
+            return match.group(0).lower()
+    return None
 
 def hard_disqualifier(page):
     """Some postings bury an absolute eligibility gate INSIDE the application form's
@@ -5242,7 +6596,7 @@ def hard_disqualifier(page):
     for p in _HARD_DISQUALIFY_PHRASES:
         if p in body:
             return p
-    return None
+    return _required_clearance(body)
 
 def _spam_banner(page):
     """Spam-flag can't be cleared in this automated window (clicking Submit here fails
@@ -5307,53 +6661,82 @@ def _is_clickable_widget(el, min_w=100, min_h=40):
         return False
     return bool(box) and box["width"] >= min_w and box["height"] >= min_h
 
-def _transcribe_audio_bytes(audio_bytes):
-    """Transcribe audio bytes using Groq Whisper or OpenAI Whisper from secrets.env / env."""
-    import tempfile
-    env_keys = {}
-    if SECRETS.exists():
-        try:
-            for line in SECRETS.read_text(encoding="utf-8", errors="ignore").splitlines():
-                if "=" in line and not line.strip().startswith("#"):
-                    k, v = line.strip().split("=", 1)
-                    env_keys[k.strip()] = v.strip()
-        except Exception:
-            pass
-
-    groq_key = os.environ.get("GROQ_API_KEY") or env_keys.get("GROQ_API_KEY")
-    openai_key = os.environ.get("OPENAI_API_KEY") or env_keys.get("OPENAI_API_KEY")
-
-    tmp_path = ""
+def _transcribe_audio_free(audio_bytes):
+    """Local CPU Whisper; no transcription service or API key."""
+    if _quit_requested():
+        return ""
     try:
-        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
-            tmp.write(audio_bytes)
-            tmp_path = tmp.name
-
-        from openai import OpenAI
-        if groq_key:
-            client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=groq_key, timeout=12)
-            with open(tmp_path, "rb") as f:
-                res = client.audio.transcriptions.create(model="whisper-large-v3-turbo", file=f)
-                return (res.text or "").strip()
-        elif openai_key:
-            client = OpenAI(api_key=openai_key, timeout=12)
-            with open(tmp_path, "rb") as f:
-                res = client.audio.transcriptions.create(model="whisper-1", file=f)
-                return (res.text or "").strip()
+        import io
+        from faster_whisper import WhisperModel
+        model = getattr(_TL, "captcha_audio_model", None)
+        if model is None:
+            model = WhisperModel(str(ROOT / "autopilot/cache/whisper-base.en"),
+                                 device="cpu", compute_type="int8", cpu_threads=2,
+                                 local_files_only=True)
+            _TL.captcha_audio_model = model
+        segments, _ = model.transcribe(io.BytesIO(audio_bytes), language="en", beam_size=5)
+        words = []
+        for segment in segments:
+            if _quit_requested():
+                return ""
+            words.append(segment.text.strip())
+        return " ".join(words).strip()
     except Exception as e:
-        print(f"audio challenge transcription error: {e}", file=sys.stderr)
-    finally:
-        if tmp_path and os.path.exists(tmp_path):
-            try:
-                os.remove(tmp_path)
-            except Exception:
-                pass
-    return ""
+        print(f"local audio transcription failed: {type(e).__name__}: {e}", file=sys.stderr)
+        return ""
+
+
+def _transcribe_audio_bytes(audio_bytes):
+    return _transcribe_audio_free(audio_bytes)
+
+
+def try_solve_turnstile(page, timeout_s=4.0):
+    """Detect and auto-solve Cloudflare Turnstile without human intervention ($0 free)."""
+    try:
+        token_inp = page.locator("input[name='cf-turnstile-response']").first
+        if token_inp.count() > 0:
+            val = token_inp.input_value()
+            if val and len(val) > 20:
+                return True
+
+        for frame in page.frames:
+            url_low = (frame.url or "").lower()
+            if "challenges.cloudflare.com" in url_low or "turnstile" in url_low or "challenge-platform" in url_low:
+                for sel in ["#challenge-stage", "input[type='checkbox']", ".ctp-checkbox-label",
+                            "label.ctp-checkbox-label", "div.ctp-checkbox-container", "#cf-stage", "span.mark", "body"]:
+                    try:
+                        loc = frame.locator(sel).first
+                        if loc.count() > 0 and loc.is_visible():
+                            box = loc.bounding_box()
+                            if box and box["width"] > 10 and box["height"] > 10:
+                                try:
+                                    import stealth_mouse
+                                    stealth_mouse.human_click_box(page, box)
+                                except Exception:
+                                    loc.click(timeout=1500)
+                                t0 = time.monotonic()
+                                while time.monotonic() - t0 < timeout_s:
+                                    try:
+                                        if token_inp.count() > 0:
+                                            new_val = token_inp.input_value()
+                                            if new_val and len(new_val) > 20:
+                                                return True
+                                    except Exception:
+                                        pass
+                                    time.sleep(0.3)
+                                return False
+                    except Exception:
+                        continue
+    except Exception:
+        pass
+    return False
 
 def try_solve_recaptcha_audio(page):
-    """If a reCAPTCHA v2 challenge frame (bframe) is active, attempt to solve via the audio challenge."""
+    """Solve up to three distinct audio rounds; a Verify click is not success."""
+    if _quit_requested():
+        return False
     for frame in page.frames:
-        if "recaptcha/api2/bframe" in (frame.url or "").lower():
+        if re.search(r"recaptcha/(api2|enterprise)/bframe", (frame.url or "").lower()):
             try:
                 audio_btn = frame.locator("#recaptcha-audio-button")
                 if audio_btn.count() > 0 and audio_btn.first.is_visible():
@@ -5364,14 +6747,24 @@ def try_solve_recaptcha_audio(page):
                     except Exception:
                         pass
 
-                audio_link = frame.locator(".rc-audiochallenge-tdownload-link, a[href*='payload?audio']").first
-                if audio_link.count() > 0 and audio_link.is_visible():
+                seen = set()
+                for _round in range(3):
+                    if _quit_requested():
+                        return False
+                    audio_link = frame.locator(".rc-audiochallenge-tdownload-link, a[href*='payload?audio']").first
+                    if not audio_link.count() or not audio_link.is_visible():
+                        return False
                     href = audio_link.get_attribute("href")
-                    if href:
+                    if href and href not in seen:
+                        seen.add(href)
                         req = urllib.request.Request(href, headers={"User-Agent": UA})
                         with urllib.request.urlopen(req, timeout=10) as r:
                             audio_data = r.read()
+                        if _quit_requested():
+                            return False
                         text = _transcribe_audio_bytes(audio_data)
+                        if _quit_requested():
+                            return False
                         if text:
                             inp = frame.locator("#audio-response")
                             if inp.count() > 0 and inp.first.is_visible():
@@ -5379,21 +6772,1747 @@ def try_solve_recaptcha_audio(page):
                                 page.wait_for_timeout(300)
                                 verify_btn = frame.locator("#recaptcha-verify-button")
                                 if verify_btn.count() > 0 and verify_btn.first.is_visible():
+                                    if _quit_requested():
+                                        return False
                                     verify_btn.first.click()
                                     page.wait_for_timeout(2500)
-                                    return True
+                                    if _captcha_verified(page, "recaptcha"):
+                                        return not _quit_requested()
+                                    if "multiple correct solutions" not in frame.locator("body").inner_text().lower():
+                                        return False
+                                    print("recaptcha audio: correct round; another solution required", file=sys.stderr, flush=True)
+                                    continue
+                    return False
             except Exception as e:
                 print(f"try_solve_recaptcha_audio error: {e}", file=sys.stderr)
     return False
 
+def _captcha_kind_from_src(src):
+    low = (src or "").lower()
+    if "hcaptcha.com" in low:
+        return "hcaptcha"
+    if "challenges.cloudflare.com" in low or "turnstile" in low:
+        return "turnstile"
+    if "recaptcha" in low or "google.com/recaptcha" in low:
+        return "recaptcha"
+    return ""
+
+
+def _captcha_from_url(src):
+    """Pull kind, sitekey and optional hCaptcha rqdata out of a widget iframe URL.
+
+    hCaptcha puts sitekey in the hash (`#frame=challenge&sitekey=`), reCAPTCHA
+    puts it in `?k=`, and Turnstile often puts the `0x…` key in the path.
+    """
+    kind = _captcha_kind_from_src(src)
+    if not kind or not src:
+        return None
+    from urllib.parse import urlparse, parse_qs, unquote
+    parsed = urlparse(src)
+    params = {}
+    for part in (parsed.query, parsed.fragment):
+        if not part:
+            continue
+        if part[:1] in "?#":
+            part = part[1:]
+        for key, vals in parse_qs(part, keep_blank_values=False).items():
+            if vals and key not in params:
+                params[key] = unquote(vals[0])
+    sitekey = params.get("sitekey") or params.get("k") or ""
+    if not sitekey and kind == "turnstile":
+        match = re.search(r"(0x[0-9A-Za-z_-]{10,})", src)
+        if match:
+            sitekey = match.group(1)
+    if not sitekey:
+        return None
+    return {
+        "kind": kind,
+        "sitekey": sitekey,
+        "rqdata": params.get("rqdata") or params.get("data") or "",
+    }
+
+
+def _captcha_challenge_open(page):
+    """An image grid is on screen. A checkbox click that opened it is not a solve."""
+    for frame in page.frames:
+        src = (frame.url or "").lower()
+        if ("hcaptcha.com" in src and "frame=challenge" in src) or re.search(r"recaptcha/(api2|enterprise)/bframe", src):
+            try:
+                if hasattr(frame, "frame_element") and not frame.frame_element().is_visible():
+                    continue
+                return True
+            except Exception:
+                continue
+    return False
+
+
+def _captcha_verified(page, kind):
+    """Closing/hiding a frame alone is not proof: require the response token too."""
+    if _captcha_challenge_open(page):
+        return False
+    name = {"hcaptcha": "h-captcha-response", "turnstile": "cf-turnstile-response", "recaptcha": "g-recaptcha-response"}[kind]
+    for scope in [page] + list(page.frames):
+        try:
+            if scope.evaluate("name => [...document.querySelectorAll('[name=\"' + name + '\"]')].some(e => (e.value || '').length > 20 && e.value !== 'XXXX.DUMMY.TOKEN.XXXX')", name):
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def _hcaptcha_verified(page):
+    return _captcha_verified(page, "hcaptcha")
+
+
+_HCAPTCHA_OBJECTS_URL = (
+    "https://raw.githubusercontent.com/QIN2DIM/hcaptcha-challenger/"
+    "1e4611f9567255afdac87a5748424d5d6dcbc06a/src/objects.yaml"
+)
+_HCAPTCHA_MODEL_URL = "https://github.com/QIN2DIM/hcaptcha-challenger/releases/download/model/{name}.onnx"
+_HCAPTCHA_CACHE = ROOT / "autopilot" / "cache" / "hcaptcha"
+_HCAPTCHA_ALIAS = None
+_HCAPTCHA_NETS = {}
+_HCAPTCHA_MISSING = set()
+_HCAPTCHA_LOCK = threading.Lock()
+_HCAPTCHA_HOMO = str.maketrans({
+    "а": "a", "е": "e", "і": "i", "ο": "o", "о": "o",
+    "с": "c", "р": "p", "х": "x", "у": "y", "ѕ": "s",
+})
+_HCAPTCHA_TILE_JS = r"""() => {
+  const tiles = [...document.querySelectorAll('.task-image')];
+  return tiles.map((el) => {
+    const img = el.querySelector('img');
+    if (img && img.currentSrc && img.currentSrc.startsWith('http')) return img.currentSrc;
+    const nodes = [el, ...el.querySelectorAll('*')];
+    for (const node of nodes) {
+      const bg = getComputedStyle(node).backgroundImage || '';
+      const match = bg.match(/url\(["']?(https?:[^"')]+)["']?\)/);
+      if (match) return match[1];
+    }
+    return '';
+  });
+}"""
+
+
+def _hcaptcha_touch():
+    if _WATCH["t"]:
+        _WATCH["t"] = time.monotonic()
+
+
+def _hcaptcha_prompt_label(prompt):
+    """English hCaptcha prompt down to the label phrase, e.g. 'a boat' -> 'boat'."""
+    text = (prompt or "").translate(_HCAPTCHA_HOMO)
+    text = text.replace(".", " ").lower()
+    text = re.sub(r"\s+", " ", text).strip()
+    if "containing" in text:
+        text = text.split("containing", 1)[-1].strip()
+    elif "select all" in text:
+        text = text.split("select all", 1)[-1].strip()
+        text = re.sub(r"^images?\s+(with|of|containing)\s+", "", text)
+        text = re.sub(r"\s+images?$", "", text).strip()
+    return re.sub(r"^(a|an|the)\s+", "", text).strip(" .")
+
+
+def _hcaptcha_alias_from_objects(data):
+    """English prompt -> ResNet stem. Built from objects.yaml label_alias."""
+    alias = {}
+    if not isinstance(data, dict):
+        return alias
+    for model_name, lang_map in (data.get("label_alias") or {}).items():
+        if not isinstance(lang_map, dict):
+            continue
+        stem = str(model_name)
+        if stem.endswith(".onnx"):
+            stem = stem[:-5]
+        for prompt in lang_map.get("en") or []:
+            key = str(prompt).strip().lower()
+            if key and key not in alias:
+                alias[key] = stem
+    return alias
+
+
+def _hcaptcha_model_name(prompt, alias):
+    label = _hcaptcha_prompt_label(prompt)
+    if not label or not alias:
+        return ""
+    if label in alias:
+        return alias[label]
+    folded = label.replace("-", " ").replace("_", " ")
+    for key, stem in alias.items():
+        if key.replace("-", " ").replace("_", " ") == folded:
+            return stem
+    return ""
+
+
+def _hcaptcha_fetch(url, dest, timeout=20, accept=None):
+    _hcaptcha_touch()
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = resp.read()
+    if accept and not accept(data):
+        raise IOError(f"rejected download {dest.name} ({len(data)} bytes)")
+    tmp = dest.with_suffix(dest.suffix + ".part")
+    tmp.write_bytes(data)
+    tmp.replace(dest)
+    return data
+
+
+def _hcaptcha_objects_text():
+    path = _HCAPTCHA_CACHE / "objects.yaml"
+    def good(data):
+        return len(data) > 1000 and b"label_alias:" in data
+    fresh = path.is_file() and (time.time() - path.stat().st_mtime) < 7 * 86400 and good(path.read_bytes())
+    if not fresh:
+        try:
+            _hcaptcha_fetch(_HCAPTCHA_OBJECTS_URL, path, timeout=15, accept=good)
+        except Exception as e:
+            print(f"hcaptcha local: objects.yaml unavailable: {type(e).__name__}", file=sys.stderr, flush=True)
+    if path.is_file() and good(path.read_bytes()):
+        return path.read_text(encoding="utf-8")
+    return ""
+
+
+def _hcaptcha_alias():
+    global _HCAPTCHA_ALIAS
+    if _HCAPTCHA_ALIAS:
+        return _HCAPTCHA_ALIAS
+    with _HCAPTCHA_LOCK:
+        if _HCAPTCHA_ALIAS:
+            return _HCAPTCHA_ALIAS
+        data = {}
+        text = _hcaptcha_objects_text()
+        if text:
+            try:
+                import yaml
+                data = yaml.safe_load(text) or {}
+            except Exception as e:
+                print(f"hcaptcha local: objects.yaml parse failed: {type(e).__name__}", file=sys.stderr, flush=True)
+        alias = _hcaptcha_alias_from_objects(data)
+        if alias:
+            _HCAPTCHA_ALIAS = alias
+        return alias
+
+
+def _hcaptcha_net(stem):
+    if stem in _HCAPTCHA_NETS:
+        return _HCAPTCHA_NETS[stem]
+    if stem in _HCAPTCHA_MISSING:
+        return None
+    path = _HCAPTCHA_CACHE / f"{stem}.onnx"
+    with _HCAPTCHA_LOCK:
+        if stem in _HCAPTCHA_NETS:
+            return _HCAPTCHA_NETS[stem]
+        if stem in _HCAPTCHA_MISSING:
+            return None
+        if not path.is_file() or path.stat().st_size < 50000:
+            def good(data):
+                return len(data) > 50000 and not data.lstrip().startswith(b"<")
+            try:
+                _hcaptcha_fetch(_HCAPTCHA_MODEL_URL.format(name=stem), path, timeout=30, accept=good)
+            except Exception as e:
+                _HCAPTCHA_MISSING.add(stem)
+                print(f"hcaptcha local: {stem}.onnx unavailable: {type(e).__name__}", file=sys.stderr, flush=True)
+                return None
+        try:
+            import cv2
+            net = cv2.dnn.readNetFromONNX(str(path))
+        except Exception as e:
+            _HCAPTCHA_MISSING.add(stem)
+            print(f"hcaptcha local: {stem}.onnx did not load: {type(e).__name__}", file=sys.stderr, flush=True)
+            return None
+        _HCAPTCHA_NETS[stem] = net
+        return net
+
+
+def _resnet_yes(net, img_bytes):
+    """True when the ResNet's class 0 wins. hCaptcha tiles are 128 or 144 px."""
+    import cv2
+    import numpy as np
+    img = cv2.imdecode(np.frombuffer(img_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
+    if img is None or img.size == 0:
+        return False
+    if img.shape[0] == 144:
+        img = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+    img = cv2.resize(img, (64, 64))
+    blob = cv2.dnn.blobFromImage(img, 1 / 255.0, (64, 64), (0, 0, 0), swapRB=True, crop=False)
+    net.setInput(blob)
+    out = net.forward()
+    return int(np.argmax(out, axis=1)[0]) == 0
+
+
+def _hcaptcha_download_bytes(url, timeout=12):
+    req = urllib.request.Request(url, headers={
+        "User-Agent": UA,
+        "Referer": "https://newassets.hcaptcha.com/",
+    })
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = resp.read()
+    return data if data and len(data) >= 32 else b""
+
+
+def _hcaptcha_challenge_frame(page):
+    for frame in page.frames:
+        src = (frame.url or "").lower()
+        if "hcaptcha.com" in src and "frame=challenge" in src:
+            try:
+                if not hasattr(frame, "frame_element") or frame.frame_element().is_visible():
+                    return frame
+            except Exception:
+                pass
+    return None
+
+
+_HCAPTCHA_PROMPT_HINT = re.compile(
+    r"choose|click|select|containing|outlier|tap|pick|drag|drop|slide|place|hold|move|выбер|нажм|перетащ|перемест|удерж", re.I)
+_HCAPTCHA_CHROME = re.compile(
+    r"please try again\.?|please select an image to report\.?|попробуйте еще раз\.?|попробуйте ещё раз\.?|\b(?:skip|verify|accessibility|пропустить|проверить)\b",
+    re.I)
+_HCAPTCHA_PROMPT_JS = """() => {
+  const sels = ['.prompt-text', '#prompt-text', '.challenge-prompt', '.challenge-header',
+                'h2', '[class*="prompt"]'];
+  const bits = [];
+  for (const sel of sels) {
+    document.querySelectorAll(sel).forEach(el => {
+      const text = (el.innerText || el.getAttribute('aria-label') || '').trim();
+      if (text) bits.push(text);
+    });
+  }
+  return {bits: bits.slice(0, 12), body: ((document.body && document.body.innerText) || '').slice(0, 600)};
+}"""
+
+
+def _hcaptcha_prompt_from_text(text, *, trusted=False):
+    """The instruction line, not the Skip / Verify / try-again chrome.
+
+    hCaptcha puts the task and "Please try again" in one innerText blob.
+    Dropping the whole line throws away a drag or a grid that is already painted.
+    """
+    for line in (text or "").splitlines():
+        line = _HCAPTCHA_CHROME.sub(" ", line)
+        line = re.sub(r"\s+", " ", line).strip(" .")
+        line = re.sub(r"\s+\b[A-Z]{2}(?:-[A-Z]{2})?\b$", "", line).strip()
+        if re.search(r"try again|to report|accessibility", line, re.I):
+            continue
+        if 8 <= len(line) <= 240 and (trusted or _HCAPTCHA_PROMPT_HINT.search(line)):
+            return line
+    return ""
+
+
+def _hcaptcha_read_prompt(frame):
+    for sel in (".prompt-text", "#prompt-text", "h2.prompt-text", ".challenge-prompt",
+                ".challenge-header", "h2"):
+        try:
+            loc = frame.locator(sel).first
+            if loc.count():
+                text = _hcaptcha_prompt_from_text(loc.inner_text(timeout=800) or "", trusted=True)
+                if text:
+                    return text
+                raw = re.sub(r"\s+", " ", (loc.inner_text(timeout=400) or "")).strip()
+                text = _hcaptcha_prompt_from_text(raw, trusted=True)
+                if text:
+                    return text
+        except Exception:
+            continue
+    try:
+        data = frame.evaluate(_HCAPTCHA_PROMPT_JS) or {}
+    except Exception:
+        data = {}
+    for bit in (data.get("bits") or []):
+        text = _hcaptcha_prompt_from_text(bit, trusted=True)
+        text = re.sub(r"\s+", " ", text or "").strip()
+        if 8 <= len(text) <= 240:
+            return text
+    return _hcaptcha_prompt_from_text(data.get("body") or "")
+
+
+def _hcaptcha_is_outlier(prompt):
+    """One picture of a ring, pick the arrows that do not match the rest."""
+    text = (prompt or "").lower()
+    if "outlier" in text:
+        return True
+    return "circular" in text and ("arrow" in text or "pattern" in text)
+
+
+def _hcaptcha_choose_count(prompt):
+    return _hcaptcha_exact_count(prompt) or 2
+
+
+def _hcaptcha_exact_count(prompt):
+    """Explicit object count, including the word TWO used by current challenges."""
+    words = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6}
+    match = re.search(r"\b([1-6]|one|two|three|four|five|six)\s+(?:of\s+the\s+)?"
+                      r"(?:shapes?|objects?|images?|arrows?|items?|animals?|icons?|pictures?)\b", prompt or "", re.I)
+    if match:
+        value = match.group(1).lower()
+        return int(value) if value.isdigit() else words[value]
+    if re.search(r"\b(?:коснитесь|нажмите на|выберите)\s+(?:предмета?|объект|изображение)\b|\b(?:click|tap|select)\s+(?:on\s+)?the\s+(?:object|item|image|thing)\b", prompt or "", re.I):
+        return 1
+    return None
+
+
+def _circ_delta(a, b):
+    import math
+    return (a - b + math.pi) % (2 * math.pi) - math.pi
+
+
+def _circular_median(angles):
+    best, best_cost = angles[0], None
+    for cand in angles:
+        cost = sum(abs(_circ_delta(x, cand)) for x in angles)
+        if best_cost is None or cost < best_cost:
+            best, best_cost = cand, cost
+    return best
+
+
+def _arrow_blobs(img):
+    """Arrow-like contours as (x, y, angle). Angle points toward the tip."""
+    import cv2
+    import numpy as np
+    if img is None or img.size == 0:
+        return []
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img
+    blur = cv2.GaussianBlur(gray, (3, 3), 0)
+    h, w = gray.shape[:2]
+    found = []
+    kernel = np.ones((3, 3), np.uint8)
+    for flag in (cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU, cv2.THRESH_BINARY + cv2.THRESH_OTSU):
+        _, th = cv2.threshold(blur, 0, 255, flag)
+        th = cv2.morphologyEx(th, cv2.MORPH_OPEN, kernel)
+        contours, _ = cv2.findContours(th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        blobs = []
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if area < 70 or area > 0.08 * h * w:
+                continue
+            (_, _), (rw, rh), _ = cv2.minAreaRect(contour)
+            if rw < 6 or rh < 6:
+                continue
+            if max(rw, rh) / max(1.0, min(rw, rh)) < 1.35:
+                continue
+            moments = cv2.moments(contour)
+            if moments["m00"] < 1:
+                continue
+            cx = moments["m10"] / moments["m00"]
+            cy = moments["m01"] / moments["m00"]
+            pts = contour.reshape(-1, 2).astype(np.float64)
+            delta = pts - np.array([cx, cy])
+            dist = np.hypot(delta[:, 0], delta[:, 1])
+            tip = pts[int(np.argmax(dist))]
+            vx, vy = float(tip[0] - cx), float(tip[1] - cy)
+            if vx * vx + vy * vy < 9:
+                continue
+            blobs.append((float(cx), float(cy), float(np.arctan2(vy, vx))))
+        found.append(blobs)
+    found.sort(key=len, reverse=True)
+    blobs = found[0] if found else []
+    kept = []
+    for blob in blobs:
+        if any((blob[0] - other[0]) ** 2 + (blob[1] - other[1]) ** 2 < 18 ** 2 for other in kept):
+            continue
+        kept.append(blob)
+    return kept
+
+
+def _hcaptcha_outlier_points(img, want):
+    """Image-pixel centers of the arrows that break the pattern. Empty if unsure."""
+    import numpy as np
+    blobs = _arrow_blobs(img)
+    if len(blobs) < want + 3:
+        return []
+    xs = np.array([b[0] for b in blobs])
+    ys = np.array([b[1] for b in blobs])
+    center = np.array([float(np.median(xs)), float(np.median(ys))])
+    angles = [b[2] for b in blobs]
+    median = _circular_median(angles)
+
+    def pack(errors):
+        order = list(np.argsort(errors))
+        inlier_err = [errors[i] for i in order[:-want]]
+        outlier_err = [errors[i] for i in order[-want:]]
+        if not inlier_err or not outlier_err:
+            return None
+        inlier_mid = float(np.median(inlier_err))
+        if inlier_mid < np.deg2rad(22) and min(outlier_err) > np.deg2rad(32):
+            return (inlier_mid, [blobs[i][:2] for i in order[-want:]])
+        return None
+
+    same = [abs(_circ_delta(ang, median)) for ang in angles]
+    hypotheses = [pack(same)]
+    for offset in (0.0, np.pi / 2, -np.pi / 2, np.pi):
+        expected = [
+            np.arctan2(b[1] - center[1], b[0] - center[0]) + offset for b in blobs
+        ]
+        hypotheses.append(pack([abs(_circ_delta(a, e)) for a, e in zip(angles, expected)]))
+    usable = [item for item in hypotheses if item]
+    if not usable:
+        return []
+    usable.sort(key=lambda item: item[0])
+    return usable[0][1]
+
+
+def _hcaptcha_click(page, locator):
+    if _quit_requested():
+        return False
+    try:
+        from stealth_mouse import human_click
+        return human_click(page, locator, cancelled=_quit_requested)
+    except Exception as e:
+        print(f"hcaptcha click unconfirmed: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+        return False
+
+
+def _hcaptcha_click_xy(page, x, y):
+    try:
+        import stealth_mouse
+        stealth_mouse.human_move(page, x, y)
+        time.sleep(0.08)
+        page.mouse.down()
+        time.sleep(0.05)
+        page.mouse.up()
+        return
+    except Exception:
+        pass
+    try:
+        page.mouse.click(x, y)
+    except Exception:
+        pass
+
+
+def _hcaptcha_decode_image(blob):
+    import cv2
+    import numpy as np
+    if not blob:
+        return None
+    return cv2.imdecode(np.frombuffer(blob, dtype=np.uint8), cv2.IMREAD_COLOR)
+
+
+def _hcaptcha_challenge_shot(frame):
+    """PNG bytes and page box of the challenge picture, not the whole iframe chrome."""
+    for sel in (".challenge-view", ".task-grid", "canvas", ".challenge-container"):
+        try:
+            loc = frame.locator(sel).first
+            if not loc.count():
+                continue
+            box = loc.bounding_box()
+            if not box or box["width"] < 40 or box["height"] < 40:
+                continue
+            return loc.screenshot(type="png"), box
+        except Exception:
+            continue
+    try:
+        b_loc = frame.locator("body").first
+        if b_loc.count():
+            return b_loc.screenshot(type="png"), b_loc.bounding_box()
+    except Exception:
+        pass
+    return b"", None
+
+
+def _hcaptcha_image_ready(png):
+    """Reject the blank loading canvas; do not ask vision to locate its spinner."""
+    import cv2
+    import numpy as np
+    if not png:
+        return False
+    img = cv2.imdecode(np.frombuffer(png, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
+    if img is None or min(img.shape) < 40:
+        return False
+    body = img[img.shape[0] // 4:-5, 5:-5]
+    if not body.size:
+        return False
+    edges = cv2.Canny(body, 50, 150)
+    return float(np.count_nonzero(edges)) / edges.size >= 0.004
+
+
+def _hcaptcha_wait_ready(frame, timeout=10):
+    deadline = time.monotonic() + timeout
+    reason = 'challenge image still loading'
+    while time.monotonic() < deadline and not _quit_requested():
+        _hcaptcha_touch()
+        try:
+            loading = frame.evaluate(r"""() => {
+                const visible = e => {
+                    if (!(e.getBoundingClientRect().width && e.getBoundingClientRect().height)) return false;
+                    for (let p=e; p; p=p.parentElement) {
+                        const s=getComputedStyle(p);
+                        if (s.visibility==='hidden' || s.display==='none' || Number(s.opacity)===0) return false;
+                    }
+                    return true;
+                };
+                if ([...document.querySelectorAll('.loading-indicator,.loading-overlay,.loading-view,.spinner,[role="progressbar"]')].some(visible)) return true;
+                return [...document.querySelectorAll('.task-image img')].some(e => visible(e) && (!e.complete || !e.naturalWidth));
+            }""")
+            reason = 'challenge image still loading'
+            if not loading:
+                png, box = _hcaptcha_challenge_shot(frame)
+                if png and box and _hcaptcha_image_ready(png):
+                    return True
+                reason = 'challenge screenshot unavailable' if not png or not box else 'challenge image is blank'
+        except Exception as exc:
+            reason = f'challenge readiness check failed: {type(exc).__name__}: {str(exc).splitlines()[0][:160]}'
+        time.sleep(0.5)
+    print(f"hcaptcha local: {reason}; no answer submitted", file=sys.stderr, flush=True)
+    return False
+
+
+# QIN2DIM SpatialPointReasoner system prompt (tools/spatial/point.md). The grid
+# overlay is their create_coordinate_grid: axis ticks are the challenge-view's
+# webpage box, and the click is page.mouse.click of those numbers.
+_HCAPTCHA_POINT_SYSTEM = (
+    "Interpret the actual depicted objects and the reference picture before choosing targets.\n"
+    "For relationships such as conceal, cover, carry or fit, use the objects' real-world size and capabilities, "
+    "not their printed icon size. Decorative frames, borders and tiles are not part of the depicted objects.\n"
+    "**Rule for 'Find the Different Object' Tasks:**\n"
+    "* Constraint: Do NOT consider size differences caused by perspective (near/far).\n"
+    "* Focus: Identify difference based only on object outline, shape, and core structural features.\n"
+    "**Core Principles:** Global context before local details; avoid local optima.\n"
+    "**Workflow:**\n"
+    "1. Identify challenge prompt about the Challenge Image\n"
+    "2. Think about what the challenge requires and where the targets are\n"
+    "3. Based on the plane rectangular coordinate system, reason about the absolute position of the answer object\n"
+    "Finally, solve the challenge, locate the object, output the coordinates of the correct answer as json.\n"
+)
+
+
+def _hcaptcha_coordinate_grid(image_rgb, bbox, *, x_line_space_num=11, y_line_space_num=20,
+                              tick_labels_size=10, color="gray"):
+    """QIN2DIM helper/create_coordinate_grid.py, default path. image_rgb is RGB."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    img = image_rgb
+    x, y = float(bbox["x"]), float(bbox["y"])
+    width, height = float(bbox["width"]), float(bbox["height"])
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.imshow(img, extent=(x, x + width, y + height, y))
+    ax.set_xlim(x, x + width)
+    ax.set_ylim(y + height, y)
+    ax.spines["left"].set_position(("data", x))
+    ax.spines["bottom"].set_position(("data", y + height))
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    x_ticks = np.linspace(x, x + width, x_line_space_num)
+    y_ticks = np.linspace(y, y + height, y_line_space_num)
+    ax.set_xticks(x_ticks)
+    ax.set_yticks(y_ticks)
+    ax.tick_params(axis="both", which="major", labelsize=tick_labels_size)
+    ax.set_xticklabels([str(round(tick)) for tick in x_ticks])
+    ax.set_yticklabels([str(round(tick)) for tick in y_ticks])
+    ax.grid(True, color=color, alpha=0.5, linestyle="-", linewidth=1.0)
+    ax.set_xlabel("X Coordinate")
+    ax.set_ylabel("Y Coordinate")
+    ax.set_title("Image with Coordinate Grid")
+    plt.tight_layout()
+    fig.canvas.draw()
+    buf = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
+    out = buf.reshape(fig.canvas.get_width_height()[::-1] + (4,))
+    plt.close(fig)
+    import cv2
+    return cv2.cvtColor(out, cv2.COLOR_RGBA2RGB)
+
+
+def _hcaptcha_parse_points(text, box, want, exact=True):
+    """Page coordinates from the spatial JSON.
+
+    exact=True (outlier rings) rejects the whole set unless the count matches.
+    exact=False keeps every in-box point, up to `want`. One outside point is dropped.
+    """
+    start = (text or "").find("{")
+    end = (text or "").rfind("}")
+    if start < 0 or end <= start or not box:
+        return []
+    try:
+        data = json.loads(text[start:end + 1])
+    except Exception:
+        return []
+    raw = data.get("points") or []
+    if exact and len(raw) != want:
+        return []
+    x0, y0 = float(box["x"]), float(box["y"])
+    x1, y1 = x0 + float(box["width"]), y0 + float(box["height"])
+    points = []
+    for item in raw:
+        try:
+            x, y = int(item["x"]), int(item["y"])
+        except Exception:
+            if exact:
+                return []
+            continue
+        if x < x0 - 2 or y < y0 - 2 or x > x1 + 2 or y > y1 + 2:
+            if exact:
+                return []
+            continue
+        if (x, y) in points:
+            continue
+        points.append((x, y))
+        if not exact and len(points) >= want:
+            break
+    if exact and len(points) != want:
+        return []
+    return points
+
+
+def _hcaptcha_spatial_points(png, box, prompt, want, exact=True, context_png=None):
+    """QIN2DIM image_label_area_select: raw shot plus the coordinate grid, then JSON points."""
+    import cv2
+    import numpy as np
+    img = cv2.imdecode(np.frombuffer(png, dtype=np.uint8), cv2.IMREAD_COLOR)
+    if img is None or not box:
+        return []
+    try:
+        grid = _hcaptcha_coordinate_grid(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), box)
+        ok, encoded = cv2.imencode(".png", cv2.cvtColor(grid, cv2.COLOR_RGB2BGR))
+        if not ok:
+            return []
+        grid_png = encoded.tobytes()
+        (_HCAPTCHA_CACHE / "last-grid.png").write_bytes(grid_png)
+    except Exception as e:
+        print(f"hcaptcha spatial: grid failed: {type(e).__name__}", file=sys.stderr, flush=True)
+        return []
+    user = (
+        f"{prompt}\n\n"
+        "Please note that the current task type is: image_label_area_select\n"
+        "The first image is the challenge. The second image is the same challenge "
+        "with a coordinate grid. The axis numbers are the click coordinates.\n"
+        'Reply with JSON only: {"challenge_prompt":"...","points":[{"x":0,"y":0}]}\n'
+        + (f"Return exactly {want} points." if exact
+           else f"Return one point at the center of each match, from 1 to {want} points.")
+    )
+    images = [png, grid_png]
+    if context_png:
+        images.append(context_png)
+        user += "\nThe third image includes the prompt and its reference picture. Use that picture to interpret 'this place' or 'this object'; return click coordinates ONLY from the second image's grid."
+    text = llm_vision(read_json(CFG), _HCAPTCHA_POINT_SYSTEM, user, images,
+                      accept=lambda answer: bool(_hcaptcha_parse_points(answer, box, want, exact=exact)))
+    points = _hcaptcha_parse_points(text, box, want, exact=exact)
+    print(f"hcaptcha spatial: {len(points)}/{want} {points}", file=sys.stderr, flush=True)
+    return points
+
+
+def _hcaptcha_click_outliers(page, frame, prompt):
+    """Click the arrows that break the ring. Returns how many were clicked."""
+    want = _hcaptcha_choose_count(prompt)
+    tiles = frame.locator(".task-image")
+    try:
+        count = int(tiles.count())
+    except Exception:
+        count = 0
+    if count >= 4:
+        blobs = []
+        for i in range(count):
+            _hcaptcha_touch()
+            try:
+                blob = tiles.nth(i).screenshot(type="png")
+            except Exception:
+                blob = b""
+            img = _hcaptcha_decode_image(blob)
+            arrows = _arrow_blobs(img) if img is not None else []
+            if not arrows:
+                return 0
+            blobs.append(arrows[0])
+        # One arrow per tile: same-direction hypothesis only. x/y stay unused.
+        import numpy as np
+        angles = [b[2] for b in blobs]
+        median = _circular_median(angles)
+        errors = [abs(_circ_delta(ang, median)) for ang in angles]
+        order = list(np.argsort(errors))
+        if min(errors[i] for i in order[-want:]) <= np.deg2rad(32):
+            return 0
+        for i in order[-want:]:
+            _hcaptcha_click(page, tiles.nth(int(i)))
+            time.sleep(0.12)
+        return want
+    return _hcaptcha_click_spatial(page, frame, prompt, want)
+
+
+def _hcaptcha_click_spatial(page, frame, prompt, want, exact=True):
+    """QIN2DIM image_label_area_select. Clicks page coordinates from the grid axis."""
+    png, box = _hcaptcha_challenge_shot(frame)
+    if not png or not box:
+        return 0
+    try:
+        shot_path = _HCAPTCHA_CACHE / "last-challenge.png"
+        shot_path.parent.mkdir(parents=True, exist_ok=True)
+        shot_path.write_bytes(png)
+    except Exception:
+        pass
+    # Page pixels from the grid axis. Do not scale image pixels onto the box.
+    try:
+        context_png = frame.locator("body").screenshot(type="png")
+    except Exception as exc:
+        print(f"hcaptcha spatial: context screenshot failed: {type(exc).__name__}", file=sys.stderr, flush=True)
+        return 0
+    points = _hcaptcha_spatial_points(png, box, prompt, want, exact=exact, context_png=context_png)
+    if exact and len(points) != want:
+        return 0
+    if not points:
+        return 0
+    for x, y in points:
+        if _quit_requested():
+            return 0
+        _hcaptcha_touch()
+        try:
+            page.mouse.click(x, y, delay=180)
+        except Exception:
+            return 0
+        time.sleep(0.5)
+    return len(points)
+
+
+# QIN2DIM ImageClassifier (tools/image_classifier/image_classifier.md).
+# box_2d is [row, col] on a 3x3. Values outside 0..2 are binned the same way
+# as models.BoundingBoxCoordinate: <333 -> 0, <667 -> 1, else 2.
+_HCAPTCHA_GRID_SYSTEM = (
+    "Solve the challenge, use [0,0] ~ [2,2] to locate 9grid, "
+    "output the coordinates of the correct answer as json.\n"
+    "Follow the following format to return a coordinates wrapped with a json code block:\n"
+    '{"challenge_prompt":"please click on the largest animal",'
+    '"coordinates":[{"box_2d":[0,0]},{"box_2d":[1,2]},{"box_2d":[2,1]}]}\n'
+    "[0,0] is the top-left cell, [0,2] the top-right, [2,0] the bottom-left, [2,2] the bottom-right."
+)
+_HCAPTCHA_GRID_USER = (
+    "Read the complete prompt and inspect any small reference picture in the header first. "
+    "For words such as 'this one', 'this object', or 'this place', the reference picture defines the relationship. "
+    "Choose only candidate tiles satisfying the FULL relationship, not all tiles sharing a category word. "
+    "For example, identify what the reference object can do before choosing objects it can act on. "
+    "The header and reference picture are not candidate tiles. "
+    "Solve the challenge, use [0,0] ~ [2,2] to locate 9grid, "
+    "output the coordinates of the correct answer as JSON."
+)
+
+# QIN2DIM SpatialPathReasoner (tools/spatial/path.md).
+_HCAPTCHA_DRAG_SYSTEM = (
+    "You are a Visual Spatial Reasoning System specialized in solving interactive placement puzzles. "
+    "Identify which draggable element should be moved to which target location.\n"
+    "If visible lines connect items, follow the line from the draggable object to its target. "
+    "Ignore semantic matching when a line connects a different object.\n"
+    "If no lines are present, match shape, category, color, or pattern.\n"
+    "Read coordinates from the axis scales on the second image. "
+    'Reply with JSON only: {"challenge_prompt":"...","paths":[{"start_point":{"x":0,"y":0},"end_point":{"x":0,"y":0}}]}'
+)
+
+
+def _hcaptcha_bin_cell(value):
+    """One axis of BoundingBoxCoordinate.model_post_init. None when it is not a number."""
+    if isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    whole = int(number)
+    if number == whole and 0 <= whole <= 2:
+        return whole
+    if number < 333:
+        return 0
+    if number < 667:
+        return 1
+    return 2
+
+
+def _hcaptcha_parse_cells(text):
+    """Tile indexes 0..8 from JSON. Handles [1,2,5], [0,1,4], {"coordinates": [{"box_2d": [r,c]}]}, etc."""
+    if not text:
+        return []
+    import json, re
+    # Parse the enclosing JSON FIRST. A coordinate pair [0,2] inside box_2d
+    # is one row/column pair, never a flat list of tile indexes.
+    start = (text or "").find("{")
+    end = (text or "").rfind("}")
+    if start >= 0 and end > start:
+        try:
+            data = json.loads(text[start:end + 1])
+            for k in ("tiles", "cells", "answers", "indices", "points"):
+                if k in data and isinstance(data[k], list):
+                    nums = [int(x) for x in data[k] if str(x).isdigit()]
+                    if nums:
+                        if data.get("coordinate_system") != "zero_based" and (any(n == 9 for n in nums) or (all(1 <= n <= 9 for n in nums) and not any(n == 0 for n in nums))):
+                            return sorted(list(set(n - 1 for n in nums if 1 <= n <= 9)))
+                        return sorted(list(set(n for n in nums if 0 <= n <= 8)))
+            # QIN2DIM legacy format:
+            raw = data.get("coordinates") or []
+            cells = []
+            for item in raw:
+                box = item.get("box_2d") if isinstance(item, dict) else item
+                if not isinstance(box, (list, tuple)) or len(box) < 2:
+                    continue
+                row = _hcaptcha_bin_cell(box[0])
+                col = _hcaptcha_bin_cell(box[1])
+                if row is None or col is None:
+                    continue
+                index = row * 3 + col
+                if index not in cells:
+                    cells.append(index)
+            if cells:
+                return cells
+        except Exception:
+            pass
+        return []  # malformed JSON must not fall through to nested numeric pairs
+    m = re.search(r"\[\s*([0-9\s,]+)\s*\]", text)
+    if m:
+        nums = [int(x.strip()) for x in m.group(1).split(",") if x.strip().isdigit()]
+        if nums:
+            one_based = any(n == 9 for n in nums) or (all(1 <= n <= 9 for n in nums) and 0 not in nums)
+            return sorted(set(n - 1 for n in nums if 1 <= n <= 9)) if one_based else sorted(set(n for n in nums if 0 <= n <= 8))
+    return []
+
+
+def _hcaptcha_point_inside(x, y, box):
+    x0, y0 = float(box["x"]), float(box["y"])
+    x1, y1 = x0 + float(box["width"]), y0 + float(box["height"])
+    return x0 - 2 <= x <= x1 + 2 and y0 - 2 <= y <= y1 + 2
+
+
+def _hcaptcha_page_point(x, y, box, as_percent):
+    """Page pixel. Fractions and 0–100 answers are scaled onto the challenge box.
+
+    DanOps hcaptcha_auto_solver and the drag writeups return 0–1 or 0–100,
+    not the CSS pixels QIN2DIM's grid uses. A number already inside the box
+    stays a page pixel.
+    """
+    x, y = float(x), float(y)
+    if 0 <= x <= 1 and 0 <= y <= 1:
+        return int(float(box["x"]) + x * float(box["width"])), int(float(box["y"]) + y * float(box["height"]))
+    if as_percent:
+        return (
+            int(float(box["x"]) + x / 100.0 * float(box["width"])),
+            int(float(box["y"]) + y / 100.0 * float(box["height"])),
+        )
+    return int(x), int(y)
+
+
+def _hcaptcha_parse_paths(text, box):
+    """Drag paths whose start and end both sit inside the challenge box."""
+    start = (text or "").find("{")
+    end = (text or "").rfind("}")
+    if start < 0 or end <= start or not box:
+        return []
+    try:
+        data = json.loads(text[start:end + 1])
+    except Exception:
+        return []
+    raw = list(data.get("paths") or [])
+    if not raw and data.get("drag_from") and data.get("drag_to"):
+        raw = [{"start_point": data["drag_from"], "end_point": data["drag_to"]}]
+    if not raw and data.get("from") and data.get("to"):
+        raw = [{"start_point": data["from"], "end_point": data["to"]}]
+    pairs = []
+    for item in raw:
+        try:
+            if isinstance(item.get("start_point"), (list, tuple)):
+                a, b = item["start_point"], item["end_point"]
+                sx, sy, ex, ey = float(a[0]), float(a[1]), float(b[0]), float(b[1])
+            else:
+                a, b = item["start_point"], item["end_point"]
+                sx, sy = float(a["x"]), float(a["y"])
+                ex, ey = float(b["x"]), float(b["y"])
+        except Exception:
+            return []
+        pairs.append((sx, sy, ex, ey))
+    if not pairs:
+        return []
+    # 0–100 is a percent answer only when it cannot already be a page pixel.
+    flat = [n for pair in pairs for n in pair]
+    as_percent = (
+        max(flat) <= 100 and min(flat) >= 0
+        and (float(box["x"]) > 100 or float(box["y"]) > 100)
+        and not any(_hcaptcha_point_inside(sx, sy, box) or _hcaptcha_point_inside(ex, ey, box)
+                    for sx, sy, ex, ey in pairs)
+    )
+    paths = []
+    for sx, sy, ex, ey in pairs:
+        sx, sy = _hcaptcha_page_point(sx, sy, box, as_percent)
+        ex, ey = _hcaptcha_page_point(ex, ey, box, as_percent)
+        if not _hcaptcha_point_inside(sx, sy, box) or not _hcaptcha_point_inside(ex, ey, box):
+            return []
+        if (sx, sy) == (ex, ey):
+            return []
+        paths.append((sx, sy, ex, ey))
+    return paths
+
+
+def _hcaptcha_is_drag(prompt):
+    return bool(re.search(r"\bdrag\b|\bmove\b.*\b(?:into|slot)\b|перетащ|перемест.*(?:слот|ячейк|мест)", prompt or "", re.I))
+
+
+def _hcaptcha_click_refresh(page, frame):
+    """Ask hCaptcha for another task. A bad drag must not be verified."""
+    for sel in ("div.refresh.button", "[aria-label*='Refresh' i]", "[title*='Refresh' i]"):
+        try:
+            loc = frame.locator(sel).first
+            if not loc.count():
+                continue
+            _hcaptcha_click(page, loc)
+            print("hcaptcha drag: refreshed for another task", file=sys.stderr, flush=True)
+            return True
+        except Exception:
+            continue
+    return False
+
+
+def _hcaptcha_submit_button(page, frame):
+    for sel in ("div.button-submit", ".button-submit", "button.button-submit", "[aria-label*='Verify' i]", "[title*='Verify' i]", "button:has-text('Verify')", "button:has-text('Next')"):
+        try:
+            btn = frame.locator(sel).first
+            if btn.count() and btn.is_visible():
+                _hcaptcha_click(page, btn)
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def _hcaptcha_solve_grid(page, frame, prompt):
+    """Click the 3x3 cells ImageClassifier named. Returns how many were clicked."""
+    png, box = _hcaptcha_challenge_shot(frame)
+    if not png:
+        return 0
+    try:
+        shot_path = _HCAPTCHA_CACHE / "last-challenge.png"
+        shot_path.parent.mkdir(parents=True, exist_ok=True)
+        shot_path.write_bytes(png)
+    except Exception:
+        pass
+    user = f"Challenge prompt: {prompt}\n{_HCAPTCHA_GRID_USER}"
+    expected = _hcaptcha_exact_count(prompt)
+    text = llm_vision(read_json(CFG), _HCAPTCHA_GRID_SYSTEM, user, [png],
+                      accept=lambda answer: bool(_hcaptcha_parse_cells(answer)) and
+                      (expected is None or len(_hcaptcha_parse_cells(answer)) == expected))
+    cells = _hcaptcha_parse_cells(text)
+    print(f"hcaptcha grid: {cells} for {prompt!r}", file=sys.stderr, flush=True)
+    if not cells or (expected is not None and len(cells) != expected):
+        return 0
+    tiles = frame.locator(".task-image")
+    clicked = 0
+    # Synchronize the selection, rather than toggling an already checked tile off.
+    for index in range(tiles.count()):
+        tile = tiles.nth(index)
+        try:
+            selected = tile.evaluate(r"""e => e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-selected') === 'true' || e.getAttribute('data-selected') === 'true' || e.classList.contains('selected') || [...e.querySelectorAll('.check,.checkmark,.image-selected')].some(n => getComputedStyle(n).display !== 'none' && getComputedStyle(n).visibility !== 'hidden' && parseFloat(getComputedStyle(n).opacity || '1') > 0 && n.getBoundingClientRect().width > 0)""")
+        except Exception:
+            selected = False
+        wanted = index in cells
+        if wanted == bool(selected):
+            if wanted:
+                clicked += 1
+            continue
+        _hcaptcha_touch()
+        _hcaptcha_click(page, tile)
+        if wanted:
+            clicked += 1
+        time.sleep(0.15)
+    return clicked
+
+
+def _hcaptcha_tile_boxes(frame):
+    tiles = frame.locator(".task-image")
+    try:
+        count = int(tiles.count())
+    except Exception:
+        return []
+    boxes = []
+    for i in range(count):
+        try:
+            box = tiles.nth(i).bounding_box()
+        except Exception:
+            box = None
+        if box and box.get("width", 0) >= 8 and box.get("height", 0) >= 8:
+            boxes.append(box)
+    return boxes
+
+
+def _hcaptcha_is_regular_grid(boxes):
+    """A real 3x3. Nine stacked boxes (the unit-test double) also count as a grid."""
+    if len(boxes) != 9:
+        return False
+    xs = [b["x"] + b["width"] / 2 for b in boxes]
+    ys = [b["y"] + b["height"] / 2 for b in boxes]
+    if max(xs) - min(xs) < 20 and max(ys) - min(ys) < 20:
+        return True
+
+    def groups(vals):
+        clusters = []
+        for value in sorted(vals):
+            if not clusters or value - clusters[-1][-1] > 15:
+                clusters.append([value])
+            else:
+                clusters[-1].append(value)
+        return clusters
+
+    return len(groups(xs)) == 3 and len(groups(ys)) == 3
+
+
+def _hcaptcha_grab_point(frame, x, y):
+    """Center of the .task-image under the model's start. The ratio snap is not used."""
+    best = None
+    best_d = None
+    for box in _hcaptcha_tile_boxes(frame):
+        cx = box["x"] + box["width"] / 2
+        cy = box["y"] + box["height"] / 2
+        inside = (box["x"] - 6 <= x <= box["x"] + box["width"] + 6
+                  and box["y"] - 6 <= y <= box["y"] + box["height"] + 6)
+        dist = (cx - x) ** 2 + (cy - y) ** 2
+        if inside or dist <= 80 ** 2:
+            if best_d is None or dist < best_d:
+                best_d = dist
+                best = (int(cx), int(cy))
+    return best or (int(x), int(y))
+
+
+def _hcaptcha_save_drag(png, box, paths):
+    """Page-coordinate path drawn back onto the challenge image."""
+    import cv2
+    import numpy as np
+    img = cv2.imdecode(np.frombuffer(png, dtype=np.uint8), cv2.IMREAD_COLOR)
+    if img is None or not box or not paths:
+        return
+    height, width = img.shape[:2]
+    bw = float(box["width"]) or 1.0
+    bh = float(box["height"]) or 1.0
+
+    def pix(x, y):
+        return (
+            int((float(x) - float(box["x"])) / bw * width),
+            int((float(y) - float(box["y"])) / bh * height),
+        )
+
+    for sx, sy, ex, ey in paths:
+        a, b = pix(sx, sy), pix(ex, ey)
+        cv2.circle(img, a, 8, (0, 0, 255), 2)
+        cv2.circle(img, b, 8, (0, 180, 0), 2)
+        cv2.arrowedLine(img, a, b, (0, 0, 255), 2)
+    try:
+        cv2.imwrite(str(_HCAPTCHA_CACHE / "last-drag.png"), img)
+    except Exception:
+        pass
+
+
+def _hcaptcha_is_missing_piece(prompt):
+    """DanOps solve_pair_drag delegates only these two phrases to the cyan-slot matcher."""
+    text = (prompt or "").lower()
+    return "missing piece" in text or "complete the image" in text
+
+
+def _hcaptcha_is_pair_drag(prompt):
+    """DanOps routes every other drag, including "complete the circle", to solve_pair_drag."""
+    text = (prompt or "").lower()
+    return "complete the circle" in text or "complete the pair" in text
+
+
+def _hcaptcha_drop_banner(img_bgr):
+    """DanOps treats the teal prompt bar as part of the puzzle and aims at the title."""
+    import cv2
+    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    stds = [float(gray[y].std()) for y in range(gray.shape[0])]
+    cut = 0
+    for y in range(min(40, len(stds)), max(0, len(stds) - 15)):
+        window = sorted(stds[y:y + 15])
+        if window[len(window) // 2] >= 12:
+            cut = y
+            break
+    if cut < 20:
+        return img_bgr, 0
+    return img_bgr[cut:], cut
+
+
+def _hcaptcha_missing_piece_px(img_bgr):
+    """Port of DanOps solve_missing_pieces_drag.
+
+    Source: CTF-pay/hcaptcha_auto_solver.py. The slot is the cyan region on the
+    left, the piece is the object on the right, and the match is shape IoU.
+    Returns image pixels (start_x, start_y, end_x, end_y), or None.
+    """
+    import math
+    import cv2
+    import numpy as np
+
+    def angle_of(rect):
+        (_, _), (rw, rh), angle = rect
+        if float(rw) > float(rh):
+            angle += 90.0
+        while angle <= -90.0:
+            angle += 180.0
+        while angle > 90.0:
+            angle -= 180.0
+        return float(angle)
+
+    def components(mask, min_area):
+        contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        found = []
+        for contour in contours:
+            area = float(cv2.contourArea(contour))
+            if area < min_area:
+                continue
+            rect = cv2.minAreaRect(contour)
+            x, y, w, h = cv2.boundingRect(contour)
+            local = np.zeros((h, w), dtype=np.uint8)
+            shifted = contour.copy()
+            shifted[:, 0, 0] -= x
+            shifted[:, 0, 1] -= y
+            cv2.drawContours(local, [shifted], -1, 1, thickness=-1)
+            found.append({
+                "area": area,
+                "box": (int(x), int(y), int(w), int(h)),
+                "center": (float(rect[0][0]), float(rect[0][1])),
+                "angle": angle_of(rect),
+                "shape_mask": local,
+            })
+        return found
+
+    if img_bgr is None or img_bgr.size == 0:
+        return None
+    img_bgr, banner = _hcaptcha_drop_banner(img_bgr)
+    arr = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+    row_mean = arr.mean(axis=2).mean(axis=1)
+    rows = np.where(row_mean > 30)[0]
+    if len(rows) == 0:
+        return None
+    y0 = int(rows.min()) + banner
+    vis = arr[int(rows.min()):]
+    sat = vis.max(axis=2) - vis.min(axis=2)
+    col_score = sat.mean(axis=0)
+    width = vis.shape[1]
+    if width < 20:
+        return None
+    split = min(range(int(width * 0.45), int(width * 0.8)), key=lambda x: float(col_score[x]))
+    left = vis[:, :split]
+    right = vis[:, split:]
+    left_hsv = cv2.cvtColor(left, cv2.COLOR_RGB2HSV)
+    holes_mask = (
+        (left_hsv[:, :, 0] >= 95) & (left_hsv[:, :, 0] <= 135)
+        & (left_hsv[:, :, 1] >= 25) & (left_hsv[:, :, 2] >= 120)
+    ).astype(np.uint8)
+    holes_mask = cv2.morphologyEx(holes_mask, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+    holes_mask = cv2.dilate(holes_mask, np.ones((7, 7), np.uint8), iterations=1)
+    holes = components(holes_mask, 2500.0)
+    if not holes:
+        return None
+    right_bg = np.median(right[:80, :80].reshape(-1, 3), axis=0)
+    right_diff = np.abs(right.astype(np.int16) - right_bg.astype(np.int16)).sum(axis=2)
+    right_sat = right.max(axis=2) - right.min(axis=2)
+    pieces_mask = ((right_sat > 25) & (right_diff > 45)).astype(np.uint8)
+    pieces_mask = cv2.morphologyEx(pieces_mask, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+    pieces_mask = cv2.dilate(pieces_mask, np.ones((5, 5), np.uint8), iterations=1)
+    pieces = components(pieces_mask, 2500.0)
+    if not pieces:
+        return None
+    best = None
+    for piece in pieces:
+        piece_aspect = max(1.0, float(piece["box"][2])) / max(1.0, float(piece["box"][3]))
+        for hole in holes:
+            hole_aspect = max(1.0, float(hole["box"][2])) / max(1.0, float(hole["box"][3]))
+            resized = cv2.resize(
+                piece["shape_mask"].astype(np.uint8),
+                (hole["shape_mask"].shape[1], hole["shape_mask"].shape[0]),
+                interpolation=cv2.INTER_NEAREST,
+            )
+            inter = float(((resized > 0) & (hole["shape_mask"] > 0)).sum())
+            union = float(((resized > 0) | (hole["shape_mask"] > 0)).sum())
+            shape_iou = inter / max(1.0, union)
+            angle_delta = abs(float(piece["angle"]) - float(hole["angle"])) % 180.0
+            angle_delta = min(angle_delta, 180.0 - angle_delta)
+            area_penalty = abs(math.log(max(float(piece["area"]), 1.0) / max(float(hole["area"]), 1.0)))
+            aspect_penalty = abs(math.log(max(piece_aspect, 1e-6) / max(hole_aspect, 1e-6)))
+            score = shape_iou - 0.06 * angle_delta - 0.20 * area_penalty - 0.12 * aspect_penalty
+            if best is None or score > best[0]:
+                best = (score, piece, hole)
+    if best is None:
+        return None
+    _, piece, hole = best
+    return (
+        int(split + piece["center"][0]),
+        int(y0 + piece["center"][1]),
+        int(hole["center"][0]),
+        int(y0 + hole["center"][1]),
+    )
+
+
+def _hcaptcha_pair_drag_px(img_bgr):
+    """Port of DanOps solve_pair_drag. Image pixels (start_x, start_y, end_x, end_y), or None."""
+    import math
+    import cv2
+    import numpy as np
+
+    if img_bgr is None or img_bgr.size == 0:
+        return None
+    img_bgr, banner = _hcaptcha_drop_banner(img_bgr)
+    arr = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+    row_mean = arr.mean(axis=2).mean(axis=1)
+    rows = np.where(row_mean > 30)[0]
+    if len(rows) == 0:
+        return None
+    y0 = int(rows.min()) + banner
+    vis = arr[int(rows.min()):]
+    sat = vis.max(axis=2) - vis.min(axis=2)
+    col_score = sat.mean(axis=0)
+    width = vis.shape[1]
+    if width < 20:
+        return None
+    split = min(range(int(width * 0.45), int(width * 0.8)), key=lambda x: float(col_score[x]))
+    left = vis[:, :split]
+    right = vis[:, split:]
+    right_sat = right.max(axis=2) - right.min(axis=2)
+    right_bg = np.median(right[:50, :50].reshape(-1, 3), axis=0)
+    right_diff = np.abs(right.astype(np.int16) - right_bg.astype(np.int16)).sum(axis=2)
+    src_mask = ((right_sat > 20) & (right_diff > 25)).astype(np.uint8)
+    src_mask = cv2.morphologyEx(src_mask, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+    count, labels, stats, centroids = cv2.connectedComponentsWithStats(src_mask, 8)
+    if count <= 1:
+        return None
+    src_idx = max(range(1, count), key=lambda i: int(stats[i, cv2.CC_STAT_AREA]))
+    src_center_right = tuple(map(float, centroids[src_idx]))
+    src_pixels = right[labels == src_idx]
+    src_mean = src_pixels.mean(axis=0)
+    src_dist = np.linalg.norm(left.astype(np.float32) - src_mean.astype(np.float32), axis=2)
+    src_like = (src_dist < 55).astype(np.uint8)
+    src_like = cv2.morphologyEx(src_like, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+    left_sat = left.max(axis=2) - left.min(axis=2)
+    left_bg = np.median(left[:50, :50].reshape(-1, 3), axis=0)
+    left_diff = np.abs(left.astype(np.int16) - left_bg.astype(np.int16)).sum(axis=2)
+    obj_mask = ((left_sat > 20) & (left_diff > 25)).astype(np.uint8)
+    obj_mask = cv2.dilate(obj_mask, np.ones((9, 9), np.uint8), iterations=2)
+    obj_mask = cv2.morphologyEx(obj_mask, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+    obj_count, obj_labels, obj_stats, obj_centroids = cv2.connectedComponentsWithStats(obj_mask, 8)
+    components = []
+    for i in range(1, obj_count):
+        x, y, w, h, area = obj_stats[i]
+        if int(area) < 1500:
+            continue
+        comp_mask = obj_labels == i
+        components.append({
+            "i": i,
+            "box": (int(x), int(y), int(w), int(h)),
+            "area": int(area),
+            "src_pixels": int((src_like & comp_mask).sum()),
+            "center": tuple(map(float, obj_centroids[i])),
+        })
+    if len(components) < 2:
+        return None
+    incomplete = min(components, key=lambda c: c["src_pixels"])
+
+    def extract_masks(comp):
+        x, y, w, h = comp["box"]
+        comp_mask = (obj_labels[y:y + h, x:x + w] == comp["i"]).astype(np.uint8)
+        src = src_like[y:y + h, x:x + w]
+        skeleton = ((comp_mask > 0) & (src == 0)).astype(np.uint8)
+        return comp_mask, src, skeleton
+
+    inc_x, inc_y, inc_w, inc_h = incomplete["box"]
+    inc_center_y = incomplete["center"][1]
+    _, _, inc_skeleton = extract_masks(incomplete)
+    best_score = -1e9
+    best_rel = None
+    for comp in components:
+        if comp["i"] == incomplete["i"]:
+            continue
+        _, src, skeleton = extract_masks(comp)
+        resized = cv2.resize(
+            skeleton.astype(np.uint8),
+            (inc_skeleton.shape[1], inc_skeleton.shape[0]),
+            interpolation=cv2.INTER_NEAREST,
+        )
+        inter = float(((resized > 0) & (inc_skeleton > 0)).sum())
+        union = float(((resized > 0) | (inc_skeleton > 0)).sum())
+        score = inter / max(1.0, union)
+        ys, xs = np.where(src > 0)
+        if len(xs) == 0:
+            continue
+        rel = (float(xs.mean() / src.shape[1]), float(ys.mean() / src.shape[0]))
+        comp_w, comp_h = comp["box"][2], comp["box"][3]
+        size_penalty = abs(math.log(max(comp_w, 1) / max(inc_w, 1))) + abs(math.log(max(comp_h, 1) / max(inc_h, 1)))
+        aspect_penalty = abs(math.log((max(comp_w, 1) / max(comp_h, 1)) / (max(inc_w, 1) / max(inc_h, 1))))
+        row_penalty = abs(float(comp["center"][1]) - float(inc_center_y)) / max(float(inc_h), float(comp_h), 1.0)
+        adjusted = score - 0.20 * size_penalty - 0.20 * aspect_penalty - 0.15 * row_penalty
+        if adjusted > best_score:
+            best_score = adjusted
+            best_rel = rel
+    if best_rel is None:
+        return None
+    return (
+        int(split + src_center_right[0]),
+        int(y0 + src_center_right[1]),
+        int(inc_x + best_rel[0] * inc_w),
+        int(y0 + inc_y + best_rel[1] * inc_h),
+    )
+
+
+def _hcaptcha_target_on_puzzle(img_bgr, x, y):
+    """A drop on the flat prompt banner is not a hole."""
+    import cv2
+    height, width = img_bgr.shape[:2]
+    if not (0 <= int(x) < width and 0 <= int(y) < height):
+        return False
+    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    return float(gray[int(y)].std()) >= 18
+
+
+def _hcaptcha_drag(page, frame, prompt):
+    """QIN2DIM image_drag_drop. Returns how many paths were dragged."""
+    png, box = _hcaptcha_challenge_shot(frame)
+    if not png or not box:
+        return 0
+    import cv2
+    import numpy as np
+    img = cv2.imdecode(np.frombuffer(png, dtype=np.uint8), cv2.IMREAD_COLOR)
+    if img is None:
+        return 0
+    if _hcaptcha_is_missing_piece(prompt) or _hcaptcha_is_pair_drag(prompt):
+        # DanOps: missing-piece phrases use the cyan slot, "complete the circle" uses pair drag.
+        # No vision guess and no Verify when the detector misses.
+        found = (
+            _hcaptcha_missing_piece_px(img)
+            if _hcaptcha_is_missing_piece(prompt)
+            else _hcaptcha_pair_drag_px(img)
+        )
+        if found and not _hcaptcha_target_on_puzzle(img, found[2], found[3]):
+            found = None
+        paths = []
+        if found:
+            height, width = img.shape[:2]
+            sx = float(box["x"]) + found[0] / width * float(box["width"])
+            sy = float(box["y"]) + found[1] / height * float(box["height"])
+            ex = float(box["x"]) + found[2] / width * float(box["width"])
+            ey = float(box["y"]) + found[3] / height * float(box["height"])
+            on_tile = False
+            for tile in _hcaptcha_tile_boxes(frame):
+                if (tile["x"] - 6 <= ex <= tile["x"] + tile["width"] + 6
+                        and tile["y"] - 6 <= ey <= tile["y"] + tile["height"] + 6):
+                    on_tile = True
+                    break
+            if not on_tile:
+                paths = [(int(sx), int(sy), int(ex), int(ey))]
+        _hcaptcha_save_drag(png, box, paths)
+        label = "missing-piece" if _hcaptcha_is_missing_piece(prompt) else "pair-drag"
+        print(f"hcaptcha {label}: {paths or 'none'}", file=sys.stderr, flush=True)
+        if not paths:
+            return 0
+        return _hcaptcha_perform_drags(page, paths)
+    try:
+        grid = _hcaptcha_coordinate_grid(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), box)
+        ok, encoded = cv2.imencode(".png", cv2.cvtColor(grid, cv2.COLOR_RGB2BGR))
+        if not ok:
+            return 0
+        grid_png = encoded.tobytes()
+    except Exception as e:
+        print(f"hcaptcha drag: grid failed: {type(e).__name__}", file=sys.stderr, flush=True)
+        return 0
+    user = (
+        f"{prompt}\n\n"
+        "The current task type is image_drag_drop. "
+        "The first image is the challenge. The second image is the same challenge "
+        "with a coordinate grid. The axis numbers are the drag coordinates.\n"
+        "start_point is the center of the loose icon you pick up. "
+        "end_point is the center of the hole in the pattern. "
+        "The hole is far from the icon."
+    )
+    min_span = 0.28 * max(float(box["width"]), float(box["height"]))
+
+    def _far_enough(text):
+        found = _hcaptcha_parse_paths(text, box)
+        if not found:
+            return False
+        return all((sx - ex) ** 2 + (sy - ey) ** 2 >= min_span ** 2 for sx, sy, ex, ey in found)
+
+    text = llm_vision(read_json(CFG), _HCAPTCHA_DRAG_SYSTEM, user, [png, grid_png], accept=_far_enough)
+    paths = _hcaptcha_parse_paths(text, box)
+    paths = [path for path in paths if (path[0] - path[2]) ** 2 + (path[1] - path[3]) ** 2 >= min_span ** 2]
+    grabbed = []
+    tiles = _hcaptcha_tile_boxes(frame)
+
+    def _on_tile(x, y):
+        for tile in tiles:
+            if (tile["x"] - 6 <= x <= tile["x"] + tile["width"] + 6
+                    and tile["y"] - 6 <= y <= tile["y"] + tile["height"] + 6):
+                return tile
+        return None
+
+    if not tiles:
+        # The circle pieces are painted on the canvas. There is no .task-image to require.
+        grabbed = [(int(sx), int(sy), int(ex), int(ey)) for sx, sy, ex, ey in paths]
+    else:
+        for sx, sy, ex, ey in paths:
+            start_box = _on_tile(sx, sy)
+            end_box = _on_tile(ex, ey)
+            if end_box and not start_box:
+                sx, sy, ex, ey = ex, ey, sx, sy
+                start_box, end_box = end_box, None
+            # Icon-to-icon is the miss that got verified on retry-10. The hole is not a tile.
+            if end_box:
+                continue
+            if start_box:
+                gx = int(start_box["x"] + start_box["width"] / 2)
+                gy = int(start_box["y"] + start_box["height"] / 2)
+            else:
+                gx, gy = _hcaptcha_grab_point(frame, sx, sy)
+                if not _on_tile(gx, gy):
+                    continue
+            grabbed.append((gx, gy, int(ex), int(ey)))
+    paths = grabbed
+    _hcaptcha_save_drag(png, box, paths)
+    if not paths:
+        print(f"hcaptcha drag: rejected {text[:220]!r}", file=sys.stderr, flush=True)
+    print(f"hcaptcha drag: {len(paths)} path(s) {paths}", file=sys.stderr, flush=True)
+    if not paths:
+        return 0
+    return _hcaptcha_perform_drags(page, paths)
+
+
+def _hcaptcha_perform_drags(page, paths):
+    moved = 0
+    for sx, sy, ex, ey in paths:
+        if _quit_requested():
+            return moved
+        _hcaptcha_touch()
+        try:
+            # RoboticArm._perform_drag_drop, straight when the control point is the midpoint.
+            page.mouse.move(sx, sy)
+            time.sleep(0.1)
+            if _quit_requested():
+                return moved
+            page.mouse.down()
+            steps = 25
+            for i in range(1, steps + 1):
+                if _quit_requested():
+                    return moved
+                t = i / steps
+                page.mouse.move(sx + (ex - sx) * t, sy + (ey - sy) * t)
+                time.sleep(0.015)
+            page.mouse.move(ex, ey)
+            time.sleep(0.35)
+        except Exception:
+            return moved
+        finally:
+            try:
+                page.mouse.up()
+            except Exception:
+                pass
+        moved += 1
+        time.sleep(0.4)
+    return moved
+
+
+def _hcaptcha_vision_fallback(page, frame, prompt):
+    """Published QIN2DIM path when objects.yaml has no ResNet for this prompt.
+
+    A regular 3x3 uses ImageClassifier. A drag prompt uses SpatialPathReasoner.
+    Anything else uses SpatialPointReasoner and clicks every match.
+    Returns True only after a click or a drag. A bad parse clicks nothing.
+    """
+    if _hcaptcha_is_drag(prompt):
+        moved = _hcaptcha_drag(page, frame, prompt)
+        if moved <= 0:
+            # QIN2DIM leaves a drag the model cannot place (issue 1044) and
+            # asks for another task. Verifying a miss is what got the session flagged.
+            _hcaptcha_click_refresh(page, frame)
+            return None
+        _hcaptcha_submit_button(page, frame)
+        return True
+    boxes = _hcaptcha_tile_boxes(frame)
+    if len(boxes) == 9 and _hcaptcha_is_regular_grid(boxes):
+        if _hcaptcha_solve_grid(page, frame, prompt) <= 0:
+            return False
+        _hcaptcha_submit_button(page, frame)
+        return True
+    # Scattered tiles (the garden-tool canvas) and a single picture. Click every
+    # match. A prompt with no digit is not "exactly 2".
+    expected = _hcaptcha_exact_count(prompt)
+    clicked = _hcaptcha_click_spatial(page, frame, prompt, expected or 6, exact=expected is not None)
+    print(f"hcaptcha spatial: area {prompt!r} clicked {clicked}", file=sys.stderr, flush=True)
+    if clicked <= 0 or (expected is not None and clicked != expected):
+        return False
+    _hcaptcha_submit_button(page, frame)
+    return True
+
+
+def _solve_hcaptcha_local(page):
+    """Free local hCaptcha.
+
+    A label that objects.yaml names uses one ResNet from
+    github.com/QIN2DIM/hcaptcha-challenger tag `model`. Every other challenge
+    uses that project's published vision tools (ImageClassifier, SpatialPointReasoner,
+    SpatialPathReasoner) through the local llm_vision chain. No paid captcha API.
+    Returns True only with a response token and no visible challenge.
+    """
+    try:
+        if _hcaptcha_verified(page):
+            return True
+        if _hcaptcha_challenge_frame(page) is None:
+            return False
+        _hcaptcha_touch()
+        _mark_step("captcha solve")
+        alias = _hcaptcha_alias()
+        for _round in range(3):
+            if _quit_requested():
+                return False
+            _hcaptcha_touch()
+            if not _captcha_challenge_open(page):
+                return _hcaptcha_verified(page)
+            frame = _hcaptcha_challenge_frame(page)
+            if frame is None:
+                return _hcaptcha_verified(page)
+            prompt = _hcaptcha_read_prompt(frame)
+            if not prompt:
+                for _ in range(5):
+                    time.sleep(0.5)
+                    prompt = _hcaptcha_read_prompt(frame)
+                    if prompt:
+                        break
+            if not prompt:
+                url, body = "", ""
+                try:
+                    url = (frame.url or "")[:180]
+                    data = frame.evaluate(_HCAPTCHA_PROMPT_JS) or {}
+                    raw_body = data.get("body") or ""
+                    prompt = _hcaptcha_prompt_from_text(raw_body) or prompt
+                    body = re.sub(r"\s+", " ", raw_body)[:240]
+                except Exception:
+                    pass
+                # The challenge iframe is up but the task did not paint: hCaptcha
+                # shows "Please try again" and a refresh control. One click, then
+                # read the prompt. A task that shares the blob is not a refresh.
+                if not prompt and "try again" in body.lower():
+                    for sel in ("div.refresh.button", "[aria-label*='Refresh' i]", "[title*='Refresh' i]"):
+                        try:
+                            loc = frame.locator(sel).first
+                            if not loc.count():
+                                continue
+                            _hcaptcha_click(page, loc)
+                            print("hcaptcha local: refreshed try-again", file=sys.stderr, flush=True)
+                            for _ in range(8):
+                                time.sleep(0.5)
+                                prompt = _hcaptcha_read_prompt(frame)
+                                if prompt:
+                                    break
+                            break
+                        except Exception:
+                            continue
+                if not prompt:
+                    png, _box = _hcaptcha_challenge_shot(frame)
+                    if not png:
+                        try:
+                            png = frame.locator("body").screenshot(type="png")
+                        except Exception:
+                            png = b""
+                    if png:
+                        try:
+                            shot_path = _HCAPTCHA_CACHE / "last-challenge.png"
+                            shot_path.parent.mkdir(parents=True, exist_ok=True)
+                            shot_path.write_bytes(png)
+                        except Exception:
+                            pass
+                    print(f"hcaptcha local: empty prompt url={url!r} body={body!r}", file=sys.stderr, flush=True)
+                    return False
+            if not _hcaptcha_wait_ready(frame):
+                return False
+            if _hcaptcha_is_outlier(prompt):
+                clicked = _hcaptcha_click_outliers(page, frame, prompt)
+                print(f"hcaptcha local: outlier {prompt!r} clicked {clicked}", file=sys.stderr, flush=True)
+                if clicked <= 0:
+                    return False
+                try:
+                    btn = frame.locator("div.button-submit").first
+                    if btn.count():
+                        _hcaptcha_click(page, btn)
+                except Exception:
+                    pass
+                for _ in range(5):
+                    if not _captcha_challenge_open(page):
+                        return _hcaptcha_verified(page)
+                    time.sleep(0.5)
+                continue
+            stem = _hcaptcha_model_name(prompt, alias)
+            net = _hcaptcha_net(stem) if stem else None
+            if net is None:
+                # objects.yaml has no ResNet (or the weight failed). QIN2DIM's
+                # 9-grid / area-select / drag tools, not a hard stop.
+                solved = _hcaptcha_vision_fallback(page, frame, prompt)
+                if solved is None:
+                    time.sleep(0.6)
+                    continue
+                if not solved:
+                    return False
+                for _ in range(5):
+                    if not _captcha_challenge_open(page):
+                        return _hcaptcha_verified(page)
+                    time.sleep(0.5)
+                continue
+            tiles = frame.locator(".task-image")
+            try:
+                count = int(tiles.count())
+            except Exception:
+                count = 0
+            if count <= 0:
+                print("hcaptcha local: challenge has no tiles", file=sys.stderr, flush=True)
+                return False
+            try:
+                urls = frame.evaluate(_HCAPTCHA_TILE_JS) or []
+            except Exception:
+                urls = []
+            print(f"hcaptcha local: {prompt!r} -> {stem} ({count} tiles)", file=sys.stderr, flush=True)
+            clicked = 0
+            for i in range(count):
+                _hcaptcha_touch()
+                blob = b""
+                if i < len(urls) and urls[i]:
+                    try:
+                        blob = _hcaptcha_download_bytes(urls[i])
+                    except Exception:
+                        blob = b""
+                if not blob:
+                    try:
+                        blob = tiles.nth(i).screenshot(type="png")
+                    except Exception:
+                        blob = b""
+                if not blob:
+                    continue
+                try:
+                    positive = bool(_resnet_yes(net, blob))
+                except Exception as e:
+                    print(f"hcaptcha local: classify failed: {type(e).__name__}", file=sys.stderr, flush=True)
+                    return False
+                if positive:
+                    _hcaptcha_click(page, tiles.nth(i))
+                    clicked += 1
+                    time.sleep(0.15)
+            if clicked == 0:
+                print("hcaptcha local: classifier marked no tile", file=sys.stderr, flush=True)
+                return False
+            try:
+                btn = frame.locator("div.button-submit").first
+                if btn.count():
+                    _hcaptcha_click(page, btn)
+            except Exception:
+                pass
+            for _ in range(5):
+                if not _captcha_challenge_open(page):
+                    return _hcaptcha_verified(page)
+                time.sleep(0.5)
+        return _hcaptcha_verified(page)
+    except Exception as e:
+        print(f"hcaptcha local failed: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+        return False
+
+
 def try_solve_turnstile_or_captcha(page):
-    """If a Turnstile / hCaptcha / reCAPTCHA interactive widget is present on the form, solve it."""
+    """Solve a visible Turnstile, hCaptcha, or reCAPTCHA widget. hCaptcha grids use the local free model."""
+    if _quit_requested():
+        return False
+    if any(_captcha_verified(page, kind) for kind in ('hcaptcha', 'turnstile', 'recaptcha')):
+        return True
+    if _captcha_challenge_open(page):
+        if _hcaptcha_challenge_frame(page) is not None:
+            return _solve_hcaptcha_local(page)
+        return bool(try_solve_recaptcha_audio(page) and _captcha_verified(page, "recaptcha"))
     try:
         import stealth_mouse
     except Exception:
         stealth_mouse = None
 
     def _click_box(box, delay_after=2.0):
+        if _quit_requested():
+            return
         if stealth_mouse:
             stealth_mouse.human_click_box(page, box)
         else:
@@ -5407,24 +8526,61 @@ def try_solve_turnstile_or_captcha(page):
     for frame in page.frames:
         if any(k in (frame.url or "").lower() for k in ["challenges.cloudflare.com", "turnstile"]):
             try:
-                cb = frame.locator("input[type='checkbox'], #challenge-stage, .ctp-checkbox-label, body").first
-                if cb and cb.is_visible():
-                    box = cb.bounding_box()
-                    if box:
-                        _click_box(box, delay_after=2.5)
-                        return True
+                # shortcut: standard 300x65 checkbox also works in closed shadow DOM; revise if its layout changes.
+                box = frame.frame_element().bounding_box()
+                if box and 250 <= box["width"] <= 400 and 50 <= box["height"] <= 100:
+                    _click_box({"x": box["x"] + 12, "y": box["y"] + box["height"] / 2 - 10,
+                                "width": 16, "height": 20})
+                    for _ in range(15):
+                        if _quit_requested():
+                            return False
+                        if _captcha_verified(page, "turnstile"):
+                            return True
+                        time.sleep(0.8)
+                    return False
+                for sel in ["input[type='checkbox']", ".ctp-checkbox-label", "#challenge-stage"]:
+                    loc = frame.locator(sel).first
+                    if loc.count():
+                        try:
+                            box = loc.bounding_box()
+                            if box:
+                                _click_box(box, delay_after=2.0)
+                            else:
+                                loc.click(force=True, timeout=1500)
+                                time.sleep(2.0)
+                            for _ in range(5):
+                                if _quit_requested():
+                                    return False
+                                if _captcha_verified(page, "turnstile"):
+                                    return True
+                                time.sleep(0.8)
+                            return False
+                        except Exception:
+                            pass
             except Exception:
                 pass
-    # 2. hCaptcha checkbox
+    # 2. hCaptcha checkbox. A click that leaves the image grid open is not a solve.
     for frame in page.frames:
-        if "hcaptcha.com" in (frame.url or "").lower() and "checkbox" in (frame.url or "").lower():
+        src = (frame.url or "").lower()
+        if "hcaptcha.com" in src and "checkbox" in src:
             try:
                 cb = frame.locator("#checkbox, [aria-haspopup='dialog']").first
                 if cb and cb.is_visible():
                     box = cb.bounding_box()
                     if box:
                         _click_box(box, delay_after=2.0)
-                        return True
+                        # The challenge request can finish several seconds after the
+                        # checkbox click. A still-hidden iframe is a loading state.
+                        challenge_deadline = time.monotonic() + 12
+                        while time.monotonic() < challenge_deadline and not _quit_requested():
+                            if _hcaptcha_verified(page):
+                                return True
+                            if _captcha_challenge_open(page):
+                                break
+                            time.sleep(0.6)
+                        if _solve_hcaptcha_local(page):
+                            return True
+                        return False
             except Exception:
                 pass
     # 3. Direct Turnstile container
@@ -5434,12 +8590,12 @@ def try_solve_turnstile_or_captcha(page):
             box = t_el.bounding_box()
             if box:
                 _click_box(box, delay_after=2.0)
-                return True
+                return _captcha_verified(page, "turnstile")
     except Exception:
         pass
     # 4. Google reCAPTCHA v2 checkbox anchor & challenge
     for frame in page.frames:
-        if "recaptcha/api2/anchor" in (frame.url or "").lower():
+        if re.search(r"recaptcha/(api2|enterprise)/anchor", (frame.url or "").lower()):
             try:
                 cb = frame.locator("#recaptcha-anchor, .recaptcha-checkbox").first
                 if cb and cb.is_visible():
@@ -5448,75 +8604,44 @@ def try_solve_turnstile_or_captcha(page):
                         box = cb.bounding_box()
                         if box:
                             _click_box(box, delay_after=2.5)
-                            if (cb.get_attribute("aria-checked") or "").lower() == "true":
-                                return True
-                            if try_solve_recaptcha_audio(page):
-                                time.sleep(1.5)
-                                if (cb.get_attribute("aria-checked") or "").lower() == "true":
+                            challenge_deadline = time.monotonic() + 12
+                            while time.monotonic() < challenge_deadline and not _quit_requested():
+                                if _captcha_verified(page, "recaptcha"):
                                     return True
+                                if _captcha_challenge_open(page):
+                                    return bool(try_solve_recaptcha_audio(page) and _captcha_verified(page, "recaptcha"))
+                                time.sleep(0.6)
+                            return False
             except Exception:
                 pass
-    if try_solve_recaptcha_audio(page):
+    if try_solve_recaptcha_audio(page) and _captcha_verified(page, "recaptcha"):
         return True
     return False
 
 def has_captcha(page):
-    """A real image/interactive captcha (hCaptcha/reCAPTCHA/Turnstile) on the form —
-    unsolvable by an automated browser, so submission needs a human. Detected by the
-    widget's iframe/container, which sits inside the form itself (unlike a bot-wall,
-    which replaces the whole page before the form ever renders).
-    Must be VISIBLE, not just present — Ashby (and others) embed an invisible
-    reCAPTCHA/hCaptcha badge on every form for background risk-scoring, with no
-    visible challenge and nothing for a human to solve; matching on bare presence
-    misclassified that as "captcha" (confirmed live: a form with zero visible
-    challenge widget, just plain unfilled fields, got this label — the user could
-    see there was nothing to solve).
-    reCAPTCHA v3 is a SEPARATE trap even after the :visible fix above: Google's own
-    terms require sites to keep its small corner badge (`.grecaptcha-badge`) visible
-    at all times, but that badge never demands any user interaction at all — it's
-    pure background scoring, same as the invisible case, just not hidden via CSS.
-    Confirmed live on a Cloudflare/Greenhouse posting: a fully-filled, ready-to-submit
-    form (Submit button right there, no challenge on screen) sat in a 20+ minute
-    manual-wait purely because this badge's own iframe matched `:visible`. Any
-    recaptcha iframe/container that's the badge itself doesn't count."""
-    # First, if any Google reCAPTCHA anchors are present and already checked, they are solved!
-    recaptcha_anchors = []
-    for frame in page.frames:
-        if "recaptcha/api2/anchor" in (frame.url or "").lower():
-            try:
-                cb = frame.locator("#recaptcha-anchor, .recaptcha-checkbox").first
-                if cb and cb.is_visible():
-                    recaptcha_anchors.append(cb)
-            except Exception:
-                pass
-    all_recaptchas_solved = bool(recaptcha_anchors) and all(
-        (cb.get_attribute("aria-checked") or "").lower() == "true" for cb in recaptcha_anchors
-    )
-
+    """Detect a visible unsolved widget without performing another solve attempt."""
+    if _captcha_challenge_open(page):
+        return True
+    solved = {kind: _captcha_verified(page, kind) for kind in ('hcaptcha', 'turnstile', 'recaptcha')}
     for scope in [page] + list(page.frames):
         try:
             els = scope.locator("iframe[src*='hcaptcha']:visible, iframe[src*='turnstile']:visible, "
-                                ".h-captcha:visible, .cf-turnstile:visible, "
-                                "[data-sitekey][class*='h-captcha']:visible, "
-                                "[data-sitekey][class*='turnstile']:visible")
-            for i in range(els.count()):
-                if _is_clickable_widget(els.nth(i)):
+                                "iframe[src*='challenges.cloudflare.com']:visible, iframe[src*='recaptcha']:visible, "
+                                ".h-captcha:visible, .cf-turnstile:visible, .g-recaptcha:visible")
+            for el in _locator_items(els):
+                metadata = el.evaluate("e => (e.getAttribute('src') || '') + ' ' + e.className").lower()
+                kind = 'hcaptcha' if 'hcaptcha' in metadata or 'h-captcha' in metadata else 'turnstile' if 'turnstile' in metadata or 'challenges.cloudflare.com' in metadata else 'recaptcha'
+                if solved[kind] or el.evaluate("e => !!e.closest('.grecaptcha-badge')"):
+                    continue
+                # Ashby background widgets don't require a human unless a challenge opens.
+                if kind == 'hcaptcha' and 'ashbyhq.com' in (page.url or '').lower():
+                    continue
+                if _is_clickable_widget(el):
                     return True
-        except Exception: pass
-        if not all_recaptchas_solved:
-            try:
-                recaptcha_els = scope.locator("iframe[src*='recaptcha']:visible, .g-recaptcha:visible")
-                for i in range(recaptcha_els.count()):
-                    el = recaptcha_els.nth(i)
-                    try:
-                        if el.evaluate("e => !!e.closest('.grecaptcha-badge')"):
-                            continue
-                    except Exception:
-                        pass
-                    if _is_clickable_widget(el):
-                        return True
-            except Exception: pass
+        except Exception:
+            pass
     return False
+
 
 def _upload_copy(src, full_name, kind, job):
     """A copy of src named '<First>_<Last>_<kind>.pdf' in a per-job temp dir."""
@@ -5532,7 +8657,35 @@ def _upload_copy(src, full_name, kind, job):
     shutil.copyfile(path, dst)
     return str(dst)
 
+def _submit_if_running(page, button, cfg=None):
+    if _quit_requested():
+        return False
+    if cfg is not None:
+        try:
+            _fill_identity(page, cfg, strict=True)
+        except Exception as exc:
+            _TL.identity_error = "candidate identity check failed; submission blocked"
+            print(f"{_TL.identity_error}: {exc}", file=sys.stderr, flush=True)
+            return False
+    try:
+        from stealth_mouse import human_click
+    except ImportError:
+        if _quit_requested():
+            return False
+        button.click(timeout=5000)
+        return True
+    try:
+        if human_click(page, button, cancelled=_quit_requested) is False:
+            return False
+    except Exception as e:
+        # A failed click may already have dispatched the application.
+        print(f"Submit click unconfirmed: {type(e).__name__}: {e}", file=sys.stderr)
+        return False
+    return True
+
+
 def apply_one(job, cfg, dry_run, submit, show, review=False):
+    job["url"] = canonical_url(job.get("url"))
     p_name = get_job_persona(job, cfg.get("active_persona", "appsec"), cfg)
     p_cfg = get_persona_cfg(cfg, p_name)
     # the form is filled as this profession: its profile (portfolio, bio, discipline)
@@ -5551,8 +8704,11 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
         job["_schema"] = ats_schema.fetch_schema(job.get("url") or "")
         if (submit and not dry_run and not review
                 and job.get("id") not in set(cfg.get("apply", {}).get("force_ids") or [])):
-            ko = ats_schema.knockout(job["_schema"], lambda l, o: offline_answer(l, o, cfg),
-                                     _HARD_DISQUALIFY_PHRASES)
+            posting = ((job.get("title") or "") + " " + (job.get("description") or "")).lower()
+            ko = _required_clearance(posting) or next((p for p in _HARD_DISQUALIFY_PHRASES if p in posting), None)
+            if not ko:
+                ko = ats_schema.knockout(job["_schema"], lambda l, o: offline_answer(l, o, cfg),
+                                         _HARD_DISQUALIFY_PHRASES)
     except Exception as e:
         print(f"ats schema: skipped ({e})", file=sys.stderr, flush=True)
     if ko:
@@ -5563,9 +8719,10 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                "apply_url": job.get("url"), "persona": p_name}
         db.insert_application(db.connect(), rec)
         return rec
-    # relocate.me has no form to attach a cover letter to (account/OAuth apply only) — skip the LLM call
+    # relocate.me and linkedin Easy Apply don't use cover letter PDF — skip the LLM call
     _mark_step("cover letter")
-    cover = make_cover(job, cfg) if cfg["apply"].get("cover_letter_pdf") and job.get("source") != "relocate" else ""
+    is_li_easy = job.get("source") == "linkedin" or "linkedin.com/jobs/view/" in (job.get("url") or "")
+    cover = make_cover(job, cfg) if (cfg["apply"].get("cover_letter_pdf") and job.get("source") != "relocate" and not is_li_easy) else ""
     # the recruiter sees the uploaded file's name — "tailored_cv_w7_<hash>.pdf" and
     # "autopilot-cover-<pid>-<hash>.pdf" announced the bot. Upload named copies.
     full_name = p_cfg["profile"].get("full_name", "")
@@ -5577,7 +8734,11 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
     global _FILL_DEADLINE
     _FILL_DEADLINE = 0.0
     _TL.fill_deadline = 0.0
-    with sync_playwright() as pw:
+    _TL.select_attempts = {}
+    _TL.llm_attempts = {}
+    _TL.confirmation = None
+    _TL.identity_error = None
+    with browser_playwright(cfg) as pw:
         browser = launch_browser(pw, cfg, headless=not show)
         ctx = new_browser_context(browser, cfg, accept_downloads=True, user_agent=UA)
         _LIVE_CTX["ctx"], _LIVE_CTX["cfg"] = ctx, cfg
@@ -5603,7 +8764,7 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
         # on the site's generic jobs-search root (confirmed live on jobs.elastic.co).
         _url_l = (job.get("url") or "").lower()
         direct_ats = (is_relocate or job.get("source") == "manual" or "gh_jid=" in _url_l
-                      or any(x in _url_l for x in ["greenhouse.io", "lever.co", "workable.com", "ashbyhq.com", "smartrecruiters", "google.com/about/careers"]))
+                      or any(x in _url_l for x in ["greenhouse.io", "lever.co", "workable.com", "ashbyhq.com", "smartrecruiters", "google.com/about/careers", "linkedin.com/jobs/view/"]))
         _mark_step("resolve apply url")
         target_url = job.get("url", "") if direct_ats else external_apply_url(job)
         if direct_ats: target_url = _dedupe_query(target_url)
@@ -5614,6 +8775,53 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
             m_gh = re.search(r"gh_jid=(\d+)", target_url)
             if m_gh:
                 target_url = f"https://jobs.elastic.co/form?gh_jid={m_gh.group(1)}"
+        elif "gh_jid=" in target_url and "greenhouse.io" not in target_url:
+            m_gh = re.search(r"gh_jid=(\d+)", target_url)
+            if m_gh:
+                token = m_gh.group(1)
+                _dom = urlparse(target_url).netloc.lower()
+                _cname = (job.get("company") or "").lower().strip()
+                _slug_map = {
+                    "toloka": "toloka",
+                    "epicgames": "epicgames",
+                    "epic games": "epicgames",
+                    "nordeus": "nordeus",
+                    "databricks": "databricks",
+                    "fivetran": "fivetran",
+                    "workato": "workato",
+                    "scopely": "scopely",
+                    "asana": "asana",
+                    "datadog": "datadog",
+                    "stripe": "stripe",
+                    "okta": "okta",
+                    "nebius": "nebius",
+                    "wheely": "wheely",
+                    "coreweave": "coreweave",
+                    "sumup": "sumup",
+                    "neo4j": "neo4j",
+                    "celonis": "celonis",
+                    "spacex": "spacex",
+                    "anduril": "andurilindustries",
+                    "roblox": "roblox",
+                    "pinterest": "pinterest",
+                    "jfrog": "jfrog",
+                    "klaviyo": "klaviyo",
+                    "janestreet": "janestreet",
+                    "cloudflare": "cloudflare",
+                }
+                c_slug = None
+                for k, v in _slug_map.items():
+                    if k in _dom or k in _cname:
+                        c_slug = v
+                        break
+                if not c_slug and _cname:
+                    c_slug = re.sub(r"[^a-z0-9]", "", _cname)
+                if c_slug:
+                    target_url = f"https://boards.greenhouse.io/embed/job_app?for={c_slug}&token={token}"
+        if "jobs.ashbyhq.com" in target_url and not target_url.rstrip("/").endswith("/application"):
+            m_ashby = re.search(r"(https?://jobs\.ashbyhq\.com/[^/?#]+/[0-9a-f-]{36})", target_url, re.I)
+            if m_ashby:
+                target_url = m_ashby.group(1).rstrip("/") + "/application"
         job["apply_url"] = target_url
         _mark_step("open page")
         safe_goto(page, target_url)
@@ -5670,6 +8878,23 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                         scope.locator("input, textarea, .select__control").count() > 0
                         for scope in [page] + _fillable_frames(page)
                     )
+                except Exception: pass
+            if "jobs.ashbyhq.com" in page.url.lower() and "/application" not in page.url.lower():
+                try:
+                    tab = page.get_by_role("tab", name=re.compile("application", re.I)).or_(
+                        page.get_by_role("button", name=re.compile("apply for this job|apply", re.I))
+                    )
+                    if tab.count() > 0:
+                        tab.first.click(timeout=3000)
+                        page.wait_for_timeout(1500)
+                except Exception: pass
+            if "jobs.smartrecruiters.com" in page.url.lower() and not any(x in page.url.lower() for x in ["/apply", "/oneclick-ui/"]):
+                direct_form = False
+                try:
+                    btn_apply = page.locator("a#st-apply, button#st-apply, a:has-text('I\\'m interested'), button:has-text('I\\'m interested'), [data-test='apply-button']")
+                    if btn_apply.count() > 0:
+                        btn_apply.first.click(timeout=3000)
+                        page.wait_for_timeout(2000)
                 except Exception: pass
             if not direct_form:
                 _mark_step('click apply')
@@ -5778,6 +9003,22 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
             try: close_browser(browser, ctx, cfg)
             except Exception: pass
             return rec
+        is_linkedin = "linkedin.com/jobs/view/" in target_url.lower() or "linkedin.com/jobs/collections/" in target_url.lower()
+        if is_linkedin:
+            clicked, filled, shot_s = False, 0, ""
+            manual_reason = "LinkedIn is search-only; use the employer ATS or review manually"
+            li_res = {}
+            rec = {**job, "applied_at": now(), "dry_run": dry_run, "review": review,
+                   "submitted": clicked, "dead_listing": li_res.get("dead_listing", False), "filled_fields": filled,
+                   "cv_used": cv, "cover_used": cover, "screenshot": shot_s,
+                   "needs_manual": int(bool(manual_reason)), "manual_reason": manual_reason,
+                   "apply_url": job.get("apply_url") or target_url, "persona": p_name}
+            db.insert_application(db.connect(), rec)
+            _mark_step("browser cleanup")
+            _WATCH["t"] = time.monotonic()
+            try: close_browser(browser, ctx, cfg)
+            except Exception: pass
+            return rec
         _FILL_DEADLINE = time.monotonic() + float(cfg.get("apply", {}).get("fill_timeout_seconds", 120))
         if is_relocate:
             filled = 0  # no ATS form on relocate.me — only account/OAuth apply, human does it in the review loop
@@ -5790,6 +9031,7 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
             # ATS forms like Greenhouse/Lever never have one, so this runs exactly once
             # there — no behavior change for the common case).
             for _step in range(6):
+                if _quit_requested(): break
                 # some interstitials (e.g. Adzuna's "email me similar jobs" modal) render a
                 # few seconds AFTER click_apply's one-shot dismiss pass already ran — left
                 # open, its own email input is the only "email"-labeled field on screen and
@@ -5803,20 +9045,20 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                 # bailed on its FIRST element - name, email and the CV upload never ran.
                 # The budget is per pass, not per vacancy.
                 _extend_fill_budget(cfg)
-                filled += fill_form(page, cfg, cv_up, cover_up)
+                filled += fill_form(page, cfg, cv_up, cover_up, job=job)
                 if _extend_fill_budget(cfg):
-                    filled += fill_location(page, cfg)
+                    filled += fill_location(page, cfg, job=job)
                 if _extend_fill_budget(cfg):
                     filled += fill_institution(page, cfg)
                 _extend_fill_budget(cfg)
-                # react-select dropdowns (Country, Location, custom questions) — works inside iframes.
+                # react-select dropdowns, radio groups, and yes/no buttons — works inside iframes.
                 # Two passes: the second retries any dropdown that didn't open on the first.
-                if _extend_fill_budget(cfg) and _has_unfilled_selects(page):
+                if _extend_fill_budget(cfg):
                     filled += fill_all_react_selects(page, cfg)
                 # second text pass: labels for some fields only resolve after dropdowns settle
                 if _extend_fill_budget(cfg):
-                    filled += fill_form(page, cfg, cv_up, cover_up)
-                    filled += fill_location(page, cfg)
+                    filled += fill_form(page, cfg, cv_up, cover_up, job=job)
+                    filled += fill_location(page, cfg, job=job)
                 # LLM fallback: Claude answers any company-specific questions left blank
                 _mark_step('llm answers')
                 try: filled += llm_fill(page, cfg, job)
@@ -5825,7 +9067,7 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                 for pat in ["^continue$", "^next$", "^next step$", "^save and continue$"]:
                     try:
                         btn = page.get_by_role("button", name=re.compile(pat, re.I)).first
-                        if btn.count() > 0 and btn.is_enabled():
+                        if btn.count() > 0 and btn.is_enabled() and not _quit_requested():
                             btn.click(timeout=2000); page.wait_for_timeout(1500)
                             advanced = True
                             break
@@ -5847,8 +9089,7 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                 print(f"WARNING: form fill timeout reached after {cfg.get('apply', {}).get('fill_timeout_seconds', 120)} seconds; continuing with partial form.", file=sys.stderr)
             if _has_unfilled_selects(page):
                 print(f"WARNING: '{job.get('company')} - {job.get('title')}' still has unanswered required "
-                      f"dropdown(s) after all retries — likely the LLM proxy is unreachable/timing out. "
-                      f"Submit will probably fail site validation.", file=sys.stderr)
+                      f"dropdown(s) after bounded retries; manual review is required.", file=sys.stderr)
             # Playwright's .fill() dispatches input/change but never blur — some sites
             # only clear their own "This field is required" indicator (and register the
             # value as genuinely valid) on blur, so a value can be visibly present yet
@@ -5859,7 +9100,9 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                 except Exception: pass
         shot_s = ""
         try:
-            page.screenshot(path=str(shot), full_page=False, timeout=10000)
+            # the whole form: a viewport shot showed only its last screen, hiding the
+            # yes/no answers (HelloFresh's EU-passport "Yes") from the review
+            page.screenshot(path=str(shot), full_page=True, timeout=10000)
             shot_s = str(shot.relative_to(ROOT))
         except Exception:
             pass
@@ -5972,6 +9215,8 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                     paused = False; print(">>> resumed.", file=sys.stderr)
                 elif action == "refill":
                     print(">>> re-filling form...", file=sys.stderr)
+                    _TL.select_attempts = {}
+                    _TL.llm_attempts = {}
                     try:
                         # the human just cleared a bot-wall (Indeed's Cloudflare check): the
                         # page behind it is the listing, so press Apply before filling
@@ -6004,7 +9249,7 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                         print(">>> submitting (approved by user)...", file=sys.stderr)
                         try:
                             btn.scroll_into_view_if_needed(timeout=2000)
-                            btn.click(timeout=5000)
+                            _submit_if_running(page, btn, cfg)
                         except Exception as e:
                             print(f">>> submit click failed: {e} — click Submit yourself.", file=sys.stderr)
                     else:
@@ -6036,6 +9281,8 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
         # filled>=3 submit path below never runs — the job would silently record
         # needs_manual=0 and vanish from the manual list. Catch a load-time spam-block
         # here, up front, regardless of fill count, so it lands in the manual list.
+        elif _quit_requested() and not clicked:
+            manual_reason = "stopped by user; outcome unconfirmed"
         elif submit and not dry_run and not review and is_spam_blocked(page):
             manual_reason = "site blocked this automated session as spam — submit from your own browser"
             _spam_banner(page)
@@ -6070,6 +9317,7 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                     print("detected email verification code prompt — fetching code from mailbox...",
                           file=sys.stderr, flush=True)
                     for _ in range(5):
+                        if _quit_requested(): break
                         if try_email_code(page, cfg, job):
                             print("email verification code entered successfully", file=sys.stderr, flush=True)
                             break
@@ -6079,11 +9327,18 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                     _mark_step("re-fill wiped fields")
                     print(f"re-filling {len(issues)} field(s) the form dropped: {', '.join(issues[:4])}",
                           file=sys.stderr, flush=True)
-                    filled += fill_location(page, cfg)
+                    filled += fill_location(page, cfg, job=job)
                     filled += fill_all_react_selects(page, cfg)
                     if _extend_fill_budget(cfg):
                         filled += fill_form(page, cfg, cv_up, cover_up)
                     _fill_identity(page, cfg)
+                    try:
+                        f_llm = llm_fill(page, cfg, job)
+                        if f_llm:
+                            filled += f_llm
+                            print(f"llm answered {f_llm} remaining required field(s)", file=sys.stderr, flush=True)
+                    except Exception:
+                        pass
                     issues = required_field_issues(page)
                 if issues:
                     manual_reason = "required fields incomplete: " + ", ".join(issues[:6])
@@ -6096,9 +9351,36 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                 try: page.keyboard.press("Escape")
                 except Exception: pass
                 try:
+                    for _s in [page] + _fillable_frames(page):
+                        for _cb in _locator_items(_s.locator("input[type=checkbox]")):
+                            try:
+                                if not _cb.is_checked():
+                                    _lbl = (label_of(_cb) + " " + text_of(_cb)).lower()
+                                    _req = (_cb.get_attribute("required") is not None
+                                            or _cb.get_attribute("aria-required") == "true"
+                                            or _cb.evaluate("""e => {
+                                                const p = e.closest('.ashby-application-form-field-entry, .application-question, fieldset, [role="group"]');
+                                                return p ? (p.innerText.includes('*') || p.getAttribute('aria-required') === 'true') : false;
+                                            }"""))
+                                    _waiver = bool(re.search(r"aware.*(?:reject|disqualif)|acknowledge|consent|agree|policy|terms|declaration", _lbl))
+                                    if (_CONSENT_WORDS.search(_lbl) or _waiver or _req) and (_waiver or not _NEGATED.search(_lbl)) and not _NO_AUTOCHECK.search(_lbl):
+                                        _has_checked = _cb.evaluate("""(e, sel) => {
+                                            const p = e.closest(sel);
+                                            return p ? !!p.querySelector('input[type=checkbox]:checked') : false;
+                                        }""", group_sel)
+                                        if not _has_checked:
+                                            _cb.check(timeout=1000, force=True)
+                            except Exception: pass
                     btn.scroll_into_view_if_needed(timeout=2000)
-                    time.sleep(0.5)
                     try_solve_turnstile_or_captcha(page)
+                    try:
+                        for _t_wait in range(4):
+                            tok = page.evaluate("() => document.querySelector('[name=\"cf-turnstile-response\"]')?.value")
+                            if tok:
+                                break
+                            time.sleep(0.8)
+                    except Exception:
+                        pass
                     if "ashbyhq.com" in page.url.lower():
                         try:
                             import random
@@ -6114,12 +9396,8 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                                 time.sleep(random.uniform(0.8, 1.5))
                         except Exception:
                             pass
-                    try:
-                        from stealth_mouse import human_click
-                        human_click(page, btn)
-                    except Exception:
-                        btn.click(timeout=5000)
-                    time.sleep(7)
+                    if _submit_if_running(page, btn, cfg):
+                        time.sleep(7)
                 except Exception:
                     # a real captcha overlay (hCaptcha/reCAPTCHA) sitting on top of the
                     # submit button makes even the click() itself raise (retries for the
@@ -6132,7 +9410,7 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                 current_url = page.url
                 if _is_success(page_body_all(page), current_url if current_url != url_before else "", success_before):
                     clicked = True
-                else:
+                elif not _quit_requested():
                     # Greenhouse/N26-style forms often don't actually submit on the first
                     # click at all — they silently swap to an email-verification-code step
                     # instead. This was being mis-diagnosed as a validation failure (the
@@ -6147,45 +9425,68 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                     # submission entered an older, already-consumed code from a
                     # prior Cloudflare application and never tried again). Give it up
                     # to 3 fresh attempts, each pulling a brand-new IMAP lookup.
-                    if _has_code_input(page) and _CODE_PROMPT_RE.search(page_body_all(page)):
+                    def _check_has_code():
+                        return _has_code_input(page) and (
+                            bool(_CODE_PROMPT_RE.search(page_body_all(page)))
+                            or page.locator("input[maxlength='1']").count() >= 4
+                            or page.locator("input[id*='security'], input[name*='security'], input[name*='verification_code']").count() > 0
+                        )
+                    has_code = _check_has_code()
+                    if not has_code:
+                        for _check_wait in range(6):
+                            if _quit_requested(): break
+                            page.wait_for_timeout(2000)
+                            if _check_has_code():
+                                has_code = True
+                                break
+                    if has_code:
                         _mark_step("email verification code")
                         _WATCH["t"] = time.monotonic()
-                        for _code_attempt in range(3):
-                            if not _mail_available(cfg):
-                                break
-                            code_entered = False
-                            for _ in range(4):
-                                _WATCH["t"] = time.monotonic()
+                        code_entered = False
+                        if _mail_available(cfg):
+                            for _wait_code in range(12):
+                                if _quit_requested(): break
+                                print(f"waiting for verification email (attempt {_wait_code+1}/12)...", file=sys.stderr, flush=True)
                                 try:
                                     if try_email_code(page, cfg, job, since_dt=click_time):
                                         code_entered = True
+                                        print("email verification code entered successfully! Re-submitting application...", file=sys.stderr, flush=True)
                                         break
                                 except Exception: pass
                                 page.wait_for_timeout(5000)
-                            if not code_entered:
-                                break
+                        if code_entered and not _quit_requested():
                             try:
+                                for _s in [page] + _fillable_frames(page):
+                                    for _cb in _locator_items(_s.locator("input[type=checkbox]")):
+                                        try:
+                                            if not _cb.is_checked():
+                                                _lbl = (label_of(_cb) + " " + text_of(_cb)).lower()
+                                                _req = _cb.get_attribute("required") is not None or _cb.get_attribute("aria-required") == "true"
+                                                if (_CONSENT_WORDS.search(_lbl) or _req) and not _NEGATED.search(_lbl) and not _NO_AUTOCHECK.search(_lbl):
+                                                    _cb.check(timeout=1000, force=True)
+                                        except Exception: pass
                                 btn2 = submit_button(page)
-                                if btn2 and not required_field_issues(page):
-                                    btn2.click(timeout=5000)
-                                    time.sleep(7)
-                                    if _is_success(page_body_all(page), page.url if page.url != url_before else "", success_before):
-                                        clicked = True
+                                if btn2:
+                                    _submit_if_running(page, btn2, cfg)
+                                    for _w in range(10):
+                                        time.sleep(1.5)
+                                        if _is_success(page_body_all(page), page.url if page.url != url_before else "", success_before):
+                                            clicked = True
+                                            break
                             except Exception: pass
-                            if clicked: break
-                            if not re.search(r"incorrect|invalid|wrong code", page_body_all(page), re.I):
-                                break  # some other failure — retrying with another code won't help
-                            page.wait_for_timeout(3000)  # give the mailbox a moment before refetching
-                    if not clicked:
+                            if not clicked and re.search(r"incorrect|invalid|wrong code", page_body_all(page), re.I):
+                                page.wait_for_timeout(3000)
+                    if not clicked and not _quit_requested():
                         try:
-                            if try_solve_turnstile_or_captcha(page):
-                                time.sleep(1.5)
-                                btn3 = submit_button(page)
-                                if btn3 and not required_field_issues(page):
-                                    btn3.click(timeout=5000)
-                                    time.sleep(7)
+                            solved_captcha = try_solve_turnstile_or_captcha(page)
+                            if solved_captcha:
+                                for _wait_s in range(6):
+                                    if _quit_requested(): break
+                                    page.wait_for_timeout(1500)
                                     if _is_success(page_body_all(page), page.url if page.url != url_before else "", success_before):
                                         clicked = True
+                                        break
+                                    # A CAPTCHA callback may already have sent the form; never send it again on a timeout.
                         except Exception:
                             pass
                     if not clicked:
@@ -6203,7 +9504,13 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                         # the old behavior: hold this filled window open and wait in place.
                         spam = is_spam_blocked(page)
                         body_now = page_body_all(page).lower()
-                        if spam:
+                        # Ashby's green toast ("Your application was successfully
+                        # submitted") often lands during this wait, after the
+                        # single check above. The screenshot then shows success
+                        # while we record "submit didn't confirm".
+                        if _is_success(body_now, page.url if page.url != url_before else "", success_before):
+                            clicked = True
+                        elif spam:
                             manual_reason = "site blocked this automated session as spam — submit from your own browser"
                             _spam_banner(page)
                             print(f">>> MANUAL SUBMIT NEEDED (own browser): '{job.get('company')} - "
@@ -6216,16 +9523,18 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
                             manual_reason = "Google reCAPTCHA rejected the submission — complete it manually"
                         elif has_captcha(page):
                             manual_reason = "captcha on the form"
+                        elif required_field_issues(page):
+                            manual_reason = "form validation failed: " + ", ".join(required_field_issues(page)[:6])
                         elif filled >= 3:
                             manual_reason = "submit didn't confirm"
-                        if manual_reason and not spam:
+                        if manual_reason and not spam and not clicked:
                             if show and has_captcha(page):
                                 clicked = wait_for_manual_submit(page, job, manual_reason)
                                 if clicked:
                                     manual_reason = None
                             else:
                                 print(f">>> MANUAL ACTION NEEDED: '{job.get('company')} - {job.get('title')}' — {manual_reason}", file=sys.stderr)
-                        elif not manual_reason:
+                        elif not clicked and not manual_reason:
                             print("SUBMIT FAILED: no confirmation page detected.", file=sys.stderr)
                 try:
                     page.screenshot(path=str((SHOTS / (job['id'] + '-submitted.png'))), full_page=False, timeout=10000)
@@ -6243,20 +9552,26 @@ def apply_one(job, cfg, dry_run, submit, show, review=False):
             manual_reason = f"only {filled} field(s) filled — form may not have loaded correctly"
             print(f">>> MANUAL ACTION NEEDED: '{job.get('company')} - {job.get('title')}' — "
                   f"only {filled} field(s) filled.", file=sys.stderr)
+        if _quit_requested() and not clicked:
+            manual_reason = "stopped by user; outcome unconfirmed"
+        if not clicked and getattr(_TL, "identity_error", None):
+            manual_reason = _TL.identity_error
+        confirmation = getattr(_TL, "confirmation", None) if clicked else None
+        if confirmation:
+            confirmation = {**confirmation, "url": page.url}
+        elif clicked:
+            clicked = False
+            manual_reason = "submission has no durable ATS acknowledgement; outcome unconfirmed"
         # Record BEFORE closing the browser, so closing the window can't lose the result.
         rec = {**job, "applied_at": now(), "dry_run": dry_run, "review": review,
                "submitted": bool(clicked), "filled_fields": filled, "cv_used": cv,
                "cover_used": cover, "screenshot": shot_s,
                "needs_manual": int(bool(manual_reason) and not disqualifier), "manual_reason": manual_reason,
-               "apply_url": job.get("apply_url") or job.get("url"),
+               "apply_url": job.get("apply_url") or job.get("url"), "confirmation": confirmation,
                "persona": p_name}
         db.insert_application(db.connect(), rec)
-        if clicked:
-            try:
-                from recruiter_outreach import generate_outreach
-                generate_outreach(job, p, (get_persona_cfg(cfg, p_name).get("persona_info") or {}).get("profile", {}).get("bio", ""))
-            except Exception:
-                pass
+        _mark_step("browser cleanup")
+        _WATCH["t"] = time.monotonic()
         try: close_browser(browser, ctx, cfg)
         except Exception: pass
     return rec
@@ -6269,16 +9584,24 @@ def _stall_state(elapsed, warn_s, hard_s):
     if elapsed >= warn_s: return "warn"
     return "ok"
 
-def _record_stall(job_id, reason):
+def _record_stall(job_id, reason, baseline=0):
     if not job_id:
         return
+    con = None
     try:
         con = db.connect()
+        con.execute("BEGIN IMMEDIATE")
+        if con.execute("SELECT 1 FROM applications WHERE job_id=? AND attempt_id>? LIMIT 1", (job_id, baseline)).fetchone():
+            con.rollback()
+            return False
         db.insert_application(con, {"id": job_id, "applied_at": now(), "needs_manual": 1,
                                     "manual_reason": reason, "filled_fields": 0})
-        con.close()
+        return True
     except Exception as e:
         print(f"could not record stall: {e}", file=sys.stderr, flush=True)
+    finally:
+        if con is not None:
+            con.close()
 
 def _start_stall_watchdog(hard_s):
     warn_s = max(30.0, hard_s / 3)
@@ -6303,9 +9626,12 @@ def _start_stall_watchdog(hard_s):
                           file=sys.stderr, flush=True)
                 elif state == "kill":
                     reason = f"stalled the run at step '{w.get('step')}' after {int(elapsed)}s"
-                    print(f">>> STALLED: {tag}'{w.get('job')}' - {reason}. Recorded and skipped.",
+                    recorded = _record_stall(w.get("id"), reason, baseline=w.get("attempt_baseline", 0))
+                    outcome = ("Recorded and skipped" if recorded else
+                               "Existing durable outcome preserved" if recorded is False else
+                               "Stall outcome could not be recorded")
+                    print(f">>> STALLED: {tag}'{w.get('job')}' - {reason}. {outcome}.",
                           file=sys.stderr, flush=True)
-                    _record_stall(w.get("id"), reason)
                     target_ctx = None
                     with _WATCH_LOCK:
                         if wid in _WORKER_WATCH:
@@ -6371,13 +9697,19 @@ def _worker_process_loop(wid, in_queue, out_queue, cfg, dry, submit, show, revie
             print(f"[Worker {wid}] Starting: {job.get('company')} - {job.get('title')}", flush=True)
 
             res = None
+            attempt_baseline = worker_con.execute("SELECT coalesce(max(attempt_id),0) FROM applications").fetchone()[0]
+            _WATCH["attempt_baseline"] = attempt_baseline
             try:
                 res = apply_one(job, cfg, dry, submit, show, review)
             except Exception as e:
                 print(f"[Worker {wid}] Error applying to {job.get('company')} - {job.get('title')}: {e}",
                       file=sys.stderr, flush=True)
                 res = {"id": job["id"], "company": job.get("company"), "title": job.get("title"),
-                       "url": job.get("url"), "error": str(e), "submitted": False, "needs_manual": 1}
+                       "url": job.get("url"), "error": str(e), "submitted": False, "needs_manual": 1,
+                       "applied_at": now(), "manual_reason": f"worker exception; outcome unconfirmed: {e}",
+                       "persona": get_job_persona(job, "appsec", cfg), "cv_used": pick_cv(job, cfg), "dry_run": dry}
+                if not worker_con.execute("SELECT 1 FROM applications WHERE job_id=? AND attempt_id>?", (job["id"], attempt_baseline)).fetchone():
+                    db.insert_application(worker_con, res)
             finally:
                 db.release_job(worker_con, job["id"], claim_token)
                 _WATCH["t"] = 0.0
@@ -6397,6 +9729,31 @@ def _worker_process_loop(wid, in_queue, out_queue, cfg, dry, submit, show, revie
         except Exception:
             pass
         worker_con.close()
+
+def _ats_job_key(url):
+    """The posting's own id in its ATS, independent of which page linked to it."""
+    u = url or ""
+    sr = urlparse(canonical_url(u))
+    if re.fullmatch(r"[\w-]+\.wd\d+\.myworkdayjobs\.com", sr.netloc):
+        m = re.search(r"_((?:JR|R|REQ|J)?[A-Z]*[-_]?\d+(?:-\d+)?)$", sr.path, re.I)
+        if m:
+            return "wd:" + sr.netloc.split(".")[0].lower() + ":" + re.sub(r"-\d+$", "", m.group(1)).lower()
+    if sr.netloc == "jobs.gem.com":
+        m = re.fullmatch(r"/([\w-]+)/([\w-]+)(?:/application)?", sr.path)
+        if m:
+            return "gem:" + m.group(1).lower() + ":" + m.group(2)
+    if sr.netloc == "jobs.smartrecruiters.com":
+        m = re.fullmatch(r"/([\w-]+)/(\d+)(?:-[^/]*)?", sr.path)
+        if m: return "sr:" + m.group(1).lower() + ":" + m.group(2)
+    m = (re.search(r"gh_jid=(\d+)", u) or re.search(r"greenhouse\.io/(?:embed/job_app\?for=[\w-]+&token=|[\w-]+/jobs/)(\d+)", u))
+    if m: return "gh:" + m.group(1)
+    m = re.search(r"(ashbyhq\.com|lever\.co)/[^/?#]+/([0-9a-f]{8}-[0-9a-f-]{27})", u, re.I)
+    if m: return m.group(1).split(".")[0] + ":" + m.group(2).lower()
+    m = re.search(r"workable\.com/(?:[^/]+/)?j/([A-Z0-9]{6,})", u)
+    if m: return "workable:" + m.group(1)
+    m = re.search(r"linkedin\.com/jobs/view/(?:[^/?]*-)?(\d{6,})", u)
+    if m: return "li:" + m.group(1)
+    return None
 
 _CV_NAME_OK = {}
 
@@ -6422,27 +9779,62 @@ def apply(args):
     apply_block_terms = [x.lower() for x in cfg["search"].get("apply_block_terms", [])]
     review = getattr(args, "review", False)
     missing_cv, name_mismatch, no_sponsor = set(), set(), set()
+    # the same posting reached through another URL (n26.com/...?gh_jid=8110812 vs
+    # job-boards.greenhouse.io/n26/jobs/8110812) got a new id and was nearly re-applied to
+    applied_keys = set()
+    for row in con.execute("SELECT j.url, a.apply_url FROM applications a JOIN jobs j ON j.id = a.job_id WHERE a.submitted = 1 OR a.needs_manual = 1 OR (coalesce(a.dry_run,0)=0 AND a.manual_reason LIKE '%confirm%') OR j.status IN ('pending','pending_confirmation')"):
+        applied_keys.update(k for k in (_ats_job_key(row[0]), _ats_job_key(row[1])) if k)
+    for row in con.execute("SELECT url FROM jobs WHERE status IN ('pending','pending_confirmation')"):
+        key = _ats_job_key(row[0])
+        if key:
+            applied_keys.add(key)
+    already_applied = set()
+    strict_attempt_ids, strict_attempt_urls, strict_attempt_keys = _prior_listing_identities(con)
+    # a company that rejected 3+ times in 90 days gets a 90-day pause (Cloudflare: 14 rejections)
+    cool_n = int(cfg["apply"].get("reject_cooldown_count", 3))
+    cool_since = (datetime.now(timezone.utc) - timedelta(days=int(cfg["apply"].get("reject_cooldown_days", 90)))).isoformat()
+    rejected_by = collections.Counter(
+        slug(r[0]) for r in con.execute(
+            "SELECT j.company FROM outcomes o JOIN jobs j ON j.id = o.job_id WHERE o.status = 'rejected' AND o.noted_at >= ?",
+            (cool_since,)))
+    cooling = set()
     # --review normally also queues sites the bot can't fill (Workday, account portals)
     # for a human to finish; --ats-only keeps review on the forms a normal run submits
     lenient = review and not getattr(args, "ats_only", False)
     def ok(j):
-        # never apply without the candidate's real CV file
-        # a job keeps the CV path it was discovered with; after `resume add` moved the
-        # persona to a new file, the persona's current CV is the one to use
-        cv_file = j.get("cv") if j.get("cv") and (ROOT / j["cv"]).is_file() else pick_cv(j, cfg)
+        # never apply without the candidate's real CV file. A job keeps the CV path it was
+        # discovered with, but after `resume add` the persona's current CV is the one to
+        # send: the old root AppSec.pdf still exists and was uploaded instead of the update
+        cv_file = pick_cv(j, cfg)
         j["cv"] = cv_file
         if not (ROOT / cv_file).is_file():
             missing_cv.add(cv_file)
             return False
         # the resume must name the person the form is filled as: the photographer PDF
-        # names a different person than the profile the forms are filled with
+        # says "Alex Taylor" while the forms get the profile's name
         if not _cv_names_candidate(cv_file, get_persona_cfg(cfg, get_job_persona(j, "appsec", cfg))):
             name_mismatch.add(cv_file)
             return False
-        if cfg["apply"].get("require_sponsorship") and not offers_sponsorship(j):
+        if cool_n and rejected_by.get(slug(j.get("company"))) and rejected_by[slug(j.get("company"))] >= cool_n:
+            cooling.add(j.get("company"))
+            return False
+        if _ats_job_key(j.get("url")) in applied_keys:
+            already_applied.add(j["id"])
+            return False
+        if get_persona_cfg(cfg, j.get("persona", "appsec")).get("search", {}).get("require_explicit_visa_and_relocation") and (
+                j["id"] in strict_attempt_ids or canonical_url(j.get("url")) in strict_attempt_urls
+                or _ats_job_key(j.get("url")) in strict_attempt_keys or _listing_role_key(j) in strict_attempt_keys):
+            already_applied.add(j["id"])
+            return False
+        if _strict_discovery_reason(j, cfg):
+            return False
+        if cfg["apply"].get("require_sponsorship") and not (offers_sponsorship(j) or needs_no_visa(j) or j.get("source") == "linkedin"):
             no_sponsor.add(j["id"])
             return False   # the candidate needs a visa: only postings that say they sponsor
         u = (j.get("url") or "").lower()
+        is_linkedin = "linkedin.com" in u or (j.get("source") or "").startswith("linkedin")
+        if is_linkedin:
+            return False
         is_direct_ats = any(h in u for h in ("greenhouse.io", "gh_jid", "lever.co", "ashbyhq.com", "apply.workable.com", "smartrecruiters.com", "pinpointhq.com"))
         is_tracker_redirect = any(tr in u for tr in ("jooble.org/desc", "adzuna.com/land/ad", "adzuna.co.uk/land/ad", "jobgether.com"))
 
@@ -6454,9 +9846,8 @@ def apply(args):
         # Indeed's own pages sit behind a Cloudflare check that never passes in an
         # automated browser, even when a human ticks it — apply from your own browser
         if re.search(r"(?:^|\.)indeed\.[a-z.]+/(?:job|viewjob|rc/clk|m/)", u): return False
-        # Lever puts hCaptcha on submit and rejects automated sessions even when it is
-        # solved — those are for a human (--review)
-        if "lever.co" in u and not review: return False
+        # Lever jobs: attempt automated submission or pre-fill 100% for 1-click
+        # (do not block lever.co from automated processing)
         if "civilservicejobs.service.gov.uk" in u and not lenient: return False
         if blocked_company(j.get("company"), cfg): return False
         if (not cfg.get("email", {}).get("app_password")
@@ -6476,13 +9867,74 @@ def apply(args):
             "no visa sponsorship", "unable to sponsor", "will not sponsor visa",
             "we do not provide sponsorship"
         ]
-        if any(d in text for d in disqualifiers) and not lenient:
+        if (any(d in text for d in disqualifiers + _HARD_DISQUALIFY_PHRASES) or _required_clearance(text)) and not lenient:
             return False
         return True
-    queue = [j for j in db.eligible_jobs(con, min_score, persona=getattr(args, "persona", "all")) if ok(j)]  # already score-sorted by SQL
+    if getattr(args, "job", None):
+        # a re-check after a fix: the job usually sits in the 7-day needs_manual skip
+        # list, which hid it from --job. A submitted one is still never sent twice.
+        sent = con.execute("SELECT 1 FROM applications WHERE job_id=? AND submitted=1", (args.job,)).fetchone()
+        source = [] if sent else [dict(r) for r in con.execute("SELECT * FROM jobs WHERE id=?", (args.job,))]
+    else:
+        source = db.eligible_jobs(con, min_score, persona=getattr(args, "persona", "all"))   # score-sorted by SQL
+    target_loc = (getattr(args, "location", None) or getattr(args, "country", None) or "").strip().lower()
+    if target_loc and target_loc not in ("all", "any", "worldwide"):
+        country_keys_map = {
+            "serbia": ["serbia", "srbija", "belgrade", "beograd", "novi sad", "vojvodina", "nis"],
+            "rs": ["serbia", "srbija", "belgrade", "beograd", "novi sad", "vojvodina", "nis"],
+            "germany": ["germany", "deutschland", "berlin", "munich", "münchen", "frankfurt", "hamburg", "cologne", "köln", "stuttgart", "düsseldorf"],
+            "de": ["germany", "deutschland", "berlin", "munich", "frankfurt", "hamburg"],
+            "united kingdom": ["united kingdom", "uk", "great britain", "london", "manchester", "birmingham", "edinburgh", "bristol", "cambridge", "oxford"],
+            "uk": ["united kingdom", "uk", "great britain", "london", "manchester", "birmingham", "edinburgh"],
+            "united states": ["united states", "usa", "san francisco", "new york", "seattle", "austin", "chicago", "boston", "los angeles", "california"],
+            "usa": ["united states", "usa", "san francisco", "new york", "seattle", "austin", "chicago"],
+            "netherlands": ["netherlands", "nederland", "amsterdam", "rotterdam", "utrecht", "the hague", "eindhoven"],
+            "nl": ["netherlands", "nederland", "amsterdam", "rotterdam", "eindhoven"],
+            "cyprus": ["cyprus", "limassol", "nicosia", "larnaca", "paphos"],
+            "poland": ["poland", "polska", "warsaw", "warszawa", "krakow", "kraków", "wroclaw", "wrocław", "gdansk", "gdańsk"],
+            "pl": ["poland", "polska", "warsaw", "warszawa", "krakow"],
+            "armenia": ["armenia", "yerevan"],
+            "georgia": ["georgia", "tbilisi", "batumi"],
+            "spain": ["spain", "españa", "madrid", "barcelona", "valencia", "malaga", "málaga", "seville"],
+            "es": ["spain", "españa", "madrid", "barcelona", "valencia"],
+            "france": ["france", "paris", "lyon", "toulouse", "bordeaux", "nice", "nantes"],
+            "fr": ["france", "paris", "lyon", "toulouse"],
+            "ireland": ["ireland", "dublin", "cork", "galway", "limerick"],
+            "austria": ["austria", "österreich", "vienna", "wien", "graz", "salzburg"],
+            "switzerland": ["switzerland", "schweiz", "suisse", "zurich", "zürich", "geneva", "genève", "lausanne", "basel"],
+            "portugal": ["portugal", "lisbon", "lisboa", "porto", "braga"],
+            "canada": ["canada", "toronto", "vancouver", "montreal", "montréal", "ottawa", "calgary", "edmonton"],
+            "czech republic": ["czech", "czechia", "prague", "praha", "brno"],
+            "sweden": ["sweden", "sverige", "stockholm", "gothenburg", "göteborg", "malmö"],
+            "united arab emirates": ["uae", "emirates", "dubai", "abu dhabi"],
+            "uae": ["uae", "emirates", "dubai", "abu dhabi"],
+            "singapore": ["singapore"],
+            "japan": ["japan", "tokyo", "osaka", "kyoto"],
+            "israel": ["israel", "tel aviv", "jerusalem", "haifa"],
+            "turkey": ["turkey", "türkiye", "istanbul", "ankara", "izmir"],
+            "montenegro": ["montenegro", "crna gora", "podgorica", "budva", "kotor", "tivat"],
+            "serbia": ["serbia", "srbija", "belgrade", "beograd", "novi sad", "nis", "niš"],
+            "rs": ["serbia", "srbija", "belgrade", "beograd", "novi sad"],
+            "kazakhstan": ["kazakhstan", "almaty", "astana"],
+            "uzbekistan": ["uzbekistan", "tashkent"],
+            "italy": ["italy", "italia", "milan", "milano", "rome", "roma", "turin", "torino"],
+            "remote": ["remote", "worldwide", "anywhere", "global", "telecommute", "work from home"],
+        }
+        keys = country_keys_map.get(target_loc, [target_loc])
+        pat = re.compile(r"\b(" + "|".join(re.escape(k) for k in keys) + r")\b", re.IGNORECASE)
+        source = [j for j in source if pat.search(j.get("location") or "") or (pat.search(j.get("title") or "") and not j.get("location"))]
+        print(f"filtered by location '{target_loc}': {len(source)} matching vacancies in queue", file=sys.stderr, flush=True)
+    if getattr(args, "ats_only", False):
+        source = [j for j in source if "linkedin.com" not in (j.get("url") or "").lower() and not (j.get("source") or "").startswith("linkedin")]
+        print(f"filtered by --ats-only: {len(source)} direct ATS vacancies in queue", file=sys.stderr, flush=True)
+    queue = [j for j in source if ok(j)]
     if missing_cv:
         print(f"skipped vacancies whose CV file is missing: {', '.join(sorted(missing_cv))} — put the "
               f"real file in {ROOT} to include them.", file=sys.stderr, flush=True)
+    if cooling:
+        print(f"paused after repeated rejections (90 days): {', '.join(sorted(cooling))}", file=sys.stderr, flush=True)
+    if already_applied:
+        print(f"skipped {len(already_applied)} postings submitted or awaiting manual review under another URL", file=sys.stderr, flush=True)
     if no_sponsor:
         print(f"skipped {len(no_sponsor)} vacancies that don't say they sponsor a visa / relocation "
               f"(apply.require_sponsorship)", file=sys.stderr, flush=True)
@@ -6490,11 +9942,34 @@ def apply(args):
         print(f"skipped vacancies whose CV names someone else than profile '{cfg['profile'].get('full_name')}': "
               f"{', '.join(sorted(name_mismatch))} — upload a version with that name.", file=sys.stderr, flush=True)
     # dedup same role posted under multiple locations: keep highest score (already sorted)
-    seen_roles, deduped = set(), []
+    # same role under a second ATS id is not caught by the URL-key skip:
+    # Alpaca "Senior Software Engineer - Clearing" and Stripe "Integration
+    # Engineer, Metronome" were both submitted twice in one day. A spam-blocked
+    # twin (voize, two Ashby uuids) burns another attempt the same way.
+    already_roles = set()
+    for company, title in con.execute(
+            """SELECT j.company, j.title FROM applications a JOIN jobs j ON j.id = a.job_id
+               WHERE a.submitted = 1 OR a.needs_manual = 1
+                  OR (coalesce(a.dry_run,0)=0 AND a.manual_reason LIKE '%confirm%')
+                  OR a.manual_reason LIKE '%blocked this automated session as spam%'
+               UNION SELECT company,title FROM jobs WHERE status IN ('pending','pending_confirmation')"""):
+        already_roles.add((slug(company), slug(title)))
+    seen_roles, deduped = set(already_roles), []
+    role_skipped = 0
     for j in queue:
         key = (slug(j.get("company")), slug(j.get("title")))
-        if key in seen_roles: continue
+        if key in seen_roles:
+            # An explicit --job is an operator retest, not another twin of a spam block.
+            if getattr(args, "job", None) and j.get("id") == args.job:
+                deduped.append(j)
+                continue
+            if key in already_roles:
+                role_skipped += 1
+            continue
         seen_roles.add(key); deduped.append(j)
+    if role_skipped:
+        print(f"skipped {role_skipped} postings already sent or spam-blocked under the same title",
+              file=sys.stderr, flush=True)
     # spread across companies (round-robin) so one vendor doesn't fill the whole run
     by_company = {}
     for j in deduped:
@@ -6553,10 +10028,13 @@ def apply(args):
         print(json.dumps({"processed": 0, "results": []}, indent=2, ensure_ascii=False))
         return
 
+    write_progress(0, min(limit, len(queue)), label="Starting applications")
     actual_workers = min(num_workers, limit, len(queue))
     actual_workers = max(1, actual_workers)
 
     done = []
+    target = min(limit, len(queue))
+    exit_code = 0
     if review:
         # review stays in-process: the human drives skip/pause/refill through
         # control.json, which only this process reads
@@ -6589,6 +10067,9 @@ def apply(args):
         stop_event = mp.Event()
         started = mp.Value("i", 0)
         skip_gen = mp.Value("i", 0)
+        baseline = con.execute("SELECT coalesce(max(attempt_id),0) FROM applications").fetchone()[0]
+        jobs_by_id = {j['id']: j for j in queue}
+        done_ids = set()
         for j in queue:
             in_queue.put(j)
 
@@ -6602,12 +10083,30 @@ def apply(args):
 
         procs = {wid: spawn(wid) for wid in range(1, actual_workers + 1)}
         max_restarts, restarts = actual_workers * 3, 0
+        def recover(wid, proc):
+            # A watchdog result is durable in SQLite even if its queue feeder died.
+            for held in con.execute("SELECT id,claim_token FROM jobs WHERE claim_token LIKE ?", (f"{proc.pid}-%",)).fetchall():
+                job_id, token = held[0], held[1]
+                if job_id not in jobs_by_id:
+                    continue
+                if not con.execute("SELECT 1 FROM applications WHERE job_id=? AND attempt_id>?", (job_id, baseline)).fetchone():
+                    _record_stall(job_id, f"worker exited with code {proc.exitcode}; outcome unconfirmed", baseline=baseline)
+                db.release_job(con, job_id, token)
+            for row in con.execute("SELECT * FROM applications WHERE attempt_id>? ORDER BY attempt_id", (baseline,)).fetchall():
+                if row['job_id'] not in jobs_by_id or row['job_id'] in done_ids:
+                    continue
+                res = {**jobs_by_id[row['job_id']], **dict(row)}
+                done_ids.add(row['job_id'])
+                done.append(res)
+                print(f"[Worker {wid}] RECOVERED: {res.get('company')} - {res.get('title')} ({len(done)}/{limit})", flush=True)
+            write_progress(len(done), target, label=f"Applied {len(done)}/{limit}")
         print(f"Autopilot: running with {actual_workers} concurrent worker process(es) (limit={limit}, queue={len(queue)})...", flush=True)
         try:
-            while len(done) < limit and (any(p.is_alive() for p in procs.values()) or not out_queue.empty()):
+            while len(done) < target:
                 action = read_control()
-                if _QUIT_RUN["v"] or action == "quit":
+                if _QUIT_RUN["v"] or action == "quit" or stop_event.is_set():
                     print(">>> run stopped by user (q).", file=sys.stderr, flush=True)
+                    exit_code = 2
                     stop_event.set()
                     break
                 if action == "skip":
@@ -6615,18 +10114,26 @@ def apply(args):
                         skip_gen.value += 1
                     print(">>> skip sent to the worker(s) waiting on a human.", file=sys.stderr, flush=True)
                 for wid, p in list(procs.items()):
-                    if (p.exitcode not in (0, None) and started.value < limit
-                            and restarts < max_restarts):
-                        restarts += 1
-                        print(f"[Worker {wid}] exited with code {p.exitcode} — restarting "
-                              f"({restarts}/{max_restarts})", file=sys.stderr, flush=True)
-                        procs[wid] = spawn(wid)
+                    if p.exitcode not in (0, None):
+                        recover(wid, p)
+                        if len(done) < target and started.value < limit and restarts < max_restarts and not stop_event.is_set():
+                            restarts += 1
+                            print(f"[Worker {wid}] exited with code {p.exitcode} — restarting "
+                                  f"({restarts}/{max_restarts})", file=sys.stderr, flush=True)
+                            procs[wid] = spawn(wid)
                 try:
                     item = out_queue.get(timeout=0.5)
                 except mp_queue.Empty:
+                    if not any(p.is_alive() for p in procs.values()):
+                        if restarts < max_restarts and started.value < limit and any(p.exitcode not in (0, None) for p in procs.values()):
+                            continue
+                        break
                     continue
                 wid = item["wid"]
                 res = item["result"]
+                if res['id'] in done_ids:
+                    continue
+                done_ids.add(res['id'])
                 done.append(res)
                 write_progress(len(done), min(limit, len(queue)), label=f"Applied {len(done)}/{limit}")
                 sub = "SUBMITTED" if res.get("submitted") else ("MANUAL NEEDED" if res.get("needs_manual") else "PROCESSED")
@@ -6645,6 +10152,12 @@ def apply(args):
                 p.join(timeout=max(0.0, deadline - time.monotonic()))
                 if p.is_alive():
                     p.terminate()
+                    p.join(timeout=5)
+                if p.exitcode not in (0, None):
+                    recover(0, p)
+        if not exit_code and len(done) < target:
+            exit_code = 3
+            print(f"INCOMPLETE: processed {len(done)}/{target}; worker recovery or queue exhausted.", file=sys.stderr, flush=True)
 
     # drop the bulky raw-HTML job description from the printed summary — it's
     # already in the db, and dumping it per-job turned the run log into an
@@ -6654,48 +10167,49 @@ def apply(args):
         prune_screenshots(con)
     except Exception:
         pass
-    print(json.dumps({"processed": len(done), "results": summary}, indent=2, ensure_ascii=False))
+    print(json.dumps({"processed": len(done), "target": target, "exit_code": exit_code, "results": summary}, indent=2, ensure_ascii=False))
+    if exit_code:
+        PROGRESS.unlink(missing_ok=True)
+        raise SystemExit(exit_code)
 
-def prune_screenshots(con=None, keep_recent=20, keep_needs_manual=True):
+def prune_screenshots(con=None, keep_recent=10, keep_needs_manual=True):
     close_con = False
     if con is None:
         con = db.connect()
         close_con = True
     try:
         shots_dir = SHOTS
+        # Clean temporary cover letters, CVs, and playwright temp files from OS temp
+        import tempfile, glob, shutil
+        temp_dir = tempfile.gettempdir()
+        for pat in [os.path.join(temp_dir, f"autopilot-cover-{os.getpid()}-*.pdf"),
+                    os.path.join(temp_dir, f"autopilot-cv-{os.getpid()}-*.pdf"),
+                    os.path.join(temp_dir, f"autopilot-upload-{os.getpid()}-*")]:
+            for tf in glob.glob(pat):
+                try:
+                    if Path(tf).resolve().parent != Path(temp_dir).resolve():
+                        continue
+                    if os.path.isfile(tf) or os.path.islink(tf):
+                        os.unlink(tf)
+                    elif os.path.isdir(tf):
+                        shutil.rmtree(tf, ignore_errors=True)
+                except Exception:
+                    pass
+
         # per-job tailored CVs are only needed while their vacancy is in flight
         for f in shots_dir.parent.glob("tailored_cv_w*_*.pdf"):
             try:
-                if f.stat().st_mtime < time.time() - 86400:
-                    f.unlink()
+                f.unlink(missing_ok=True)
             except OSError:
                 pass
         if not shots_dir.exists():
             return {"deleted": 0, "freed_mb": 0.0}
-        all_files = list(shots_dir.glob("*.png"))
+        all_files = sorted(list(shots_dir.glob("*.png")), key=lambda p: p.stat().st_mtime, reverse=True)
         if not all_files:
             return {"deleted": 0, "freed_mb": 0.0}
 
-        keep_names = set()
-        if keep_needs_manual:
-            manual_rows = con.execute("SELECT screenshot FROM applications WHERE needs_manual=1 AND screenshot IS NOT NULL").fetchall()
-            for r in manual_rows:
-                if r[0]:
-                    keep_names.add(Path(r[0]).name)
-
-        recent_sub = con.execute("SELECT screenshot FROM applications WHERE submitted=1 AND screenshot IS NOT NULL ORDER BY applied_at DESC LIMIT ?", (keep_recent,)).fetchall()
-        for r in recent_sub:
-            if r[0]:
-                keep_names.add(Path(r[0]).name)
-
-        # Keep files created in the last hour as buffer for active/in-flight tasks
-        now_ts = time.time()
-        for f in all_files:
-            try:
-                if f.stat().st_mtime > now_ts - 3600:
-                    keep_names.add(f.name)
-            except Exception:
-                pass
+        # Keep only the N most recent screenshots
+        keep_names = {f.name for f in all_files[:max(1, min(10, keep_recent))]}
 
         deleted = 0
         freed_bytes = 0
@@ -6730,7 +10244,7 @@ def prune_screenshots(con=None, keep_recent=20, keep_needs_manual=True):
 
 def clean_cmd(args):
     con = db.connect()
-    res = prune_screenshots(con, keep_recent=getattr(args, "keep_recent", 20), keep_needs_manual=True)
+    res = prune_screenshots(con, keep_recent=getattr(args, "keep_recent", 10), keep_needs_manual=True)
     print(json.dumps(res, indent=2))
 
 def status(_args):
@@ -6739,7 +10253,10 @@ def status(_args):
     min_score = cfg["apply"].get("min_score_to_apply", 0)
     total_jobs, total_applied = db.counts(con)
     pending = len(db.eligible_jobs(con, min_score))
+    running = db.run_is_active(con)
     print(json.dumps({
+        "running": running,
+        "progress": read_progress() if running else None,
         "jobs": total_jobs,
         "applied_log": total_applied,
         "personas": db.persona_counts(con),
@@ -6786,7 +10303,7 @@ def recheck(args):
     con = db.connect()
     rows = db.recheck_candidates(con, args.min_score, args.limit)
     dead = errors = 0
-    with sync_playwright() as pw:
+    with browser_playwright(cfg) as pw:
         browser = launch_browser(pw, cfg, headless=not args.show)
         page = browser.new_context(user_agent=UA).new_page()
         for r in rows:
@@ -7280,7 +10797,7 @@ def apply_url(args):
                "cv": None, "status": "manual", "created_at": now()}
         # cv=None here silently fell back to apply_one()'s own default
         # (cfg["documents"]["healthtech_cv"]) regardless of the actual role — every
-        # apply-url job got the health-tech CV even for a plain AppSec posting. Decide it the
+        # apply-url job got Doctor.pdf even for a plain AppSec posting. Decide it the
         # same way the normal discover() pipeline does, from the role's own title/company.
         job["cv"] = pick_cv(job, cfg)
         db.upsert_job(con, job)
@@ -7424,7 +10941,7 @@ def llm_cmd(args):
 
 def login(args):
     cfg = read_json(CFG)
-    with sync_playwright() as pw:
+    with browser_playwright(cfg) as pw:
         browser = launch_browser(pw, cfg, headless=False)
         ctx = new_browser_context(browser, cfg, user_agent=UA)
         page = ctx.new_page()
@@ -7435,6 +10952,34 @@ def login(args):
         finally:
             close_browser(browser, ctx, cfg)
     print(f"Session saved to {_storage_state_path(cfg)}")
+
+def linkedin_login(args):
+    """Opens LinkedIn in a normal-sized window; once you are signed in the session is saved
+    and the window closes. It is only used to read where a posting's Apply button leads."""
+    cfg = read_json(CFG)
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=False, channel=(cfg.get("browser") or {}).get("channel") or None,
+                                     args=["--disable-blink-features=AutomationControlled", "--window-size=1280,900"],
+                                     ignore_default_args=["--enable-automation"])
+        ctx = browser.new_context(user_agent=UA, locale="en-US", no_viewport=True)
+        page = ctx.new_page()
+        page.goto("https://www.linkedin.com/login")
+        print("Sign in to LinkedIn in the opened window (15 minutes).", flush=True)
+        try:
+            deadline = time.time() + 900
+            while not any(c["name"] == "li_at" for c in ctx.cookies("https://www.linkedin.com")):
+                if time.time() > deadline:
+                    print("LinkedIn: not signed in within 15 minutes, nothing saved", file=sys.stderr)
+                    return
+                page.wait_for_timeout(2000)
+            page.wait_for_timeout(4000)   # JSESSIONID (the csrf token) arrives with the feed
+            ctx.storage_state(path=str(LI_STATE))
+        except Exception as e:
+            print(f"LinkedIn: window closed before sign-in ({str(e)[:60]})", file=sys.stderr)
+            return
+        finally:
+            browser.close()
+    print(f"LinkedIn session saved to {LI_STATE}")
 
 def run_all(args):
     discover(args)
@@ -7548,22 +11093,26 @@ def resume_cmd(args):
                       "keywords": persona.get("search", {}).get("keywords", [])[:6],
                       "updated": bool(existing)}, indent=2, ensure_ascii=False))
 
+
+
 def build_parser():
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
-    p = sub.add_parser("discover"); p.add_argument("--source", action="append", choices=["vendor","startups","simplify","remotive","jobicy","remoteok","arbeitnow","wwr","djinni","relocate","google","himalayas","themuse","workable","adzuna","jooble","jobspy","tavily"]); p.add_argument("--persona", default="all"); p.add_argument("--max-keywords", type=int, default=8); p.add_argument("--limit", type=int, default=50); p.add_argument("--min-score", type=int, default=3); p.set_defaults(func=discover)
-    p = sub.add_parser("apply"); p.add_argument("--persona", default="all"); p.add_argument("--dry-run", action="store_true"); p.add_argument("--submit", action="store_true"); p.add_argument("--review", action="store_true"); p.add_argument("--max", type=int); p.add_argument("--show", action="store_true"); p.add_argument("--workers", type=int, default=None); p.add_argument("--ats-only", action="store_true"); p.add_argument("--job"); p.set_defaults(func=apply)
-    p = sub.add_parser("run"); p.add_argument("--source", action="append", choices=["vendor","startups","simplify","remotive","jobicy","remoteok","arbeitnow","wwr","djinni","relocate","google","himalayas","themuse","workable","adzuna","jooble","jobspy","tavily"]); p.add_argument("--persona", default="all"); p.add_argument("--max-keywords", type=int, default=8); p.add_argument("--limit", type=int, default=50); p.add_argument("--min-score", type=int, default=3); p.add_argument("--dry-run", action="store_true"); p.add_argument("--submit", action="store_true"); p.add_argument("--review", action="store_true"); p.add_argument("--max", type=int); p.add_argument("--show", action="store_true"); p.add_argument("--workers", type=int, default=None); p.set_defaults(func=run_all)
+    p = sub.add_parser("discover"); p.add_argument("--source", action="append", choices=["vendor","startups","medical_startups","workspace_findall","workspace_poisk","simplify","remotive","jobicy","remoteok","arbeitnow","wwr","djinni","relocate","google","himalayas","themuse","workable","adzuna","jooble","jobspy","tavily","linkedin","hn","cryptojobs"]); p.add_argument("--persona", default="all"); p.add_argument("--max-keywords", type=int, default=8); p.add_argument("--limit", type=int, default=50); p.add_argument("--min-score", type=int, default=3); p.add_argument("--location"); p.add_argument("--country"); p.set_defaults(func=discover)
+    p = sub.add_parser("apply"); p.add_argument("--persona", default="all"); p.add_argument("--dry-run", action="store_true"); p.add_argument("--submit", action="store_true"); p.add_argument("--review", action="store_true"); p.add_argument("--max", type=int); p.add_argument("--show", action="store_true"); p.add_argument("--workers", type=int, default=None); p.add_argument("--ats-only", action="store_true"); p.add_argument("--job"); p.add_argument("--location"); p.add_argument("--country"); p.set_defaults(func=apply)
+    p = sub.add_parser("run"); p.add_argument("--source", action="append", choices=["vendor","startups","medical_startups","workspace_findall","workspace_poisk","simplify","remotive","jobicy","remoteok","arbeitnow","wwr","djinni","relocate","google","himalayas","themuse","workable","adzuna","jooble","jobspy","tavily","linkedin","hn","cryptojobs"]); p.add_argument("--persona", default="all"); p.add_argument("--max-keywords", type=int, default=8); p.add_argument("--limit", type=int, default=50); p.add_argument("--min-score", type=int, default=3); p.add_argument("--dry-run", action="store_true"); p.add_argument("--submit", action="store_true"); p.add_argument("--review", action="store_true"); p.add_argument("--max", type=int); p.add_argument("--show", action="store_true"); p.add_argument("--workers", type=int, default=None); p.add_argument("--location"); p.add_argument("--country"); p.set_defaults(func=run_all)
     p = sub.add_parser("apply-url"); p.add_argument("urls", nargs="+"); p.add_argument("--company"); p.add_argument("--title"); p.add_argument("--persona", default="appsec"); p.add_argument("--dry-run", action="store_true"); p.add_argument("--submit", action="store_true"); p.add_argument("--review", action="store_true"); p.set_defaults(func=apply_url)
     p = sub.add_parser("llm"); p.add_argument("--probe", action="store_true"); p.add_argument("--enable"); p.add_argument("--disable"); p.add_argument("--set-key"); p.add_argument("--models"); p.add_argument("--set-model"); p.add_argument("--only"); p.set_defaults(func=llm_cmd)
     p = sub.add_parser("chrome"); p.add_argument("--port", type=int, default=9222); p.set_defaults(func=chrome)
     p = sub.add_parser("login"); p.add_argument("url", nargs="?", default="https://www.linkedin.com/login"); p.set_defaults(func=login)
+    p = sub.add_parser("linkedin-login"); p.set_defaults(func=linkedin_login)
     p = sub.add_parser("status"); p.set_defaults(func=status)
     p = sub.add_parser("rescore"); p.add_argument("--persona", default="all"); p.set_defaults(func=rescore)
     p = sub.add_parser("recheck"); p.add_argument("--limit", type=int, default=150); p.add_argument("--min-score", type=int, default=3); p.add_argument("--show", action="store_true"); p.set_defaults(func=recheck)
     p = sub.add_parser("outcome"); p.add_argument("job"); p.add_argument("--status", required=True, choices=db.OUTCOME_STATUSES); p.add_argument("--note"); p.add_argument("--all", action="store_true"); p.set_defaults(func=outcome)
     p = sub.add_parser("outcomes"); p.add_argument("job", nargs="?"); p.add_argument("--pending", action="store_true"); p.set_defaults(func=outcomes)
-    p = sub.add_parser("inbox"); p.add_argument("--days", type=int, default=30); p.add_argument("--apply", action="store_true"); p.set_defaults(func=inbox)
+    p = sub.add_parser("inbox"); p.add_argument("--days", type=int, default=30); p.add_argument("--apply", action="store_true"); p.add_argument("--json", action="store_true"); p.set_defaults(func=inbox)
+    p = sub.add_parser("report"); p.add_argument("--done"); p.add_argument("--limit", type=int, default=15); p.add_argument("--json", action="store_true"); p.set_defaults(func=report_cmd)
     p = sub.add_parser("ghost"); p.add_argument("--threshold", type=int, default=70); p.add_argument("--limit", type=int, default=15); p.add_argument("--hide", action="store_true"); p.set_defaults(func=ghost)
     p = sub.add_parser("block"); p.add_argument("company", nargs="*"); p.add_argument("--from-ghost", action="store_true"); p.add_argument("--threshold", type=int, default=70); p.add_argument("--min-jobs", type=int, default=5); p.add_argument("--min-pct", type=float, default=80.0); p.add_argument("--min-reposts", type=int, default=10); p.add_argument("--apply", action="store_true"); p.add_argument("--remove"); p.set_defaults(func=block)
     p = sub.add_parser("keywords"); p.add_argument("--min-score", type=int, default=10); p.add_argument("--min-found", type=int, default=8); p.add_argument("--limit", type=int, default=10); p.set_defaults(func=keywords)
@@ -7594,10 +11143,11 @@ if __name__ == "__main__":
     else:
         _con = db.connect()
         _token = f"{os.getpid()}-{time.time_ns()}"
-        if not db.acquire_run_lock(_con, "autopilot", _token):
+        lock_name = "autopilot-discover" if _args.command == "discover" else "autopilot"
+        if not db.acquire_run_lock(_con, lock_name, _token):
             print("another autopilot run is already active", file=sys.stderr)
             raise SystemExit(2)
         try:
             _args.func(_args)
         finally:
-            db.release_run_lock(_con, "autopilot", _token)
+            db.release_run_lock(_con, lock_name, _token)

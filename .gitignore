@@ -50,6 +50,19 @@ autopilot/jobs.db
 autopilot/jobs.db-shm
 autopilot/jobs.db-wal
 autopilot/jobs.db.backup-*
+autopilot/*-state.json
+autopilot/linkedin-apply.json
+autopilot/archive/
+autopilot/*cache*/
+autopilot/batches/
+autopilot/control-*.json
+autopilot/*report*.json
+autopilot/*.jsonl
+autopilot/*.csv
+autopilot/*.html
+autopilot/runtime-*/
+autopilot/*.png
+autopilot/*.jpg
 
 # personal data
 /*.pdf
