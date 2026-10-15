@@ -5,4 +5,6 @@ pypdf
 pymupdf
 pytesseract
 Pillow
+matplotlib
+opencv-python-headless
 python-jobspy
