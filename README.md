@@ -3,7 +3,11 @@
 [![CI](https://github.com/madnessbrainsbl/applypilot/actions/workflows/ci.yml/badge.svg)](https://github.com/madnessbrainsbl/applypilot/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**Find ATS jobs, match them to your CV and prepare applications — locally, under your control.**
+**Find jobs, match them to your CV, prepare applications and track the next step — from your own machine.**
+
+![ApplyPilot Run and activity tab with synthetic demo data](docs/images/applypilot/current-run.png)
+
+[Quick start](#quick-start-autopilot) · [Dashboard](#dashboard) · [Screenshots](#screenshots) · [Engine reference](autopilot/README.md)
 
 A local job-search assistant in two parts, each with its own SQLite database:
 
@@ -15,23 +19,46 @@ A local job-search assistant in two parts, each with its own SQLite database:
   applications and resumes, and at `/dashboard/autopilot` it controls the engine: start a run, answer pending
   questions, test and toggle LLM providers, watch the live log.
 
-Everything runs on your machine. Your CV, answers and credentials never leave it except to the sites you apply to
-and the LLM providers you enable.
+The dashboard and engine run on your machine. Discovery queries go to the search services you configure;
+application data goes to the employer sites you use. Enabled AI providers can receive CV text, job descriptions,
+form questions or challenge images. Local model providers are also supported.
 
 Each user downloads the project and runs their own copy on their own machine. They add their own CVs,
 profile, keys and accounts after installation; this data is excluded from Git and is not part of the source.
 Dashboard accounts within one installation control that installation's shared autopilot.
 
-## Recent improvements
+## What you can do
 
-- Country and city filters in the dashboard and CLI (`--country`, `--location`), including remote and worldwide searches.
-- Separate Run, Review, Resumes and provider settings, with database-backed run status and a live worker log.
-- Stronger form filling and submission checks, per-persona answer caching, duplicate protection and worker recovery.
-- Inbox outcome reports with interview invitations, next steps and rejection summaries, using your configured mailbox.
-- Optional HealthTech/MedTech discovery and employer visa/relocation evidence filters. External workspace sources require your own configured projects.
+| Workspace | What it does |
+|---|---|
+| **Run & activity** | Discover vacancies, choose a resume persona, filter by country or city, set batch size and parallel workers, and follow the activity log. Remote and worldwide searches have quick filters. |
+| **Review** | Open applications that need your final click, review unresolved questions, and save answers for reuse. |
+| **Replies** | See interview invitations, assessments, offers and rejection summaries from your configured mailbox. Open the next step and mark it as done. Recruiter search links and outreach drafts stay available for your review. |
+| **Resumes** | Upload a PDF for each profession, generate its search profile with an enabled LLM, and see whether its PDF is available. Each persona uses its own CV. |
+| **AI providers** | Enable your chosen API or CLI providers, select models, test connections and configure your own keys. Local model servers are supported. All example providers start disabled. |
 
-The dashboard starts in **dry-run mode**. Unattended submission requires explicitly setting
-`apply.submit_without_review` to `true`; personal answers still come from your own profile and saved answers.
+The engine keeps submission confirmation, duplicate protection, per-company limits, persona-specific answer
+caching and worker recovery in the application flow. A dispatched form is counted as submitted only after
+confirmation is detected; unclear results need review.
+
+### Discovery and matching
+
+- Poll employer ATS boards, including Greenhouse, Ashby, Workable, Lever and SmartRecruiters, alongside remote-job feeds and configured aggregators.
+- Search additional sources such as Hacker News hiring posts and crypto job feeds. Use the optional HealthTech/MedTech discovery and employer visa/relocation evidence filters for a focused search.
+- Match titles, keywords and exclusions to the selected resume persona, then filter by location. Set `--country` or `--location` in the CLI, or use the dashboard controls.
+- LinkedIn is a discovery source. Easy Apply is not used; applications go through employer ATS forms or manual review.
+- Search APIs may need your own keys. Workspace integrations require your separately configured source projects and are optional.
+
+### Choose how applications are handled
+
+| Mode | Behavior |
+|---|---|
+| **Dry run** | Fills a form without submitting. This is the dashboard default. |
+| **Assisted review** | `--review --submit` opens the browser so you can inspect the application and press Submit yourself. |
+| **Unattended** | `--submit` allows the engine to submit. In the dashboard this requires explicitly setting `apply.submit_without_review` to `true`. |
+
+Candidate facts come from your own profile, CV and validated answers. Unknown visa/work-authorization answers
+and questions the engine cannot resolve are left for you. Unresolved challenges also require manual review.
 
 > **Responsible use.** Automated submissions can break a site's terms of service and can send applications you did
 > not intend. The assisted mode (`--review --submit`) never submits by itself: you check the filled form and press Submit.
@@ -42,8 +69,8 @@ The dashboard starts in **dry-run mode**. Unattended submission requires explici
 
 - Python 3.10+ and Google Chrome (or Playwright's Chromium)
 - Node.js 24+ (dashboard only)
-- Developed and tested on Windows. Linux and macOS should work, but a few helpers (process cleanup, Chrome
-  detection) have Windows-specific paths. Please report issues.
+- Automated Python checks run on Windows and Linux; dashboard checks run on Linux. macOS has not been verified.
+  Some helpers, including Chrome detection and process cleanup, contain Windows-specific paths.
 
 ## Quick start (autopilot)
 
@@ -56,6 +83,9 @@ python -m playwright install chromium          # skip if you use installed Chrom
 
 cp autopilot/config.example.json autopilot/config.json     # the CLI also creates it on first run
 ```
+
+In PowerShell, use `Copy-Item` instead of `cp` if preferred. The example selects installed Chrome;
+set `browser.channel` to `null` to use Playwright's downloaded Chromium.
 
 1. Edit `autopilot/config.json`:
    - `profile`: your name, email, phone, links, `country`, `languages`, salary, notice period.
@@ -82,6 +112,22 @@ cp autopilot/config.example.json autopilot/config.json     # the CLI also create
    python tools/autopilot.py status
    ```
 
+Narrow a search or application batch to a persona and location:
+
+```sh
+python tools/autopilot.py discover --persona mycv --location germany
+python tools/autopilot.py apply --persona mycv --location germany --dry-run --max 1
+```
+
+To refresh mailbox outcomes and inspect the report:
+
+```sh
+python tools/autopilot.py inbox --apply
+python tools/autopilot.py outcome
+```
+
+This needs your own IMAP settings and mailbox credentials. Invitations and assessments still require you to take the next step.
+
 `--submit` exists for unattended runs. Use it only after you have watched several `--review` runs behave correctly. Full command list and every config key: [autopilot/README.md](autopilot/README.md).
 
 ## Dashboard
@@ -99,11 +145,56 @@ Create an account on first visit, then open `/dashboard/autopilot`. The page run
 `AUTOPILOT_PYTHON` if your interpreter is not called `python`. `docker compose up` starts the upstream JobSync image,
 which does not include the autopilot page. Dashboard features and settings: [docs/jobsync-dashboard.md](docs/jobsync-dashboard.md).
 
-## Project walkthrough
+## Screenshots
 
-[Read the Russian article with screenshots](docs/applypilot-article.ru.md): discovery, resume personas,
-assisted applications, manual review, provider settings, and local setup. Screenshots use synthetic demo data.
-The article shows the earlier interface; the current dashboard groups these controls into tabs.
+These captures show the current dashboard with **synthetic demo data** in an isolated installation.
+Companies, counters, outcomes and resume entries are illustrative. No personal CVs, mailbox contents,
+credentials or browser sessions are shown; provider connections were not tested against live services for these captures.
+
+<details>
+<summary><strong>Review applications and answer unresolved questions</strong></summary>
+
+Open a prepared application for a final check, or answer a question once so it can be reused.
+
+![Review queue and pending questions with synthetic data](docs/images/applypilot/current-review.png)
+
+</details>
+
+<details>
+<summary><strong>Track replies and next steps</strong></summary>
+
+Interview invitations and assessments are separated from rejection summaries.
+
+![Employer replies and next steps with synthetic data](docs/images/applypilot/current-replies.png)
+
+</details>
+
+<details>
+<summary><strong>Manage a resume for each profession</strong></summary>
+
+Keep separate CVs and search profiles, and check whether each PDF is available.
+
+![Resume personas and PDF upload controls with synthetic data](docs/images/applypilot/current-resumes.png)
+
+</details>
+
+<details>
+<summary><strong>Choose AI providers and models</strong></summary>
+
+Configure local or cloud providers. Demo providers are disabled and key fields are empty.
+
+![AI provider settings with disabled demo providers and empty key fields](docs/images/applypilot/current-providers.png)
+
+</details>
+
+<details>
+<summary><strong>Use the dashboard on a small screen</strong></summary>
+
+The same run controls and location filters adapt to a mobile viewport. The engine still runs on the host machine.
+
+<img src="docs/images/applypilot/current-mobile.png" alt="ApplyPilot mobile layout with synthetic data" width="390">
+
+</details>
 
 ## Tests
 
@@ -112,6 +203,8 @@ python tools/run_tests.py    # isolated example profile and temporary database
 pip install -r requirements-dev.txt
 python tools/run_tests.py --pytest -q   # additional isolated regression checks
 npm test                     # dashboard unit tests (vitest)
+npm run lint
+npm run build
 ```
 
 Optional browser engines and local speech recognition are listed in `requirements-browser.txt`.
