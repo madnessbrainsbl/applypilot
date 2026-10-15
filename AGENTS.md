@@ -1,13 +1,11 @@
 # Workspace Guidelines & Memory: search_work_world
 
 ## Garbage Collection & Storage Maintenance
-- **Periodic Screenshot Cleanup**:
-  - Automatically prune and clean `autopilot/screenshots/` periodically whenever it accumulates old files or exceeds ~100 items.
+- **Session Screenshot Cleanup**:
+  - Keep a rolling window of at most 10 screenshots in `autopilot/screenshots/`.
   - Command: `python tools/autopilot.py clean` (or call `prune_screenshots(con)`).
-  - Retention policy:
-    - ALWAYS KEEP: active `needs_manual = 1` screenshots for dashboard review.
-    - KEEP: recent 20 submitted application screenshots and 1-hour active buffer for in-flight tasks.
-    - PURGE: orphaned test files, dead listing screenshots (`dead_listing = 1`), and old completed submissions.
+  - Temporary covers, CVs and upload copies are owned by the creating process. Never delete another session's temporary files.
+  - Do not copy working profiles, credentials, databases, browser sessions or personal instructions into this publication tree.
 
 ## Autopilot Multi-Worker Architecture
 - **Concurrency**: 2-3 parallel workers via multiprocessing with isolated profiles (`autopilot/chrome-profile-w1`, `w2`, etc.).
@@ -15,7 +13,7 @@
 - **Control & stalls**: Only the parent process reads `autopilot/control.json` (a read clears it); workers see quit through `stop_event`, and skip through a shared counter (only a worker waiting on a human acts on it). Each worker runs its own stall watchdog and `os._exit(3)`s on a hung vacancy; the parent restarts it (max `workers*3`). Non-review runs always use the pool, even with 1 worker; `--review` stays in-process.
 - **Process Hygiene**: Call `in_queue.cancel_join_thread()` in queue-worker exit paths on Windows to avoid process joins hanging. Cancel `out_queue` only once `stop_event` is set — cancelling it on a normal exit drops the result put just before the worker exits.
 
-- **Pre-flight & limits**: `tools/ats_schema.py` reads the form schema from the public Greenhouse/Ashby/Workable APIs before the browser opens (`job["_schema"]`) and skips postings with a hard knock-out (active clearance/polygraph, required US citizenship). `db.recent_company_counts` caps submissions per company over a 30-day window (3; Ashby 1). Lever is excluded from non-review runs (hCaptcha rejects automated sessions).
+- **Pre-flight & limits**: `tools/ats_schema.py` reads the form schema from public ATS APIs before the browser opens (`job["_schema"]`) and skips postings with a hard knock-out (active clearance/polygraph, required US citizenship). Preserve per-company caps, duplicate prevention and manual review for unconfirmed outcomes. Database run locks determine whether a run is active; a progress file alone is insufficient.
 
 ## Resume Library (one persona per profession)
 - `python tools/autopilot.py resume add --file X.pdf --name <key> [--role "<title>"] [--regen]` copies the PDF to `autopilot/resumes/<key>.pdf` and asks the LLM for a search profile drawn only from the resume (keywords, required/excluded title terms, good/bad/niche terms), stored as `personas.<key>` in config.json. `resume list` / `resume remove --name <key>`.

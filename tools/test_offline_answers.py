@@ -3,7 +3,7 @@ import autopilot as A
 CFG = {"profile": {"location": "Springfield, Exampleland", "country": "Exampleland", "languages": "English",
                    "salary_expectation": "60,000 - 80,000 EUR", "notice_period": "1 month",
                    "linkedin": "https://www.linkedin.com/in/jane-doe-example/", "years_experience": "5"},
-       "apply": {"require_sponsorship": True, "answers": {"open_to_relocation": "Yes", "open_to_onsite": "Yes"}}}
+       "apply": {"require_sponsorship": True, "answers": {"open_to_relocation": "Yes", "open_to_onsite": "Yes", "arbitration_agreement": "Yes"}}}
 
 
 def demo():

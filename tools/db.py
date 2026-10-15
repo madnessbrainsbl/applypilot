@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS applications (
     dead_listing INTEGER DEFAULT 0, filled_fields INTEGER,
     cv_used TEXT, cover_used TEXT, screenshot TEXT,
     needs_manual INTEGER DEFAULT 0, apply_url TEXT, manual_reason TEXT,
-    persona TEXT DEFAULT 'appsec'
+    persona TEXT DEFAULT 'appsec', confirmation TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_jobs_score ON jobs(score);
 CREATE INDEX IF NOT EXISTS idx_apps_job ON applications(job_id);
@@ -63,6 +63,48 @@ CREATE TABLE IF NOT EXISTS outcomes (
     note TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_outcomes_job ON outcomes(job_id);
+CREATE TABLE IF NOT EXISTS outcome_details (
+    job_id TEXT REFERENCES jobs(id),
+    status TEXT,
+    kind TEXT,
+    reason TEXT,
+    hours REAL,
+    email_date TEXT,
+    subject TEXT,
+    sender TEXT,
+    link TEXT,
+    done INTEGER DEFAULT 0,
+    PRIMARY KEY (job_id, status)
+);
+CREATE TABLE IF NOT EXISTS leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT REFERENCES jobs(id),
+    company TEXT,
+    name TEXT,
+    role TEXT,
+    email TEXT,
+    email_source TEXT,
+    confidence REAL DEFAULT 0.8,
+    linkedin_url TEXT,
+    pitch_subject TEXT,
+    pitch_body TEXT,
+    status TEXT DEFAULT 'discovered',
+    created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_leads_company ON leads(company);
+CREATE INDEX IF NOT EXISTS idx_leads_job ON leads(job_id);
+CREATE TABLE IF NOT EXISTS auto_replies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    message_id TEXT UNIQUE,
+    in_reply_to TEXT,
+    recipient TEXT,
+    subject TEXT,
+    intent TEXT,
+    reply_body TEXT,
+    sent_at TEXT,
+    status TEXT DEFAULT 'sent'
+);
+CREATE INDEX IF NOT EXISTS idx_replies_msg ON auto_replies(message_id);
 """
 
 OUTCOME_STATUSES = ["replied", "screening", "interview", "offer",
@@ -104,7 +146,7 @@ def _migrate_columns(con):
     acols = {r["name"] for r in con.execute("PRAGMA table_info(applications)").fetchall()}
     for col, ddl in (("needs_manual", "needs_manual INTEGER DEFAULT 0"),
                      ("apply_url", "apply_url TEXT"), ("manual_reason", "manual_reason TEXT"),
-                     ("persona", "persona TEXT DEFAULT 'appsec'")):
+                     ("persona", "persona TEXT DEFAULT 'appsec'"), ("confirmation", "confirmation TEXT")):
         if col not in acols:
             con.execute(f"ALTER TABLE applications ADD COLUMN {ddl}")
     con.commit()
@@ -166,11 +208,13 @@ def upsert_job(con, job, commit=True):
 _APPLICATION_DEFAULTS = {"dry_run": 0, "review": 0, "submitted": 0, "dead_listing": 0,
                           "filled_fields": 0, "cv_used": None, "cover_used": None, "screenshot": None,
                           "needs_manual": 0, "apply_url": None, "manual_reason": None,
-                          "persona": "appsec"}
+                          "persona": "appsec", "confirmation": None}
 
 
 def insert_application(con, rec, commit=True):
     data = {**_APPLICATION_DEFAULTS, **rec}
+    if isinstance(data["confirmation"], dict):
+        data["confirmation"] = json.dumps(data["confirmation"], ensure_ascii=False)
     if not rec.get("persona") and rec.get("id"):
         j_p = con.execute("SELECT persona FROM jobs WHERE id=?", (rec["id"],)).fetchone()
         if j_p and j_p[0]:
@@ -178,14 +222,16 @@ def insert_application(con, rec, commit=True):
     con.execute(
         """INSERT INTO applications (job_id, applied_at, dry_run, review, submitted,
                dead_listing, filled_fields, cv_used, cover_used, screenshot,
-               needs_manual, apply_url, manual_reason, persona)
+               needs_manual, apply_url, manual_reason, persona, confirmation)
            VALUES (:id, :applied_at, :dry_run, :review, :submitted, :dead_listing,
                :filled_fields, :cv_used, :cover_used, :screenshot,
-               :needs_manual, :apply_url, :manual_reason, :persona)""",
+               :needs_manual, :apply_url, :manual_reason, :persona, :confirmation)""",
         data,
     )
     if rec.get("dead_listing"):
         con.execute("UPDATE jobs SET dead_listing=1 WHERE id=?", (rec["id"],))
+    if rec.get("submitted"):
+        con.execute("UPDATE jobs SET status='applied', updated_at=datetime('now') WHERE id=?", (rec["id"],))
     if commit: con.commit()
 
 
@@ -214,24 +260,14 @@ def dismiss_manual(con, job_id):
 
 
 def skip_ids(con):
-    """Job ids to never queue again: already submitted, a delisted page, or a
-    spam-block verdict. A spam-block ("site blocked this automated session as
-    spam") is the ATS's own definitive anti-abuse call against the WHOLE
-    automated session, not a transient failure — retrying it automatically can
-    never succeed (confirmed live: repeat Ashby postings kept re-surfacing in
-    every `apply` run and getting spam-blocked again, burning attempts that
-    could have gone to fresh postings, instead of the one-time "finish in your
-    own browser" note it already got). Other needs_manual reasons (captcha,
-    "submit didn't confirm") stay eligible — those genuinely can succeed on a
-    later attempt, especially after a bug fix.
-    A stall is NOT one of them: the watchdog fires on the run's own timeout, which
-    it also fires while a human is mid-review, so blacklisting on it permanently
-    removed the exact job the user was working on. A SECOND stall is: a posting that
-    always hangs otherwise burns a full vacancy timeout in every run."""
+    """Exclude submitted, manual and delisted jobs. Unconfirmed attempts remain
+    for human review regardless of age; a timeout never authorizes another send."""
     rows = con.execute(
         """SELECT job_id FROM applications WHERE submitted=1
            UNION SELECT id FROM jobs WHERE dead_listing=1
-           UNION SELECT job_id FROM applications WHERE needs_manual=1 AND applied_at > datetime('now', '-7 days') AND (manual_reason IS NULL OR manual_reason NOT LIKE '%stalled the run%')
+           UNION SELECT job_id FROM applications WHERE needs_manual=1
+           UNION SELECT id FROM jobs WHERE status IN ('pending','pending_confirmation')
+           UNION SELECT job_id FROM applications WHERE coalesce(dry_run,0)=0 AND manual_reason LIKE '%confirm%'
            UNION SELECT job_id FROM applications WHERE manual_reason LIKE '%blocked this automated session as spam%'
            UNION SELECT job_id FROM applications WHERE manual_reason LIKE '%signing in with a Google account%'
            UNION SELECT job_id FROM applications WHERE manual_reason LIKE '%creating or signing in to a site account%'
@@ -342,7 +378,9 @@ def claim_job(con, job_id, token, stale_seconds=3600):
             """UPDATE jobs SET claim_token=?, claimed_at=? WHERE id=?
                AND dead_listing=0 AND hidden=0
                AND (claim_token IS NULL OR claimed_at < ?)
-               AND NOT EXISTS (SELECT 1 FROM applications WHERE job_id=? AND submitted=1)""",
+                AND coalesce(status,'') NOT IN ('pending','pending_confirmation')
+                AND NOT EXISTS (SELECT 1 FROM applications WHERE job_id=? AND
+                    (submitted=1 OR needs_manual=1 OR (coalesce(dry_run,0)=0 AND manual_reason LIKE '%confirm%')))""",
             (token, now, job_id, stale, job_id),
         )
         con.commit()
@@ -411,6 +449,11 @@ def acquire_run_lock(con, name, token, stale_seconds=7200):
 def release_run_lock(con, name, token):
     con.execute("DELETE FROM run_locks WHERE name=? AND token=?", (name, token))
     con.commit()
+
+
+def run_is_active(con):
+    return any(_pid_alive(_token_pid(row[0])) for row in con.execute(
+        "SELECT token FROM run_locks WHERE name IN ('autopilot', 'autopilot-discover')"))
 
 
 def all_jobs(con):
@@ -548,6 +591,34 @@ def find_submitted(con, needle):
         (needle, like, like),
     ).fetchall()
     return [dict(r) for r in rows]
+
+
+def save_outcome_detail(con, d, commit=True):
+    """What the mail said, per job and status: auto/manual, the stated reason, how long
+    after applying it came, and the link for an invitation. Keeps a `done` flag the user
+    set on an invitation they already handled."""
+    con.execute(
+        """INSERT INTO outcome_details (job_id, status, kind, reason, hours, email_date, subject, sender, link)
+           VALUES (:job_id, :status, :kind, :reason, :hours, :email_date, :subject, :sender, :link)
+           ON CONFLICT(job_id, status) DO UPDATE SET kind=excluded.kind, reason=excluded.reason,
+               hours=excluded.hours, email_date=excluded.email_date, subject=excluded.subject,
+               sender=excluded.sender, link=COALESCE(excluded.link, outcome_details.link)""",
+        d)
+    if commit: con.commit()
+
+
+def outcome_details(con):
+    rows = con.execute(
+        """SELECT d.*, j.company, j.title, j.location, j.url, j.description, j.persona, j.source
+           FROM outcome_details d JOIN jobs j ON j.id = d.job_id
+           ORDER BY d.email_date DESC"""
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def mark_action_done(con, job_id):
+    con.execute("UPDATE outcome_details SET done=1 WHERE job_id=? AND status != 'rejected'", (job_id,))
+    con.commit()
 
 
 def outcome_history(con, job_id):
@@ -690,3 +761,71 @@ def update_qa_answer(con, key, answer):
 def delete_qa_answer(con, key):
     con.execute("DELETE FROM qa_answers WHERE question_key=?", (key,))
     con.commit()
+
+
+def insert_lead(con, lead_dict, commit=True):
+    now = datetime.now(timezone.utc).isoformat()
+    cur = con.execute("""
+        INSERT INTO leads (job_id, company, name, role, email, email_source, confidence,
+                           linkedin_url, pitch_subject, pitch_body, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        lead_dict.get("job_id"),
+        lead_dict.get("company", ""),
+        lead_dict.get("name", ""),
+        lead_dict.get("role", ""),
+        lead_dict.get("email", ""),
+        lead_dict.get("email_source", "guessed"),
+        float(lead_dict.get("confidence", 0.8)),
+        lead_dict.get("linkedin_url", ""),
+        lead_dict.get("pitch_subject", ""),
+        lead_dict.get("pitch_body", ""),
+        lead_dict.get("status", "discovered"),
+        lead_dict.get("created_at") or now,
+    ))
+    if commit:
+        con.commit()
+    return cur.lastrowid
+
+
+def get_leads(con, company=None, job_id=None, limit=50):
+    if job_id:
+        rows = con.execute("SELECT * FROM leads WHERE job_id = ? ORDER BY id DESC LIMIT ?", (job_id, limit)).fetchall()
+    elif company:
+        rows = con.execute("SELECT * FROM leads WHERE company LIKE ? ORDER BY id DESC LIMIT ?", (f"%{company}%", limit)).fetchall()
+    else:
+        rows = con.execute("SELECT * FROM leads ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+    return [dict(r) for r in rows]
+
+
+def update_lead_status(con, lead_id, status, commit=True):
+    con.execute("UPDATE leads SET status = ? WHERE id = ?", (status, lead_id))
+    if commit:
+        con.commit()
+
+
+def is_email_replied(con, message_id):
+    if not message_id:
+        return False
+    row = con.execute("SELECT 1 FROM auto_replies WHERE message_id = ?", (message_id,)).fetchone()
+    return row is not None
+
+
+def log_auto_reply(con, reply_dict, commit=True):
+    now = datetime.now(timezone.utc).isoformat()
+    cur = con.execute("""
+        INSERT OR IGNORE INTO auto_replies (message_id, in_reply_to, recipient, subject, intent, reply_body, sent_at, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        reply_dict.get("message_id"),
+        reply_dict.get("in_reply_to"),
+        reply_dict.get("recipient"),
+        reply_dict.get("subject"),
+        reply_dict.get("intent", "general"),
+        reply_dict.get("reply_body", ""),
+        reply_dict.get("sent_at") or now,
+        reply_dict.get("status", "sent"),
+    ))
+    if commit:
+        con.commit()
+    return cur.lastrowid

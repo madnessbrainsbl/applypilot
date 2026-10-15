@@ -1,17 +1,25 @@
 // @vitest-environment node
 import { NextRequest } from "next/server";
+import { EventEmitter } from "node:events";
 import { POST } from "@/app/api/autopilot/route";
 
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(), read: vi.fn(), spawn: vi.fn(), unref: vi.fn(),
 }));
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
-vi.mock("node:fs", () => ({ existsSync: vi.fn(), readFileSync: mocks.read, writeFileSync: vi.fn() }));
-vi.mock("node:child_process", () => ({ execFile: vi.fn(), spawn: mocks.spawn }));
+vi.mock("node:fs", () => ({ existsSync: vi.fn(), readFileSync: mocks.read, writeFileSync: vi.fn(), openSync: () => 42, closeSync: vi.fn() }));
+vi.mock("node:child_process", () => ({
+  execFile: (_file: string, _args: string[], _options: unknown, callback: Function) => callback(null, { stdout: '{"running":false}' }),
+  spawn: mocks.spawn,
+}));
 
 beforeEach(() => {
   mocks.auth.mockResolvedValue({ user: { id: "test" } });
-  mocks.spawn.mockReturnValue({ unref: mocks.unref });
+  mocks.spawn.mockImplementation(() => {
+    const child = Object.assign(new EventEmitter(), { unref: mocks.unref });
+    queueMicrotask(() => child.emit("spawn"));
+    return child;
+  });
 });
 
 it.each([undefined, false, "true", true])("submission requires boolean true (%s)", async (enabled) => {

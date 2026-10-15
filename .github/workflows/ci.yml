@@ -25,6 +25,8 @@ jobs:
 
       - run: npm test
 
+      - run: npm run build
+
   python:
     strategy:
       matrix:
@@ -38,8 +40,10 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - run: pip install -r requirements.txt
+      - run: pip install -r requirements-dev.txt
 
       - run: python -m playwright install --with-deps chromium
 
       - run: python tools/run_tests.py
+
+      - run: python tools/run_tests.py --pytest -q

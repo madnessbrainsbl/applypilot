@@ -22,6 +22,17 @@ Each user downloads the project and runs their own copy on their own machine. Th
 profile, keys and accounts after installation; this data is excluded from Git and is not part of the source.
 Dashboard accounts within one installation control that installation's shared autopilot.
 
+## Recent improvements
+
+- Country and city filters in the dashboard and CLI (`--country`, `--location`), including remote and worldwide searches.
+- Separate Run, Review, Resumes and provider settings, with database-backed run status and a live worker log.
+- Stronger form filling and submission checks, per-persona answer caching, duplicate protection and worker recovery.
+- Inbox outcome reports with interview invitations, next steps and rejection summaries, using your configured mailbox.
+- Optional HealthTech/MedTech discovery and employer visa/relocation evidence filters. External workspace sources require your own configured projects.
+
+The dashboard starts in **dry-run mode**. Unattended submission requires explicitly setting
+`apply.submit_without_review` to `true`; personal answers still come from your own profile and saved answers.
+
 > **Responsible use.** Automated submissions can break a site's terms of service and can send applications you did
 > not intend. The assisted mode (`--review --submit`) never submits by itself: you check the filled form and press Submit.
 > The engine attempts checkbox challenges and audio reCAPTCHA using a configured speech API; unresolved challenges require manual review. You are responsible for every
@@ -88,12 +99,25 @@ Create an account on first visit, then open `/dashboard/autopilot`. The page run
 `AUTOPILOT_PYTHON` if your interpreter is not called `python`. `docker compose up` starts the upstream JobSync image,
 which does not include the autopilot page. Dashboard features and settings: [docs/jobsync-dashboard.md](docs/jobsync-dashboard.md).
 
+## Project walkthrough
+
+[Read the Russian article with screenshots](docs/applypilot-article.ru.md): discovery, resume personas,
+assisted applications, manual review, provider settings, and local setup. Screenshots use synthetic demo data.
+The article shows the earlier interface; the current dashboard groups these controls into tabs.
+
 ## Tests
 
 ```sh
 python tools/run_tests.py    # isolated example profile and temporary database
+pip install -r requirements-dev.txt
+python tools/run_tests.py --pytest -q   # additional isolated regression checks
 npm test                     # dashboard unit tests (vitest)
 ```
+
+Optional browser engines and local speech recognition are listed in `requirements-browser.txt`.
+Install them only when using those features; their browsers/models may require separate downloads.
+The default installation continues to use Playwright and Chrome/Chromium. LinkedIn remains a search source;
+applications use employer ATS forms or manual review.
 
 ## Privacy and safety
 

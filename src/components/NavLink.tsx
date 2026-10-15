@@ -30,15 +30,15 @@ function NavLink({ label, Icon, route, pathname, expanded }: NavLinkProps) {
       href={route}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "navlink h-10 w-full hover:text-foreground",
-        isActive ? "text-foreground" : "text-muted-foreground",
+        "navlink h-11 w-full rounded-lg hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        isActive ? "text-primary font-semibold" : "text-muted-foreground",
         isActive && expanded && "rounded-md bg-accent"
       )}
     >
       {isActive && (
         <span
           aria-hidden
-          className="absolute left-0 top-0 h-full w-0.5 bg-foreground"
+          className="absolute left-0 top-0 h-full w-0.5 bg-primary"
         />
       )}
       {/* Fixed-width lead box (= collapsed rail width) so the icon sits at the
