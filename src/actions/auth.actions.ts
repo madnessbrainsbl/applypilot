@@ -12,6 +12,12 @@ export async function signup(formData: {
   email: string;
   password: string;
 }) {
+  // the first account bootstraps the app; after that signup is closed unless the
+  // operator opts in, otherwise anyone who can reach the port gets a session
+  if (process.env.ALLOW_SIGNUP !== "true" && (await prisma.user.count()) > 0) {
+    return { error: "Sign-up is closed. Ask the owner to create your account." };
+  }
+
   const parsed = SignupFormSchema.safeParse(formData);
   if (!parsed.success) {
     return { error: "Invalid form data." };

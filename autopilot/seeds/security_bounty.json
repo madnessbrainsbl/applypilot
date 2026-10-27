@@ -1,0 +1,3573 @@
+{
+ "list": "bounty",
+ "fetched": "2026-10-16T10:09:02+00:00",
+ "companies": [
+  {
+   "name": "1Password - Enterprise Password Manager",
+   "domain": "1password.com",
+   "slugs": []
+  },
+  {
+   "name": "1win",
+   "domain": "1win.com",
+   "slugs": []
+  },
+  {
+   "name": "23andMe",
+   "domain": "23andme.org",
+   "slugs": []
+  },
+  {
+   "name": "3CX",
+   "domain": "3cx.com",
+   "slugs": []
+  },
+  {
+   "name": "3DS OUTSCALE",
+   "domain": "",
+   "slugs": [
+    "outscale"
+   ]
+  },
+  {
+   "name": "6sense",
+   "domain": "6sense.com",
+   "slugs": []
+  },
+  {
+   "name": "8x8",
+   "domain": "8x8.com",
+   "slugs": []
+  },
+  {
+   "name": "ABB Information Systems Ltd",
+   "domain": "abb.com",
+   "slugs": []
+  },
+  {
+   "name": "Abercrombie & Fitch",
+   "domain": "abercrombie.com",
+   "slugs": []
+  },
+  {
+   "name": "Abercrombie & Fitch Management Co.",
+   "domain": "abercrombie.com",
+   "slugs": []
+  },
+  {
+   "name": "ABN AMRO Bank",
+   "domain": "abnamro.com",
+   "slugs": []
+  },
+  {
+   "name": "Acronis",
+   "domain": "acronis.com",
+   "slugs": []
+  },
+  {
+   "name": "ADAC",
+   "domain": "",
+   "slugs": [
+    "adac"
+   ]
+  },
+  {
+   "name": "Adevinta",
+   "domain": "adevinta.com",
+   "slugs": []
+  },
+  {
+   "name": "Aegean Airlines",
+   "domain": "aegeanair.com",
+   "slugs": []
+  },
+  {
+   "name": "Aeromexico",
+   "domain": "aeromexico.com",
+   "slugs": []
+  },
+  {
+   "name": "Affirm",
+   "domain": "affirm.com",
+   "slugs": []
+  },
+  {
+   "name": "Agoda Public",
+   "domain": "agoda.com",
+   "slugs": []
+  },
+  {
+   "name": "AIG",
+   "domain": "aig.com",
+   "slugs": []
+  },
+  {
+   "name": "Aikido Security",
+   "domain": "",
+   "slugs": [
+    "aikido"
+   ]
+  },
+  {
+   "name": "Airbnb",
+   "domain": "airbnb.com",
+   "slugs": []
+  },
+  {
+   "name": "Airtable",
+   "domain": "staging.airtable.com",
+   "slugs": []
+  },
+  {
+   "name": "Alasco GmbH",
+   "domain": "",
+   "slugs": [
+    "alasco-gmbh-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Algemeen Dagblad",
+   "domain": "",
+   "slugs": [
+    "dpgm"
+   ]
+  },
+  {
+   "name": "Algolia",
+   "domain": "algolia.com",
+   "slugs": []
+  },
+  {
+   "name": "Alibaba",
+   "domain": "xianzhi-next.aliyun.com",
+   "slugs": []
+  },
+  {
+   "name": "Allegion",
+   "domain": "allegion.com",
+   "slugs": []
+  },
+  {
+   "name": "Allegro",
+   "domain": "",
+   "slugs": [
+    "allegro"
+   ]
+  },
+  {
+   "name": "Alohi",
+   "domain": "alohi.com",
+   "slugs": []
+  },
+  {
+   "name": "ALSCO",
+   "domain": "alscotoday.com",
+   "slugs": []
+  },
+  {
+   "name": "Alshaya",
+   "domain": "alshaya.com",
+   "slugs": []
+  },
+  {
+   "name": "Altera",
+   "domain": "",
+   "slugs": [
+    "altera"
+   ]
+  },
+  {
+   "name": "Amazon Vulnerability Research Program",
+   "domain": "amazon.com",
+   "slugs": []
+  },
+  {
+   "name": "Anaconda",
+   "domain": "",
+   "slugs": [
+    "anacondainc"
+   ]
+  },
+  {
+   "name": "Anduril Industries",
+   "domain": "anduril.com",
+   "slugs": []
+  },
+  {
+   "name": "Ant Group Security Response Center",
+   "domain": "",
+   "slugs": [
+    "ant-group-security-response-center-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Anthropic",
+   "domain": "anthropic.com",
+   "slugs": []
+  },
+  {
+   "name": "Anthropic Cyber Jailbreak",
+   "domain": "anthropic.com",
+   "slugs": []
+  },
+  {
+   "name": "Anywhere Real Estate",
+   "domain": "anywhere.re",
+   "slugs": []
+  },
+  {
+   "name": "Aon",
+   "domain": "aon.com",
+   "slugs": []
+  },
+  {
+   "name": "APNIC",
+   "domain": "apnic.net",
+   "slugs": []
+  },
+  {
+   "name": "Arbonia",
+   "domain": "",
+   "slugs": [
+    "arbonia"
+   ]
+  },
+  {
+   "name": "Arc",
+   "domain": "arc.io",
+   "slugs": []
+  },
+  {
+   "name": "arkadiyt-projects",
+   "domain": "arkadiyt.com",
+   "slugs": []
+  },
+  {
+   "name": "Arkose Labs",
+   "domain": "arkoselabs.com",
+   "slugs": []
+  },
+  {
+   "name": "Arm",
+   "domain": "",
+   "slugs": [
+    "arm"
+   ]
+  },
+  {
+   "name": "Assa Abloy Americas",
+   "domain": "assaabloy.com",
+   "slugs": []
+  },
+  {
+   "name": "AT&T",
+   "domain": "att.com",
+   "slugs": []
+  },
+  {
+   "name": "ATG",
+   "domain": "",
+   "slugs": [
+    "atg-public-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Atolls",
+   "domain": "",
+   "slugs": [
+    "atolls"
+   ]
+  },
+  {
+   "name": "Attentia",
+   "domain": "",
+   "slugs": [
+    "attentia"
+   ]
+  },
+  {
+   "name": "Audible",
+   "domain": "audible.com",
+   "slugs": []
+  },
+  {
+   "name": "Autodesk",
+   "domain": "autodesk.com",
+   "slugs": []
+  },
+  {
+   "name": "Automattic",
+   "domain": "automattic.com",
+   "slugs": []
+  },
+  {
+   "name": "Avalara",
+   "domain": "avalara.com",
+   "slugs": []
+  },
+  {
+   "name": "Aven (Response)",
+   "domain": "aven.com",
+   "slugs": []
+  },
+  {
+   "name": "AWS",
+   "domain": "aws.amazon.com",
+   "slugs": []
+  },
+  {
+   "name": "Axel Springer National Media & Tech",
+   "domain": "",
+   "slugs": [
+    "axelspringerse"
+   ]
+  },
+  {
+   "name": "Axel Springer SE",
+   "domain": "",
+   "slugs": [
+    "axelspringerse"
+   ]
+  },
+  {
+   "name": "Baird",
+   "domain": "rwbaird.com",
+   "slugs": []
+  },
+  {
+   "name": "Banco Plata",
+   "domain": "bancoplata.mx",
+   "slugs": []
+  },
+  {
+   "name": "BankUnited",
+   "domain": "bankunited.com",
+   "slugs": []
+  },
+  {
+   "name": "Basecamp",
+   "domain": "37signals.com",
+   "slugs": []
+  },
+  {
+   "name": "Beiersdorf",
+   "domain": "beiersdorf.com",
+   "slugs": []
+  },
+  {
+   "name": "Best Buy",
+   "domain": "bestbuy.com",
+   "slugs": []
+  },
+  {
+   "name": "BILL",
+   "domain": "bill.com",
+   "slugs": []
+  },
+  {
+   "name": "Bitvavo",
+   "domain": "",
+   "slugs": [
+    "bitvavo"
+   ]
+  },
+  {
+   "name": "Bitwarden",
+   "domain": "bitwarden.com",
+   "slugs": []
+  },
+  {
+   "name": "BlackRock",
+   "domain": "blackrock.com",
+   "slugs": []
+  },
+  {
+   "name": "Blend Labs",
+   "domain": "blend.com",
+   "slugs": []
+  },
+  {
+   "name": "BMC",
+   "domain": "",
+   "slugs": [
+    "randstad"
+   ]
+  },
+  {
+   "name": "BMW Group",
+   "domain": "",
+   "slugs": [
+    "bmw"
+   ]
+  },
+  {
+   "name": "BMW Group Automotive",
+   "domain": "",
+   "slugs": [
+    "bmw"
+   ]
+  },
+  {
+   "name": "BookBeat",
+   "domain": "",
+   "slugs": [
+    "bookbeat"
+   ]
+  },
+  {
+   "name": "Booking.com",
+   "domain": "booking.com",
+   "slugs": []
+  },
+  {
+   "name": "Boozt Fashion AB",
+   "domain": "boozt.com",
+   "slugs": []
+  },
+  {
+   "name": "Bose",
+   "domain": "bose.com",
+   "slugs": []
+  },
+  {
+   "name": "Box BB",
+   "domain": "box.com",
+   "slugs": []
+  },
+  {
+   "name": "Bpost",
+   "domain": "",
+   "slugs": [
+    "bpost"
+   ]
+  },
+  {
+   "name": "Brave Software",
+   "domain": "brave.com",
+   "slugs": []
+  },
+  {
+   "name": "Braze, Inc.",
+   "domain": "braze.com",
+   "slugs": []
+  },
+  {
+   "name": "Brightspeed",
+   "domain": "brightspeed.com",
+   "slugs": []
+  },
+  {
+   "name": "British Airways",
+   "domain": "britishairways.com",
+   "slugs": []
+  },
+  {
+   "name": "Bumba",
+   "domain": "bumba.global",
+   "slugs": []
+  },
+  {
+   "name": "Bumble",
+   "domain": "bumble.com",
+   "slugs": []
+  },
+  {
+   "name": "Bybit Fintech Ltd",
+   "domain": "bybit.com",
+   "slugs": []
+  },
+  {
+   "name": "Bykea",
+   "domain": "bykea.com",
+   "slugs": []
+  },
+  {
+   "name": "Bühler Group",
+   "domain": "",
+   "slugs": [
+    "buhlergroup"
+   ]
+  },
+  {
+   "name": "Callsign",
+   "domain": "callsign_com",
+   "slugs": []
+  },
+  {
+   "name": "Canada Goose Inc.",
+   "domain": "canadagoose.com",
+   "slugs": []
+  },
+  {
+   "name": "Canada Post",
+   "domain": "",
+   "slugs": [
+    "innovapost"
+   ]
+  },
+  {
+   "name": "Capital One",
+   "domain": "capitalone.com",
+   "slugs": []
+  },
+  {
+   "name": "Capital.com",
+   "domain": "",
+   "slugs": [
+    "capitalcom"
+   ]
+  },
+  {
+   "name": "Caterpillar",
+   "domain": "cat.com",
+   "slugs": []
+  },
+  {
+   "name": "CBRE",
+   "domain": "cbre.com",
+   "slugs": []
+  },
+  {
+   "name": "Cedars-Sinai",
+   "domain": "cedars-sinai.edu",
+   "slugs": []
+  },
+  {
+   "name": "Central Security Project",
+   "domain": "sonatype.com",
+   "slugs": []
+  },
+  {
+   "name": "CERT/CC",
+   "domain": "kb.cert.org",
+   "slugs": []
+  },
+  {
+   "name": "Chainlink",
+   "domain": "chain.link",
+   "slugs": []
+  },
+  {
+   "name": "Chaturbate",
+   "domain": "chaturbate.com",
+   "slugs": []
+  },
+  {
+   "name": "Chia Network",
+   "domain": "chia.net",
+   "slugs": []
+  },
+  {
+   "name": "Circle",
+   "domain": "circle.com",
+   "slugs": []
+  },
+  {
+   "name": "Citi Group",
+   "domain": "citigroup.com",
+   "slugs": []
+  },
+  {
+   "name": "City of Los Angeles",
+   "domain": "lacity.org",
+   "slugs": []
+  },
+  {
+   "name": "Citymesh Responsible",
+   "domain": "",
+   "slugs": [
+    "citymesh"
+   ]
+  },
+  {
+   "name": "Clarivate",
+   "domain": "clarivate.com",
+   "slugs": []
+  },
+  {
+   "name": "CLEAR",
+   "domain": "clearme.com",
+   "slugs": []
+  },
+  {
+   "name": "Clear Street Disclosure Program",
+   "domain": "clearstreet.io",
+   "slugs": []
+  },
+  {
+   "name": "Cloud Software Group",
+   "domain": "citrix.com",
+   "slugs": []
+  },
+  {
+   "name": "Cloudflare",
+   "domain": "cloudflare.com",
+   "slugs": []
+  },
+  {
+   "name": "Cloudways by DigitalOcean",
+   "domain": "",
+   "slugs": [
+    "digitalocean"
+   ]
+  },
+  {
+   "name": "CM.com",
+   "domain": "",
+   "slugs": [
+    "cmcom"
+   ]
+  },
+  {
+   "name": "Coalition, Inc.",
+   "domain": "coalitioninc.com",
+   "slugs": []
+  },
+  {
+   "name": "Cognition",
+   "domain": "cognition.ai",
+   "slugs": []
+  },
+  {
+   "name": "Cognizant",
+   "domain": "cognizant.com",
+   "slugs": []
+  },
+  {
+   "name": "Coinbase",
+   "domain": "coinbase.com",
+   "slugs": []
+  },
+  {
+   "name": "CoinDCX",
+   "domain": "coindcx.com",
+   "slugs": []
+  },
+  {
+   "name": "CoinMate.io",
+   "domain": "coinmate.io",
+   "slugs": []
+  },
+  {
+   "name": "CoinSpot",
+   "domain": "coinspot.com.au",
+   "slugs": []
+  },
+  {
+   "name": "Compass",
+   "domain": "compass.com",
+   "slugs": []
+  },
+  {
+   "name": "Concrete CMS",
+   "domain": "concretecms.org",
+   "slugs": []
+  },
+  {
+   "name": "Corebridge Financial",
+   "domain": "corebridgefinancial.com",
+   "slugs": []
+  },
+  {
+   "name": "Costco",
+   "domain": "costco.com",
+   "slugs": []
+  },
+  {
+   "name": "Coupang Taiwan",
+   "domain": "tw.coupang.com",
+   "slugs": []
+  },
+  {
+   "name": "Coursera",
+   "domain": "coursera.org",
+   "slugs": []
+  },
+  {
+   "name": "Credit Karma",
+   "domain": "creditkarma.com",
+   "slugs": []
+  },
+  {
+   "name": "Cross Border Fines",
+   "domain": "",
+   "slugs": [
+    "bpost"
+   ]
+  },
+  {
+   "name": "Crowdstrike",
+   "domain": "crowdstrike.com",
+   "slugs": []
+  },
+  {
+   "name": "Crypto.com",
+   "domain": "crypto.com",
+   "slugs": []
+  },
+  {
+   "name": "Cryptobox",
+   "domain": "",
+   "slugs": [
+    "cryptobox-bug-bounty"
+   ]
+  },
+  {
+   "name": "CS Money",
+   "domain": "cs.money",
+   "slugs": []
+  },
+  {
+   "name": "curl",
+   "domain": "curl.se",
+   "slugs": []
+  },
+  {
+   "name": "Cyber Security Coalition",
+   "domain": "",
+   "slugs": [
+    "cybersecuritycoalition"
+   ]
+  },
+  {
+   "name": "CyberGhost",
+   "domain": "",
+   "slugs": [
+    "cyberghost-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "d-you App & German EUDI Wallet Ecosystem",
+   "domain": "eudi-wallet.gov.de",
+   "slugs": []
+  },
+  {
+   "name": "DailyPay",
+   "domain": "dailypay.com",
+   "slugs": []
+  },
+  {
+   "name": "Daimler Truck",
+   "domain": "daimlertruck.com",
+   "slugs": []
+  },
+  {
+   "name": "DANA",
+   "domain": "",
+   "slugs": [
+    "dana-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Dashlane",
+   "domain": "",
+   "slugs": [
+    "dashlane"
+   ]
+  },
+  {
+   "name": "Databricks",
+   "domain": "databricks.com",
+   "slugs": []
+  },
+  {
+   "name": "DataDome",
+   "domain": "",
+   "slugs": [
+    "datadome-bug-bounty"
+   ]
+  },
+  {
+   "name": "DataDome Bot",
+   "domain": "",
+   "slugs": [
+    "datadome-bot-bounty"
+   ]
+  },
+  {
+   "name": "De Morgen",
+   "domain": "",
+   "slugs": [
+    "dpgm"
+   ]
+  },
+  {
+   "name": "De Volkskrant",
+   "domain": "",
+   "slugs": [
+    "dpgm"
+   ]
+  },
+  {
+   "name": "DECATHLON",
+   "domain": "",
+   "slugs": [
+    "decathlon"
+   ]
+  },
+  {
+   "name": "DefectDojo",
+   "domain": "defectdojo.com",
+   "slugs": []
+  },
+  {
+   "name": "Delen Private Bank",
+   "domain": "",
+   "slugs": [
+    "delenprivatebank"
+   ]
+  },
+  {
+   "name": "Deribit",
+   "domain": "test.deribit.com",
+   "slugs": []
+  },
+  {
+   "name": "Deriv.com",
+   "domain": "deriv.com",
+   "slugs": []
+  },
+  {
+   "name": "DHL Group",
+   "domain": "",
+   "slugs": [
+    "dhlgroup"
+   ]
+  },
+  {
+   "name": "DIB",
+   "domain": "bit.ly",
+   "slugs": []
+  },
+  {
+   "name": "DIGI",
+   "domain": "",
+   "slugs": [
+    "digi"
+   ]
+  },
+  {
+   "name": "DigitalOcean",
+   "domain": "",
+   "slugs": [
+    "digitalocean"
+   ]
+  },
+  {
+   "name": "Disclosure Assistance",
+   "domain": "hackerone.com",
+   "slugs": []
+  },
+  {
+   "name": "Discourse",
+   "domain": "discourse.org",
+   "slugs": []
+  },
+  {
+   "name": "Discover",
+   "domain": "discover.com",
+   "slugs": []
+  },
+  {
+   "name": "Doctolib",
+   "domain": "",
+   "slugs": [
+    "doctolib-public-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "DocuSign",
+   "domain": "docusign.com",
+   "slugs": []
+  },
+  {
+   "name": "Donorbox",
+   "domain": "",
+   "slugs": [
+    "donorbox"
+   ]
+  },
+  {
+   "name": "DoorDash",
+   "domain": "doordash.com",
+   "slugs": []
+  },
+  {
+   "name": "Doppler",
+   "domain": "doppler.com",
+   "slugs": []
+  },
+  {
+   "name": "Dossier Medical Partagé",
+   "domain": "",
+   "slugs": [
+    "dossier-medical-partage-program"
+   ]
+  },
+  {
+   "name": "DPG Media",
+   "domain": "",
+   "slugs": [
+    "dpgm"
+   ]
+  },
+  {
+   "name": "Driessen",
+   "domain": "",
+   "slugs": [
+    "driessengroep"
+   ]
+  },
+  {
+   "name": "Dropbox",
+   "domain": "",
+   "slugs": [
+    "dropbox"
+   ]
+  },
+  {
+   "name": "Dstny",
+   "domain": "",
+   "slugs": [
+    "dstny"
+   ]
+  },
+  {
+   "name": "DuckDuckGo",
+   "domain": "duckduckgo.com",
+   "slugs": []
+  },
+  {
+   "name": "Dust",
+   "domain": "dust.tt",
+   "slugs": []
+  },
+  {
+   "name": "Dutch Lottery",
+   "domain": "",
+   "slugs": [
+    "nederlandseloterij"
+   ]
+  },
+  {
+   "name": "Dynatrace",
+   "domain": "dynatrace.com",
+   "slugs": []
+  },
+  {
+   "name": "Dyson",
+   "domain": "dyson.com",
+   "slugs": []
+  },
+  {
+   "name": "e-tracker",
+   "domain": "",
+   "slugs": [
+    "bpost"
+   ]
+  },
+  {
+   "name": "Early Warning",
+   "domain": "earlywarning.com",
+   "slugs": []
+  },
+  {
+   "name": "eero",
+   "domain": "eero.com",
+   "slugs": []
+  },
+  {
+   "name": "eHealth Hub VZN KUL",
+   "domain": "",
+   "slugs": [
+    "uz leuven"
+   ]
+  },
+  {
+   "name": "Elastic",
+   "domain": "elastic.co",
+   "slugs": []
+  },
+  {
+   "name": "eMoney Advisor",
+   "domain": "emoneyadvisor.com",
+   "slugs": []
+  },
+  {
+   "name": "Enjin",
+   "domain": "enjin.io",
+   "slugs": []
+  },
+  {
+   "name": "Epic Games",
+   "domain": "epicgames.com",
+   "slugs": []
+  },
+  {
+   "name": "Equifax",
+   "domain": "equifax.com",
+   "slugs": []
+  },
+  {
+   "name": "Essity",
+   "domain": "essity.com",
+   "slugs": []
+  },
+  {
+   "name": "Esteé  Lauder",
+   "domain": "elcompanies.com",
+   "slugs": []
+  },
+  {
+   "name": "Eternal",
+   "domain": "eternal.com",
+   "slugs": []
+  },
+  {
+   "name": "eufy Security",
+   "domain": "eufy.com",
+   "slugs": []
+  },
+  {
+   "name": "EURid",
+   "domain": "",
+   "slugs": [
+    "eurid"
+   ]
+  },
+  {
+   "name": "European Space Agency (ESA)",
+   "domain": "",
+   "slugs": [
+    "europeanspaceagency"
+   ]
+  },
+  {
+   "name": "Evernote",
+   "domain": "evernote.com",
+   "slugs": []
+  },
+  {
+   "name": "Exact",
+   "domain": "",
+   "slugs": [
+    "exact"
+   ]
+  },
+  {
+   "name": "EXNESS",
+   "domain": "exness.com",
+   "slugs": []
+  },
+  {
+   "name": "Exodus",
+   "domain": "exodus.com",
+   "slugs": []
+  },
+  {
+   "name": "Exoscale",
+   "domain": "",
+   "slugs": [
+    "exoscale"
+   ]
+  },
+  {
+   "name": "Expedia Group",
+   "domain": "expediagroup.com",
+   "slugs": []
+  },
+  {
+   "name": "Experian",
+   "domain": "experian.com",
+   "slugs": []
+  },
+  {
+   "name": "ExpressVPN",
+   "domain": "",
+   "slugs": [
+    "expressvpn-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Ezviz",
+   "domain": "",
+   "slugs": [
+    "ezviz-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "FanDuel",
+   "domain": "fanduel.com",
+   "slugs": []
+  },
+  {
+   "name": "FanDuel Response",
+   "domain": "fanduel.com",
+   "slugs": []
+  },
+  {
+   "name": "Faraday, Inc.",
+   "domain": "faraday.ai",
+   "slugs": []
+  },
+  {
+   "name": "Fastly",
+   "domain": "fastly.com",
+   "slugs": []
+  },
+  {
+   "name": "FDJ United (Online Betting and Gaming)",
+   "domain": "",
+   "slugs": [
+    "fdj-united-online-betting-gaming-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Ferrero",
+   "domain": "ferrero.com",
+   "slugs": []
+  },
+  {
+   "name": "Fertitta Entertainment",
+   "domain": "fertittaentertainmentinc.com",
+   "slugs": []
+  },
+  {
+   "name": "FetLife",
+   "domain": "fetlife.com",
+   "slugs": []
+  },
+  {
+   "name": "Fidelity",
+   "domain": "fidelity.com",
+   "slugs": []
+  },
+  {
+   "name": "Fifth Third Bank",
+   "domain": "53.com",
+   "slugs": []
+  },
+  {
+   "name": "Figma",
+   "domain": "figma.com",
+   "slugs": []
+  },
+  {
+   "name": "Files.com",
+   "domain": "files.com",
+   "slugs": []
+  },
+  {
+   "name": "Fing",
+   "domain": "",
+   "slugs": [
+    "lansweeper"
+   ]
+  },
+  {
+   "name": "Finnair",
+   "domain": "finnair.com",
+   "slugs": []
+  },
+  {
+   "name": "FINRA Response",
+   "domain": "finra.org",
+   "slugs": []
+  },
+  {
+   "name": "Fiserv",
+   "domain": "fiserv.com",
+   "slugs": []
+  },
+  {
+   "name": "Flexport",
+   "domain": "flexport.com",
+   "slugs": []
+  },
+  {
+   "name": "Flickr",
+   "domain": "flickr.com",
+   "slugs": []
+  },
+  {
+   "name": "Flipkart",
+   "domain": "flipkart.com",
+   "slugs": []
+  },
+  {
+   "name": "FloQast",
+   "domain": "floqast.com",
+   "slugs": []
+  },
+  {
+   "name": "Flutter UK&I",
+   "domain": "flutter.com",
+   "slugs": []
+  },
+  {
+   "name": "Ford",
+   "domain": "ford.com",
+   "slugs": []
+  },
+  {
+   "name": "ForeScout Technologies",
+   "domain": "forescout.com",
+   "slugs": []
+  },
+  {
+   "name": "FormAssembly",
+   "domain": "formassembly.com",
+   "slugs": []
+  },
+  {
+   "name": "Fresenius",
+   "domain": "fresenius.com",
+   "slugs": []
+  },
+  {
+   "name": "Front",
+   "domain": "frontapp.com",
+   "slugs": []
+  },
+  {
+   "name": "General Motors",
+   "domain": "gm.com",
+   "slugs": []
+  },
+  {
+   "name": "GetYourGuide",
+   "domain": "getyourguide.com",
+   "slugs": []
+  },
+  {
+   "name": "GitHub",
+   "domain": "bounty.github.com",
+   "slugs": []
+  },
+  {
+   "name": "GitLab",
+   "domain": "about.gitlab.com",
+   "slugs": []
+  },
+  {
+   "name": "Global Payments",
+   "domain": "globalpayments.com",
+   "slugs": []
+  },
+  {
+   "name": "Gmelius",
+   "domain": "gmelius.com",
+   "slugs": []
+  },
+  {
+   "name": "GoDaddy",
+   "domain": "godaddy.com",
+   "slugs": []
+  },
+  {
+   "name": "Gogo",
+   "domain": "gogoair.com",
+   "slugs": []
+  },
+  {
+   "name": "GOJEK",
+   "domain": "",
+   "slugs": [
+    "gojek-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Goldman Sachs",
+   "domain": "goldmansachs.com",
+   "slugs": []
+  },
+  {
+   "name": "GoodRx",
+   "domain": "goodrx.com",
+   "slugs": []
+  },
+  {
+   "name": "GoTo Financial",
+   "domain": "",
+   "slugs": [
+    "goto-financial-public-bounty-program"
+   ]
+  },
+  {
+   "name": "Grab",
+   "domain": "grab.com",
+   "slugs": []
+  },
+  {
+   "name": "Grafana Labs",
+   "domain": "",
+   "slugs": [
+    "grafanalabs"
+   ]
+  },
+  {
+   "name": "Greenhouse.io",
+   "domain": "app.greenhouse.io",
+   "slugs": []
+  },
+  {
+   "name": "Grindr",
+   "domain": "grindr.com",
+   "slugs": []
+  },
+  {
+   "name": "GRW Trading FZE - Open",
+   "domain": "",
+   "slugs": [
+    "grw-trading-fze-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "GULP",
+   "domain": "",
+   "slugs": [
+    "randstad"
+   ]
+  },
+  {
+   "name": "Gymshark",
+   "domain": "gymshark.com",
+   "slugs": []
+  },
+  {
+   "name": "Hack The Box",
+   "domain": "hackthebox.com",
+   "slugs": []
+  },
+  {
+   "name": "HackerOne",
+   "domain": "hackerone.com",
+   "slugs": []
+  },
+  {
+   "name": "HARMAN International - Web Applications",
+   "domain": "",
+   "slugs": [
+    "harman-international-web-applications"
+   ]
+  },
+  {
+   "name": "Harman International Lifestyle Products & Services",
+   "domain": "",
+   "slugs": [
+    "harman-international-public-bug-bounty"
+   ]
+  },
+  {
+   "name": "HCL Software Inc.",
+   "domain": "hcl-software.com",
+   "slugs": []
+  },
+  {
+   "name": "Henkel",
+   "domain": "henkel.com",
+   "slugs": []
+  },
+  {
+   "name": "Here Technologies",
+   "domain": "",
+   "slugs": [
+    "heretechnologies"
+   ]
+  },
+  {
+   "name": "Hertz",
+   "domain": "hertz.com",
+   "slugs": []
+  },
+  {
+   "name": "Het Laatste Nieuws",
+   "domain": "",
+   "slugs": [
+    "dpgm"
+   ]
+  },
+  {
+   "name": "Het Parool",
+   "domain": "",
+   "slugs": [
+    "dpgm"
+   ]
+  },
+  {
+   "name": "Hex",
+   "domain": "hex.tech",
+   "slugs": []
+  },
+  {
+   "name": "Hexagon",
+   "domain": "hexagon.com",
+   "slugs": []
+  },
+  {
+   "name": "Hilton",
+   "domain": "hilton.com",
+   "slugs": []
+  },
+  {
+   "name": "hostinger",
+   "domain": "hostinger.com",
+   "slugs": []
+  },
+  {
+   "name": "Hotmart",
+   "domain": "hotmart.com",
+   "slugs": []
+  },
+  {
+   "name": "House of HR",
+   "domain": "",
+   "slugs": [
+    "houseofhr"
+   ]
+  },
+  {
+   "name": "Housing Application (huisvestingsapp)",
+   "domain": "",
+   "slugs": [
+    "kuleuven"
+   ]
+  },
+  {
+   "name": "HPE",
+   "domain": "hpe.com",
+   "slugs": []
+  },
+  {
+   "name": "HRS Group",
+   "domain": "",
+   "slugs": [
+    "hrsgroup"
+   ]
+  },
+  {
+   "name": "HubSpot",
+   "domain": "hubspot.com",
+   "slugs": []
+  },
+  {
+   "name": "Humo",
+   "domain": "",
+   "slugs": [
+    "dpgm"
+   ]
+  },
+  {
+   "name": "Hy-Vee",
+   "domain": "hy-vee.com",
+   "slugs": []
+  },
+  {
+   "name": "Hyatt Hotels",
+   "domain": "hyatt.com",
+   "slugs": []
+  },
+  {
+   "name": "Hyland Software",
+   "domain": "hyland.com",
+   "slugs": []
+  },
+  {
+   "name": "HYPR",
+   "domain": "hypr.com",
+   "slugs": []
+  },
+  {
+   "name": "IBM",
+   "domain": "ibm.com",
+   "slugs": []
+  },
+  {
+   "name": "ICI PARIS XL",
+   "domain": "",
+   "slugs": [
+    "aswatson"
+   ]
+  },
+  {
+   "name": "IMOU",
+   "domain": "",
+   "slugs": [
+    "imou-public-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Inditex",
+   "domain": "inditex.com",
+   "slugs": []
+  },
+  {
+   "name": "inDrive",
+   "domain": "indrive.com",
+   "slugs": []
+  },
+  {
+   "name": "Infomaniak",
+   "domain": "",
+   "slugs": [
+    "infomaniak-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Informatica",
+   "domain": "informatica.com",
+   "slugs": []
+  },
+  {
+   "name": "ING",
+   "domain": "",
+   "slugs": [
+    "ing"
+   ]
+  },
+  {
+   "name": "InnoGames",
+   "domain": "",
+   "slugs": [
+    "innogames"
+   ]
+  },
+  {
+   "name": "Insightly",
+   "domain": "insightly.com",
+   "slugs": []
+  },
+  {
+   "name": "Inspectorio",
+   "domain": "inspectorio.com",
+   "slugs": []
+  },
+  {
+   "name": "Instacart",
+   "domain": "instacart.com",
+   "slugs": []
+  },
+  {
+   "name": "Insulet Corporation",
+   "domain": "insulet.com",
+   "slugs": []
+  },
+  {
+   "name": "Intel®",
+   "domain": "",
+   "slugs": [
+    "intel"
+   ]
+  },
+  {
+   "name": "Inter & Co.",
+   "domain": "inter.co",
+   "slugs": []
+  },
+  {
+   "name": "Intergamma",
+   "domain": "",
+   "slugs": [
+    "intergamma"
+   ]
+  },
+  {
+   "name": "intigriti",
+   "domain": "",
+   "slugs": [
+    "intigriti"
+   ]
+  },
+  {
+   "name": "Intuit",
+   "domain": "intuit.com",
+   "slugs": []
+  },
+  {
+   "name": "Invision Power Services, Inc.",
+   "domain": "invisioncommunity.com",
+   "slugs": []
+  },
+  {
+   "name": "ION Group",
+   "domain": "iongroup.com",
+   "slugs": []
+  },
+  {
+   "name": "Itaú Unibanco",
+   "domain": "itau.com.br",
+   "slugs": []
+  },
+  {
+   "name": "Ivo: AI",
+   "domain": "",
+   "slugs": [
+    "ivoai"
+   ]
+  },
+  {
+   "name": "JetBlue",
+   "domain": "jetblue.com",
+   "slugs": []
+  },
+  {
+   "name": "John Deere",
+   "domain": "deere.com",
+   "slugs": []
+  },
+  {
+   "name": "Judge.me",
+   "domain": "judge.me",
+   "slugs": []
+  },
+  {
+   "name": "Kaseya",
+   "domain": "kaseya.com",
+   "slugs": []
+  },
+  {
+   "name": "KAYAK",
+   "domain": "kayak.com",
+   "slugs": []
+  },
+  {
+   "name": "KeyBank",
+   "domain": "key.com",
+   "slugs": []
+  },
+  {
+   "name": "Khan Academy",
+   "domain": "khanacademy.org",
+   "slugs": []
+  },
+  {
+   "name": "KHealth",
+   "domain": "khealth.com",
+   "slugs": []
+  },
+  {
+   "name": "Kinepolis Group",
+   "domain": "",
+   "slugs": [
+    "kinepolis"
+   ]
+  },
+  {
+   "name": "Kiteworks",
+   "domain": "",
+   "slugs": [
+    "kiteworks-public-bug-bounty-program-1"
+   ]
+  },
+  {
+   "name": "Kiwa",
+   "domain": "",
+   "slugs": [
+    "kiwa"
+   ]
+  },
+  {
+   "name": "Kiwi.com",
+   "domain": "kiwi.com",
+   "slugs": []
+  },
+  {
+   "name": "KKR",
+   "domain": "kkr.com",
+   "slugs": []
+  },
+  {
+   "name": "Klarna",
+   "domain": "klarna.com",
+   "slugs": []
+  },
+  {
+   "name": "KOHO",
+   "domain": "koho.ca",
+   "slugs": []
+  },
+  {
+   "name": "Kong",
+   "domain": "konghq.com",
+   "slugs": []
+  },
+  {
+   "name": "Kraken Tech",
+   "domain": "kraken.tech",
+   "slugs": []
+  },
+  {
+   "name": "Krisp",
+   "domain": "krisp.ai",
+   "slugs": []
+  },
+  {
+   "name": "Kruidvat",
+   "domain": "",
+   "slugs": [
+    "aswatson"
+   ]
+  },
+  {
+   "name": "KU Leuven",
+   "domain": "",
+   "slugs": [
+    "kuleuven"
+   ]
+  },
+  {
+   "name": "Kubernetes",
+   "domain": "kubernetes.io",
+   "slugs": []
+  },
+  {
+   "name": "Lansweeper",
+   "domain": "",
+   "slugs": [
+    "lansweeper"
+   ]
+  },
+  {
+   "name": "Lark Technologies",
+   "domain": "larksuite.com",
+   "slugs": []
+  },
+  {
+   "name": "LATAM Airlines",
+   "domain": "latam.com",
+   "slugs": []
+  },
+  {
+   "name": "lemlist",
+   "domain": "lemlist.com",
+   "slugs": []
+  },
+  {
+   "name": "Libelle",
+   "domain": "",
+   "slugs": [
+    "dpgm"
+   ]
+  },
+  {
+   "name": "Liferay",
+   "domain": "",
+   "slugs": [
+    "liferay"
+   ]
+  },
+  {
+   "name": "LinkedIn",
+   "domain": "linkedin.com",
+   "slugs": []
+  },
+  {
+   "name": "Live Nation",
+   "domain": "livenation.com",
+   "slugs": []
+  },
+  {
+   "name": "Liverpool Victoria",
+   "domain": "lv.com",
+   "slugs": []
+  },
+  {
+   "name": "Logitech",
+   "domain": "logitech.com",
+   "slugs": []
+  },
+  {
+   "name": "Louis Vuitton Malletier",
+   "domain": "",
+   "slugs": [
+    "louis-vuitton-malletier-public-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Lovable",
+   "domain": "lovable.dev",
+   "slugs": []
+  },
+  {
+   "name": "Lowe's Companies",
+   "domain": "lowes.com",
+   "slugs": []
+  },
+  {
+   "name": "LPL Financial",
+   "domain": "lplfinancial.lpl.com",
+   "slugs": []
+  },
+  {
+   "name": "Luminor",
+   "domain": "luminor.lv",
+   "slugs": []
+  },
+  {
+   "name": "Lyst",
+   "domain": "lyst.com",
+   "slugs": []
+  },
+  {
+   "name": "M&T Bank",
+   "domain": "mtb.com",
+   "slugs": []
+  },
+  {
+   "name": "Magic Eden",
+   "domain": "magiceden.io",
+   "slugs": []
+  },
+  {
+   "name": "MAGNIFIC",
+   "domain": "",
+   "slugs": [
+    "freepik"
+   ]
+  },
+  {
+   "name": "MariaDB",
+   "domain": "mariadb.org",
+   "slugs": []
+  },
+  {
+   "name": "Marionnaud",
+   "domain": "",
+   "slugs": [
+    "aswatson"
+   ]
+  },
+  {
+   "name": "Marriott",
+   "domain": "marriott.com",
+   "slugs": []
+  },
+  {
+   "name": "Mars",
+   "domain": "mars.com",
+   "slugs": []
+  },
+  {
+   "name": "Mateco",
+   "domain": "",
+   "slugs": [
+    "mateco"
+   ]
+  },
+  {
+   "name": "Matomo",
+   "domain": "matomo.org",
+   "slugs": []
+  },
+  {
+   "name": "Maya",
+   "domain": "",
+   "slugs": [
+    "maya-public-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "McGraw Hill",
+   "domain": "mheducation.com",
+   "slugs": []
+  },
+  {
+   "name": "MediaMarktSaturn",
+   "domain": "",
+   "slugs": [
+    "mediamarktsaturn-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Meesho",
+   "domain": "meesho.com",
+   "slugs": []
+  },
+  {
+   "name": "Mendix",
+   "domain": "mendix.com",
+   "slugs": []
+  },
+  {
+   "name": "MercadoLibre",
+   "domain": "mercadolibre.com",
+   "slugs": []
+  },
+  {
+   "name": "Merck & Co., Inc., Rahway, NJ, USA",
+   "domain": "",
+   "slugs": []
+  },
+  {
+   "name": "Mergify",
+   "domain": "mergify.com",
+   "slugs": []
+  },
+  {
+   "name": "Mintel",
+   "domain": "mintel.com",
+   "slugs": []
+  },
+  {
+   "name": "Mobile Vikings",
+   "domain": "",
+   "slugs": [
+    "mv"
+   ]
+  },
+  {
+   "name": "MOD Supply Chain",
+   "domain": "",
+   "slugs": []
+  },
+  {
+   "name": "Modern Treasury",
+   "domain": "moderntreasury.com",
+   "slugs": []
+  },
+  {
+   "name": "Mon Espace Santé (MES)",
+   "domain": "",
+   "slugs": [
+    "mon-espace-sante-mes"
+   ]
+  },
+  {
+   "name": "Monarch Money",
+   "domain": "monarchmoney.com",
+   "slugs": []
+  },
+  {
+   "name": "Mondelēz International",
+   "domain": "mondelezinternational.com",
+   "slugs": []
+  },
+  {
+   "name": "Monero",
+   "domain": "getmonero.org",
+   "slugs": []
+  },
+  {
+   "name": "Moneybird",
+   "domain": "moneybird.com",
+   "slugs": []
+  },
+  {
+   "name": "Moneybox",
+   "domain": "",
+   "slugs": [
+    "moneybox-bug-bounty"
+   ]
+  },
+  {
+   "name": "MongoDB",
+   "domain": "mongodb.com",
+   "slugs": []
+  },
+  {
+   "name": "Monzo",
+   "domain": "",
+   "slugs": [
+    "monzobank"
+   ]
+  },
+  {
+   "name": "MoonPay",
+   "domain": "moonpay.com",
+   "slugs": []
+  },
+  {
+   "name": "Moov",
+   "domain": "moov.io",
+   "slugs": []
+  },
+  {
+   "name": "MSCI",
+   "domain": "msci.com",
+   "slugs": []
+  },
+  {
+   "name": "MTN Group",
+   "domain": "mtn.com",
+   "slugs": []
+  },
+  {
+   "name": "Mueller Water Products",
+   "domain": "muellerwaterproducts.com",
+   "slugs": []
+  },
+  {
+   "name": "MUFG",
+   "domain": "mufgamericas.com",
+   "slugs": []
+  },
+  {
+   "name": "Myndr",
+   "domain": "myndr.nl",
+   "slugs": []
+  },
+  {
+   "name": "Navient Solutions LLC",
+   "domain": "navient.com",
+   "slugs": []
+  },
+  {
+   "name": "NBA",
+   "domain": "nba.com",
+   "slugs": []
+  },
+  {
+   "name": "Nebius AI",
+   "domain": "nebius.com",
+   "slugs": []
+  },
+  {
+   "name": "Neon",
+   "domain": "neon.tech",
+   "slugs": []
+  },
+  {
+   "name": "Nestlé",
+   "domain": "",
+   "slugs": [
+    "nestlé"
+   ]
+  },
+  {
+   "name": "Netflix",
+   "domain": "netflix.com",
+   "slugs": []
+  },
+  {
+   "name": "NetScaler Public Program",
+   "domain": "",
+   "slugs": []
+  },
+  {
+   "name": "Newegg",
+   "domain": "newegg.com",
+   "slugs": []
+  },
+  {
+   "name": "Nexo",
+   "domain": "",
+   "slugs": [
+    "nexo"
+   ]
+  },
+  {
+   "name": "Nextcloud",
+   "domain": "nextcloud.com",
+   "slugs": []
+  },
+  {
+   "name": "Nexuzhealth",
+   "domain": "",
+   "slugs": [
+    "nexuzhealth"
+   ]
+  },
+  {
+   "name": "Nexuzhealth Web PACS",
+   "domain": "",
+   "slugs": [
+    "uz leuven"
+   ]
+  },
+  {
+   "name": "Nintendo",
+   "domain": "nintendo.com",
+   "slugs": []
+  },
+  {
+   "name": "NISC",
+   "domain": "nisc.coop",
+   "slugs": []
+  },
+  {
+   "name": "Node.js",
+   "domain": "nodejs.org",
+   "slugs": []
+  },
+  {
+   "name": "Nominet",
+   "domain": "nominet.uk",
+   "slugs": []
+  },
+  {
+   "name": "Notion Labs, Inc.",
+   "domain": "notion.com",
+   "slugs": []
+  },
+  {
+   "name": "Nutanix",
+   "domain": "nutanix.com",
+   "slugs": []
+  },
+  {
+   "name": "NVIDIA",
+   "domain": "",
+   "slugs": [
+    "nvidia"
+   ]
+  },
+  {
+   "name": "NxtPort",
+   "domain": "",
+   "slugs": [
+    "portofantwerp"
+   ]
+  },
+  {
+   "name": "OakNorth Bank",
+   "domain": "oaknorth.co.uk",
+   "slugs": []
+  },
+  {
+   "name": "OANDA",
+   "domain": "oanda.com",
+   "slugs": []
+  },
+  {
+   "name": "Octopus Energy Group",
+   "domain": "octopusenergy.group",
+   "slugs": []
+  },
+  {
+   "name": "Ohio Secretary of State",
+   "domain": "ohiosos.gov",
+   "slugs": []
+  },
+  {
+   "name": "OKG",
+   "domain": "",
+   "slugs": []
+  },
+  {
+   "name": "Omarchy",
+   "domain": "omarchy.org",
+   "slugs": []
+  },
+  {
+   "name": "Omnicell",
+   "domain": "omnicell.com",
+   "slugs": []
+  },
+  {
+   "name": "On",
+   "domain": "on-running.com",
+   "slugs": []
+  },
+  {
+   "name": "OneDoc",
+   "domain": "",
+   "slugs": [
+    "onedoc-sa-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Online enrollment for students",
+   "domain": "",
+   "slugs": [
+    "kuleuven"
+   ]
+  },
+  {
+   "name": "Ooredoo QPSC - Customer Portal",
+   "domain": "",
+   "slugs": [
+    "ooredoo-qpsc-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "OpenMage",
+   "domain": "openmage.org",
+   "slugs": []
+  },
+  {
+   "name": "Oportun",
+   "domain": "oportun.com",
+   "slugs": []
+  },
+  {
+   "name": "OPPO",
+   "domain": "security.oppo.com",
+   "slugs": []
+  },
+  {
+   "name": "Orbia",
+   "domain": "",
+   "slugs": [
+    "orbia"
+   ]
+  },
+  {
+   "name": "OTTO.DE",
+   "domain": "",
+   "slugs": [
+    "otto-de-bug-bounty"
+   ]
+  },
+  {
+   "name": "OURA",
+   "domain": "",
+   "slugs": [
+    "ourahealthoy"
+   ]
+  },
+  {
+   "name": "OVHcloud",
+   "domain": "",
+   "slugs": [
+    "ovh"
+   ]
+  },
+  {
+   "name": "OWOX, Inc.",
+   "domain": "bi.owox.com",
+   "slugs": []
+  },
+  {
+   "name": "Paddle.com",
+   "domain": "",
+   "slugs": [
+    "paddle-com-public-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "PagerDuty",
+   "domain": "pagerduty.com",
+   "slugs": []
+  },
+  {
+   "name": "Palantir Public",
+   "domain": "palantir.com",
+   "slugs": []
+  },
+  {
+   "name": "Palo Alto Software",
+   "domain": "paloalto.com",
+   "slugs": []
+  },
+  {
+   "name": "Payoneer",
+   "domain": "payoneer.com",
+   "slugs": []
+  },
+  {
+   "name": "PayPal",
+   "domain": "paypal.com",
+   "slugs": []
+  },
+  {
+   "name": "Paystack",
+   "domain": "paystack.com",
+   "slugs": []
+  },
+  {
+   "name": "PDQ",
+   "domain": "",
+   "slugs": [
+    "pdq"
+   ]
+  },
+  {
+   "name": "Peloton",
+   "domain": "onepeloton.com",
+   "slugs": []
+  },
+  {
+   "name": "Penn Entertainment",
+   "domain": "pennentertainment.com",
+   "slugs": []
+  },
+  {
+   "name": "PeopleCert",
+   "domain": "",
+   "slugs": [
+    "peoplecert"
+   ]
+  },
+  {
+   "name": "PepsiCo",
+   "domain": "pepsico.com",
+   "slugs": []
+  },
+  {
+   "name": "Personio",
+   "domain": "",
+   "slugs": [
+    "personio"
+   ]
+  },
+  {
+   "name": "Pfizer",
+   "domain": "pfizer.com",
+   "slugs": []
+  },
+  {
+   "name": "Phabricator",
+   "domain": "phacility.com",
+   "slugs": []
+  },
+  {
+   "name": "PhonePe",
+   "domain": "phonepe.com",
+   "slugs": []
+  },
+  {
+   "name": "phpBB",
+   "domain": "phpbb.com",
+   "slugs": []
+  },
+  {
+   "name": "Picsart",
+   "domain": "picsart.com",
+   "slugs": []
+  },
+  {
+   "name": "Pine Labs",
+   "domain": "",
+   "slugs": [
+    "pine-labs-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Ping Identity",
+   "domain": "pingidentity.com",
+   "slugs": []
+  },
+  {
+   "name": "pixiv",
+   "domain": "pixiv.net",
+   "slugs": []
+  },
+  {
+   "name": "Plaid",
+   "domain": "plaid.com",
+   "slugs": []
+  },
+  {
+   "name": "Planet Labs",
+   "domain": "planet.com",
+   "slugs": []
+  },
+  {
+   "name": "PlayStation",
+   "domain": "playstation.com",
+   "slugs": []
+  },
+  {
+   "name": "Playtika",
+   "domain": "playtika.com",
+   "slugs": []
+  },
+  {
+   "name": "Polygon Technology",
+   "domain": "polygon.technology",
+   "slugs": []
+  },
+  {
+   "name": "PornBox",
+   "domain": "pornbox.com",
+   "slugs": []
+  },
+  {
+   "name": "Port of Antwerp-Bruges",
+   "domain": "",
+   "slugs": [
+    "portofantwerp"
+   ]
+  },
+  {
+   "name": "PortSwigger Web Security",
+   "domain": "portswigger.net",
+   "slugs": []
+  },
+  {
+   "name": "Posten Bring",
+   "domain": "",
+   "slugs": [
+    "postenbringas"
+   ]
+  },
+  {
+   "name": "Posti",
+   "domain": "",
+   "slugs": [
+    "posti"
+   ]
+  },
+  {
+   "name": "Priceline",
+   "domain": "priceline.com",
+   "slugs": []
+  },
+  {
+   "name": "PRISM",
+   "domain": "prismlife.com",
+   "slugs": []
+  },
+  {
+   "name": "Private Internet Access",
+   "domain": "",
+   "slugs": [
+    "private-internet-access-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Privy",
+   "domain": "privy.io",
+   "slugs": []
+  },
+  {
+   "name": "ProductBoard, Inc.",
+   "domain": "productboard.com",
+   "slugs": []
+  },
+  {
+   "name": "Programme de prime aux bogues du Gouvernement du Québec",
+   "domain": "",
+   "slugs": [
+    "programmes-de-primes-aux-bogues-du-gouvernement-du-quebec-cgcd"
+   ]
+  },
+  {
+   "name": "Proof.com",
+   "domain": "",
+   "slugs": [
+    "proof"
+   ]
+  },
+  {
+   "name": "Prudential Financial",
+   "domain": "prudential.com",
+   "slugs": []
+  },
+  {
+   "name": "PUBG",
+   "domain": "pubg.com",
+   "slugs": []
+  },
+  {
+   "name": "QC",
+   "domain": "",
+   "slugs": [
+    "quadcode"
+   ]
+  },
+  {
+   "name": "QinetiQ Response",
+   "domain": "qinetiq.com",
+   "slugs": []
+  },
+  {
+   "name": "Qualified",
+   "domain": "",
+   "slugs": [
+    "qualified"
+   ]
+  },
+  {
+   "name": "Quora",
+   "domain": "quora.com",
+   "slugs": []
+  },
+  {
+   "name": "R3",
+   "domain": "r3.com",
+   "slugs": []
+  },
+  {
+   "name": "Randstad",
+   "domain": "",
+   "slugs": [
+    "randstad"
+   ]
+  },
+  {
+   "name": "Razorpay",
+   "domain": "razorpay.com",
+   "slugs": []
+  },
+  {
+   "name": "Recreation.gov",
+   "domain": "recreation.gov",
+   "slugs": []
+  },
+  {
+   "name": "Red Bull",
+   "domain": "",
+   "slugs": [
+    "redbull"
+   ]
+  },
+  {
+   "name": "Reddit",
+   "domain": "reddit.com",
+   "slugs": []
+  },
+  {
+   "name": "Redis",
+   "domain": "redis.io",
+   "slugs": []
+  },
+  {
+   "name": "Redox",
+   "domain": "redoxengine.com",
+   "slugs": []
+  },
+  {
+   "name": "Regions Financial",
+   "domain": "regions.com",
+   "slugs": []
+  },
+  {
+   "name": "REI",
+   "domain": "rei.com",
+   "slugs": []
+  },
+  {
+   "name": "REI BBP",
+   "domain": "rei.com",
+   "slugs": []
+  },
+  {
+   "name": "Remitly",
+   "domain": "remitly.com",
+   "slugs": []
+  },
+  {
+   "name": "Render",
+   "domain": "render.com",
+   "slugs": []
+  },
+  {
+   "name": "ResMed",
+   "domain": "resmed.com",
+   "slugs": []
+  },
+  {
+   "name": "Revive Adserver",
+   "domain": "revive-adserver.com",
+   "slugs": []
+  },
+  {
+   "name": "Revolut",
+   "domain": "",
+   "slugs": [
+    "revolut"
+   ]
+  },
+  {
+   "name": "RGF BE",
+   "domain": "",
+   "slugs": [
+    "rgfstaffing"
+   ]
+  },
+  {
+   "name": "Ring",
+   "domain": "ring.com",
+   "slugs": []
+  },
+  {
+   "name": "RIPE NCC",
+   "domain": "",
+   "slugs": [
+    "ripencc"
+   ]
+  },
+  {
+   "name": "Ripio",
+   "domain": "ripio.com",
+   "slugs": []
+  },
+  {
+   "name": "Rivian",
+   "domain": "",
+   "slugs": [
+    "rivian"
+   ]
+  },
+  {
+   "name": "Ro",
+   "domain": "ro.co",
+   "slugs": []
+  },
+  {
+   "name": "Robinhood Markets",
+   "domain": "robinhood.com",
+   "slugs": []
+  },
+  {
+   "name": "Roblox",
+   "domain": "roblox.com",
+   "slugs": []
+  },
+  {
+   "name": "Rockstar Games",
+   "domain": "rockstargames.com",
+   "slugs": []
+  },
+  {
+   "name": "Ruby",
+   "domain": "ruby-lang.org",
+   "slugs": []
+  },
+  {
+   "name": "Ruby on Rails",
+   "domain": "rubyonrails.org",
+   "slugs": []
+  },
+  {
+   "name": "RubyGems",
+   "domain": "rubygems.org",
+   "slugs": []
+  },
+  {
+   "name": "S-Pankki",
+   "domain": "s-pankki.fi",
+   "slugs": []
+  },
+  {
+   "name": "Salto",
+   "domain": "",
+   "slugs": [
+    "saltosystems"
+   ]
+  },
+  {
+   "name": "Santé Publique France",
+   "domain": "",
+   "slugs": [
+    "sante-publique-france-bugbounty-public-program"
+   ]
+  },
+  {
+   "name": "SBB - Swiss Federal Railways",
+   "domain": "",
+   "slugs": [
+    "sbb"
+   ]
+  },
+  {
+   "name": "Scopely",
+   "domain": "scopely.com",
+   "slugs": []
+  },
+  {
+   "name": "Semrush",
+   "domain": "semrush.com",
+   "slugs": []
+  },
+  {
+   "name": "Semtech",
+   "domain": "semtech.com",
+   "slugs": []
+  },
+  {
+   "name": "ServiceNow Disclosure",
+   "domain": "servicenow.com",
+   "slugs": []
+  },
+  {
+   "name": "Sheer",
+   "domain": "sheer.com",
+   "slugs": []
+  },
+  {
+   "name": "SHEIN",
+   "domain": "shein.com",
+   "slugs": []
+  },
+  {
+   "name": "Shopify",
+   "domain": "shopify.com",
+   "slugs": []
+  },
+  {
+   "name": "Shutterfly",
+   "domain": "shutterfly.com",
+   "slugs": []
+  },
+  {
+   "name": "Signicat",
+   "domain": "",
+   "slugs": [
+    "signicat"
+   ]
+  },
+  {
+   "name": "Simple Poll",
+   "domain": "simplepoll.rocks",
+   "slugs": []
+  },
+  {
+   "name": "SimScale",
+   "domain": "",
+   "slugs": [
+    "simscale"
+   ]
+  },
+  {
+   "name": "SingleStore",
+   "domain": "singlestore.com",
+   "slugs": []
+  },
+  {
+   "name": "SIX Group",
+   "domain": "six-group.com",
+   "slugs": []
+  },
+  {
+   "name": "Slack",
+   "domain": "slack.com",
+   "slugs": []
+  },
+  {
+   "name": "SMTP2GO BBP",
+   "domain": "smtp2go.com",
+   "slugs": []
+  },
+  {
+   "name": "Snapchat",
+   "domain": "snapchat.com",
+   "slugs": []
+  },
+  {
+   "name": "Social Deal",
+   "domain": "",
+   "slugs": [
+    "socialdeal"
+   ]
+  },
+  {
+   "name": "Sogexia",
+   "domain": "",
+   "slugs": [
+    "sogexia"
+   ]
+  },
+  {
+   "name": "SolarWinds",
+   "domain": "",
+   "slugs": [
+    "solarwinds"
+   ]
+  },
+  {
+   "name": "Solidus",
+   "domain": "solidus.io",
+   "slugs": []
+  },
+  {
+   "name": "Sony",
+   "domain": "sony.com",
+   "slugs": []
+  },
+  {
+   "name": "Sorare",
+   "domain": "sorare.com",
+   "slugs": []
+  },
+  {
+   "name": "Spacelift",
+   "domain": "",
+   "slugs": [
+    "spacelift"
+   ]
+  },
+  {
+   "name": "Speakap",
+   "domain": "",
+   "slugs": [
+    "speakap"
+   ]
+  },
+  {
+   "name": "Spotify",
+   "domain": "spotify.com",
+   "slugs": []
+  },
+  {
+   "name": "Staging.every.org",
+   "domain": "staging.every.org",
+   "slugs": []
+  },
+  {
+   "name": "Starbucks",
+   "domain": "starbucks.com",
+   "slugs": []
+  },
+  {
+   "name": "Starbucks China",
+   "domain": "starbucks.com",
+   "slugs": []
+  },
+  {
+   "name": "Starbucks Japan",
+   "domain": "starbucks.com",
+   "slugs": []
+  },
+  {
+   "name": "Starling Bank",
+   "domain": "starlingbank.com",
+   "slugs": []
+  },
+  {
+   "name": "Stellar.org",
+   "domain": "stellar.org",
+   "slugs": []
+  },
+  {
+   "name": "Storebrand",
+   "domain": "",
+   "slugs": [
+    "spp-storebrand"
+   ]
+  },
+  {
+   "name": "Streak",
+   "domain": "streak.com",
+   "slugs": []
+  },
+  {
+   "name": "Stripchat",
+   "domain": "stripchat.com",
+   "slugs": []
+  },
+  {
+   "name": "Stripe",
+   "domain": "stripe.com",
+   "slugs": []
+  },
+  {
+   "name": "Stripo Inc",
+   "domain": "stripo.email",
+   "slugs": []
+  },
+  {
+   "name": "Supabase",
+   "domain": "supabase.com",
+   "slugs": []
+  },
+  {
+   "name": "Superbank",
+   "domain": "",
+   "slugs": [
+    "superbank-public-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Superbet",
+   "domain": "superbet.ro",
+   "slugs": []
+  },
+  {
+   "name": "Superdrug",
+   "domain": "",
+   "slugs": [
+    "aswatson"
+   ]
+  },
+  {
+   "name": "Superhuman (formerly Grammarly)",
+   "domain": "superhuman.com",
+   "slugs": []
+  },
+  {
+   "name": "Swapcard",
+   "domain": "",
+   "slugs": [
+    "swapcard"
+   ]
+  },
+  {
+   "name": "Swiss Post",
+   "domain": "",
+   "slugs": [
+    "swiss-post"
+   ]
+  },
+  {
+   "name": "Swiss Post - E-Voting",
+   "domain": "",
+   "slugs": [
+    "swiss-post-evoting"
+   ]
+  },
+  {
+   "name": "Syfe",
+   "domain": "syfe.com",
+   "slugs": []
+  },
+  {
+   "name": "Taxwell",
+   "domain": "taxwell.com",
+   "slugs": []
+  },
+  {
+   "name": "TD Bank Group",
+   "domain": "td.com",
+   "slugs": []
+  },
+  {
+   "name": "TeamViewer",
+   "domain": "",
+   "slugs": [
+    "teamviewer-bounty-program"
+   ]
+  },
+  {
+   "name": "Tekion",
+   "domain": "",
+   "slugs": [
+    "tekion"
+   ]
+  },
+  {
+   "name": "Telenor Sweden",
+   "domain": "",
+   "slugs": [
+    "telenor-sweden-public-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Tempo-Team",
+   "domain": "",
+   "slugs": [
+    "randstad"
+   ]
+  },
+  {
+   "name": "Temu",
+   "domain": "temu.com",
+   "slugs": []
+  },
+  {
+   "name": "Tenable",
+   "domain": "tenable.com",
+   "slugs": []
+  },
+  {
+   "name": "Tencent",
+   "domain": "",
+   "slugs": [
+    "tencent-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Tesco",
+   "domain": "tesco.com",
+   "slugs": []
+  },
+  {
+   "name": "The Browser Company of NYC",
+   "domain": "thebrowser.company",
+   "slugs": []
+  },
+  {
+   "name": "The Coca-Cola Company",
+   "domain": "",
+   "slugs": [
+    "tccc"
+   ]
+  },
+  {
+   "name": "The Perfume Shop",
+   "domain": "",
+   "slugs": [
+    "aswatson"
+   ]
+  },
+  {
+   "name": "The Walt Disney Company",
+   "domain": "thewaltdisneycompany.com",
+   "slugs": []
+  },
+  {
+   "name": "Thnks",
+   "domain": "thnks.com",
+   "slugs": []
+  },
+  {
+   "name": "Thomson Reuters",
+   "domain": "thomsonreuters.com",
+   "slugs": []
+  },
+  {
+   "name": "Thüringer Aufbaubank",
+   "domain": "",
+   "slugs": [
+    "thuringer-aufbaubank-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "TikTok",
+   "domain": "tiktok.com",
+   "slugs": []
+  },
+  {
+   "name": "Tinder",
+   "domain": "tinder.com",
+   "slugs": []
+  },
+  {
+   "name": "Tines",
+   "domain": "tines.com",
+   "slugs": []
+  },
+  {
+   "name": "Toast",
+   "domain": "",
+   "slugs": [
+    "toast"
+   ]
+  },
+  {
+   "name": "Tomorrowland",
+   "domain": "",
+   "slugs": [
+    "tomorrowland"
+   ]
+  },
+  {
+   "name": "TomTom",
+   "domain": "tomtom.com",
+   "slugs": []
+  },
+  {
+   "name": "Tools for Humanity",
+   "domain": "toolsforhumanity.com",
+   "slugs": []
+  },
+  {
+   "name": "toom Baumarkt GmbH - Webshop",
+   "domain": "",
+   "slugs": [
+    "toom-baumarkt-gmbh-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Top Echelon Software",
+   "domain": "topechelon.com",
+   "slugs": []
+  },
+  {
+   "name": "Tor",
+   "domain": "torproject.org",
+   "slugs": []
+  },
+  {
+   "name": "Torfs",
+   "domain": "",
+   "slugs": [
+    "torfs"
+   ]
+  },
+  {
+   "name": "Toyota",
+   "domain": "toyota.com",
+   "slugs": []
+  },
+  {
+   "name": "TransUnion LLC",
+   "domain": "transunion.com",
+   "slugs": []
+  },
+  {
+   "name": "Treasury Board of Canada Secretariat/Secrétariat du Conseil du Trésor du Canada",
+   "domain": "tbs-sct.canada.ca",
+   "slugs": []
+  },
+  {
+   "name": "Trellix",
+   "domain": "trellix.com",
+   "slugs": []
+  },
+  {
+   "name": "Trendyol",
+   "domain": "",
+   "slugs": []
+  },
+  {
+   "name": "Trip.com",
+   "domain": "trip.com",
+   "slugs": []
+  },
+  {
+   "name": "TRON DAO",
+   "domain": "tron.network",
+   "slugs": []
+  },
+  {
+   "name": "Trouw",
+   "domain": "",
+   "slugs": [
+    "dpgm"
+   ]
+  },
+  {
+   "name": "TrueLayer",
+   "domain": "",
+   "slugs": [
+    "truelayer"
+   ]
+  },
+  {
+   "name": "Truist Financial",
+   "domain": "truist.com",
+   "slugs": []
+  },
+  {
+   "name": "Tucows",
+   "domain": "tucows.com",
+   "slugs": []
+  },
+  {
+   "name": "Tweakers",
+   "domain": "",
+   "slugs": [
+    "dpgm"
+   ]
+  },
+  {
+   "name": "Twilio",
+   "domain": "twilio.com",
+   "slugs": []
+  },
+  {
+   "name": "U.S. Department of State",
+   "domain": "state.gov",
+   "slugs": []
+  },
+  {
+   "name": "U.S. Dept Of Defense",
+   "domain": "bit.ly",
+   "slugs": []
+  },
+  {
+   "name": "Uber",
+   "domain": "uber.com",
+   "slugs": []
+  },
+  {
+   "name": "Ubiquiti Inc.",
+   "domain": "ui.com",
+   "slugs": []
+  },
+  {
+   "name": "Ubisoft",
+   "domain": "",
+   "slugs": [
+    "ubisoft"
+   ]
+  },
+  {
+   "name": "Udemy",
+   "domain": "udemy.com",
+   "slugs": []
+  },
+  {
+   "name": "Unico IDtech",
+   "domain": "unico.io",
+   "slugs": []
+  },
+  {
+   "name": "Uniti",
+   "domain": "uniti.com",
+   "slugs": []
+  },
+  {
+   "name": "University of Basel",
+   "domain": "",
+   "slugs": [
+    "universityofbasel"
+   ]
+  },
+  {
+   "name": "Universitätsspital Zürich",
+   "domain": "",
+   "slugs": [
+    "universitatsspitalzurich"
+   ]
+  },
+  {
+   "name": "Uphold",
+   "domain": "",
+   "slugs": [
+    "uphold"
+   ]
+  },
+  {
+   "name": "UPS",
+   "domain": "ups.com",
+   "slugs": []
+  },
+  {
+   "name": "Urban Company",
+   "domain": "urbancompany.com",
+   "slugs": []
+  },
+  {
+   "name": "USPS - United States Postal Service",
+   "domain": "usps.com",
+   "slugs": []
+  },
+  {
+   "name": "UZ Leuven",
+   "domain": "",
+   "slugs": [
+    "uz leuven"
+   ]
+  },
+  {
+   "name": "Valve",
+   "domain": "valvesoftware.com",
+   "slugs": []
+  },
+  {
+   "name": "Vanguard",
+   "domain": "vanguard.com",
+   "slugs": []
+  },
+  {
+   "name": "Varonis",
+   "domain": "varonis.com",
+   "slugs": []
+  },
+  {
+   "name": "Vectra AI, Inc. (Response)",
+   "domain": "vectra.ai",
+   "slugs": []
+  },
+  {
+   "name": "Veeam",
+   "domain": "veeam.com",
+   "slugs": []
+  },
+  {
+   "name": "Vendasta",
+   "domain": "vendasta.com",
+   "slugs": []
+  },
+  {
+   "name": "Venly",
+   "domain": "",
+   "slugs": [
+    "arkane"
+   ]
+  },
+  {
+   "name": "Vercel",
+   "domain": "vercel.com",
+   "slugs": []
+  },
+  {
+   "name": "Veriff",
+   "domain": "",
+   "slugs": [
+    "veriff"
+   ]
+  },
+  {
+   "name": "Verily Life Sciences",
+   "domain": "verily.com",
+   "slugs": []
+  },
+  {
+   "name": "Verisk",
+   "domain": "verisk.com",
+   "slugs": []
+  },
+  {
+   "name": "Version Cake",
+   "domain": "github.com",
+   "slugs": []
+  },
+  {
+   "name": "VF Corporation",
+   "domain": "vfc.com",
+   "slugs": []
+  },
+  {
+   "name": "VFS Global",
+   "domain": "",
+   "slugs": [
+    "vfs-global-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Via",
+   "domain": "ridewithvia.com",
+   "slugs": []
+  },
+  {
+   "name": "vidaXL Services - Open",
+   "domain": "",
+   "slugs": [
+    "vidaxl-services-open-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Vimeo",
+   "domain": "vimeo.com",
+   "slugs": []
+  },
+  {
+   "name": "VINCI SA - Public program",
+   "domain": "",
+   "slugs": [
+    "vincisa-public-program"
+   ]
+  },
+  {
+   "name": "Visa",
+   "domain": "visa.com",
+   "slugs": []
+  },
+  {
+   "name": "Visma",
+   "domain": "",
+   "slugs": [
+    "visma"
+   ]
+  },
+  {
+   "name": "Vlerick Business School",
+   "domain": "",
+   "slugs": [
+    "vlerickbusinessschool"
+   ]
+  },
+  {
+   "name": "Vodafone",
+   "domain": "vodafone.com",
+   "slugs": []
+  },
+  {
+   "name": "Vodafone Oman",
+   "domain": "vodafone.om",
+   "slugs": []
+  },
+  {
+   "name": "Voi",
+   "domain": "",
+   "slugs": [
+    "voi"
+   ]
+  },
+  {
+   "name": "Voi Scooters",
+   "domain": "",
+   "slugs": [
+    "voi"
+   ]
+  },
+  {
+   "name": "VRT",
+   "domain": "",
+   "slugs": [
+    "vrtnv"
+   ]
+  },
+  {
+   "name": "VTM GO",
+   "domain": "",
+   "slugs": [
+    "dpgm"
+   ]
+  },
+  {
+   "name": "WakaTime",
+   "domain": "wakatime.com",
+   "slugs": []
+  },
+  {
+   "name": "Walt.io",
+   "domain": "walt.io",
+   "slugs": []
+  },
+  {
+   "name": "Water-Link",
+   "domain": "",
+   "slugs": [
+    "waterlink"
+   ]
+  },
+  {
+   "name": "Watsons",
+   "domain": "",
+   "slugs": [
+    "aswatson"
+   ]
+  },
+  {
+   "name": "Wealthsimple",
+   "domain": "wealthsimple.com",
+   "slugs": []
+  },
+  {
+   "name": "Weblate",
+   "domain": "weblate.org",
+   "slugs": []
+  },
+  {
+   "name": "WellHive",
+   "domain": "",
+   "slugs": []
+  },
+  {
+   "name": "Wells Fargo",
+   "domain": "wellsfargo.com",
+   "slugs": []
+  },
+  {
+   "name": "Whatnot",
+   "domain": "whatnot.com",
+   "slugs": []
+  },
+  {
+   "name": "WHO COVID-19 Mobile App",
+   "domain": "",
+   "slugs": []
+  },
+  {
+   "name": "Whoop",
+   "domain": "whoop.com",
+   "slugs": []
+  },
+  {
+   "name": "Wickr",
+   "domain": "wickr.com",
+   "slugs": []
+  },
+  {
+   "name": "WisdomTree, Inc.",
+   "domain": "wisdomtree.com",
+   "slugs": []
+  },
+  {
+   "name": "Wolt",
+   "domain": "wolt.com",
+   "slugs": []
+  },
+  {
+   "name": "WordPress",
+   "domain": "wordpress.org",
+   "slugs": []
+  },
+  {
+   "name": "Worklytics",
+   "domain": "worklytics.co",
+   "slugs": []
+  },
+  {
+   "name": "Worldpay",
+   "domain": "worldpay.com",
+   "slugs": []
+  },
+  {
+   "name": "WP Engine",
+   "domain": "",
+   "slugs": [
+    "wpengine"
+   ]
+  },
+  {
+   "name": "Wärtsilä",
+   "domain": "",
+   "slugs": [
+    "wartsila"
+   ]
+  },
+  {
+   "name": "X / xAI",
+   "domain": "x.com",
+   "slugs": []
+  },
+  {
+   "name": "Xiaomi",
+   "domain": "mi.com",
+   "slugs": []
+  },
+  {
+   "name": "XVIDEOS",
+   "domain": "xvideos.com",
+   "slugs": []
+  },
+  {
+   "name": "Yacht",
+   "domain": "",
+   "slugs": [
+    "randstad"
+   ]
+  },
+  {
+   "name": "Yahoo",
+   "domain": "",
+   "slugs": [
+    "yahoo"
+   ]
+  },
+  {
+   "name": "Yelp",
+   "domain": "yelp.com",
+   "slugs": []
+  },
+  {
+   "name": "YesWeHack",
+   "domain": "",
+   "slugs": [
+    "yes-we-hack"
+   ]
+  },
+  {
+   "name": "YesWeHack Dojo",
+   "domain": "",
+   "slugs": [
+    "dojo"
+   ]
+  },
+  {
+   "name": "Yoti",
+   "domain": "yoti.com",
+   "slugs": []
+  },
+  {
+   "name": "Yuga Labs",
+   "domain": "yuga.com",
+   "slugs": []
+  },
+  {
+   "name": "Zabka Group",
+   "domain": "",
+   "slugs": [
+    "zabkapolska"
+   ]
+  },
+  {
+   "name": "Zebra",
+   "domain": "zebra.com",
+   "slugs": []
+  },
+  {
+   "name": "ZECIBLE",
+   "domain": "",
+   "slugs": [
+    "zecible-public-bug-bounty-program"
+   ]
+  },
+  {
+   "name": "Zooplus",
+   "domain": "zooplus.de",
+   "slugs": []
+  },
+  {
+   "name": "Zurich Insurance",
+   "domain": "zurich.com",
+   "slugs": []
+  }
+ ]
+}

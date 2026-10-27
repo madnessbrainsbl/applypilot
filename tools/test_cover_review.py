@@ -1,5 +1,7 @@
 import sys, types
 import autopilot as A
+import tempfile
+from pathlib import Path
 
 ORIGINAL = "<p>" + "Original draft body. " * 8 + "</p>"
 
@@ -36,7 +38,13 @@ def run(reply=None, raise_exc=None):
     cfg = {"llm": {"base_url": "http://127.0.0.1:8045/v1", "model": "m", "timeout_seconds": 5,
                    "providers": [{"name": "t", "kind": "openai", "url": "http://127.0.0.1:8045/v1",
                                   "model": "m", "enabled": True}]}}
-    return A.review_cover_letter(ORIGINAL, job, cfg, "CV text", "posting text")
+    previous = A.LLM_STATE
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            A.LLM_STATE = Path(tmp) / "providers.db"
+            return A.review_cover_letter(ORIGINAL, job, cfg, "CV text", "posting text")
+    finally:
+        A.LLM_STATE = previous
 
 improved = "<p>" + "Improved and grounded body. " * 8 + "</p>"
 assert run(reply=improved) == improved, "a valid revision must replace the draft"

@@ -19,6 +19,7 @@ def test_required_clearance_skips_before_browser_without_ats_api(monkeypatch, re
     monkeypatch.setattr(db, 'insert_application', lambda con, rec: saved.append(rec))
     monkeypatch.setattr(A, '_mark_step', lambda *_: None)
     monkeypatch.setattr(A, 'launch_browser', lambda *_: pytest.fail('Ineligible posting opened a browser'))
+    monkeypatch.setattr(A, 'submit_block_reason', lambda *a: None)   # stub cfg has no persona CV
     result = A.apply_one({**JOB, 'title': 'Security Engineer - ' + requirement, 'cv': 'fixture.pdf'},
                          {'profile': {}, 'apply': {}, 'active_persona': 'appsec'}, False, True, False)
     assert not result['submitted'] and result['filled_fields'] == 0
@@ -48,7 +49,7 @@ def test_lever_wrapped_radio_options_reach_validated_fallback(page, monkeypatch)
         + '<div class="application-field"><ul>'+''.join(
             f'<li><label><input type="radio" name="cards[{n}][field0]" value="{option}" required>{option}</label></li>'
             for option in options)+'</ul></div></div></li>' for n, (label, options, _) in enumerate(questions)))
-    cfg = {'profile': {}, 'apply': {'dropdown_answers': {'how did you hear': 'LinkedIn', 'DOD clearance': 'N/A'}}}
+    cfg = {'profile': {}, 'apply': {'dropdown_answers': {label: expected for label, _, expected in questions}}}
     asked = []
     expected = {label: answer for label, _, answer in questions}
     def answer(job, qs, cfg):
@@ -62,7 +63,7 @@ def test_lever_wrapped_radio_options_reach_validated_fallback(page, monkeypatch)
     A.llm_fill(page, cfg, JOB)
     for n, (_, _, expected_answer) in enumerate(questions):
         assert page.locator(f'input[name="cards[{n}][field0]"]:checked').input_value() == expected_answer
-    assert any(q['label'] == 'How did you hear about us?' for q in asked)
+    assert page.locator('input[name="cards[2][field0]"]:checked').input_value() == 'Job Board'
     assert not A.required_field_issues(page)
     assert A.fill_radio_groups(page, cfg) == 0
 
@@ -120,6 +121,7 @@ def page(tmp_path, monkeypatch):
     monkeypatch.setattr(A._TL, 'fill_deadline', 0, raising=False)
     monkeypatch.setattr(A._TL, 'llm_attempts', {}, raising=False)
     monkeypatch.setattr(A, '_answer_grounding', lambda *_: CV)
+    monkeypatch.setattr(A, 'check_form_answers', lambda job, qs, answers, *args: answers)
     monkeypatch.setattr(A, 'llm_providers', lambda _: ['fixture'])
     with A.sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True)

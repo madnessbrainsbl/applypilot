@@ -1,0 +1,60 @@
+{
+  "_comment": "Seed queries for tools/regional_boards.py: adapter -> persona -> title terms in the board's own language. Override with config.json discovery.regional_boards.<adapter>.queries.<persona>, add with .extra_queries.<persona>. Adapters that list a whole board (landing_jobs, swissdevjobs, germantechjobs) and nofluffjobs' security category need none.",
+  "_default": {
+    "creative": ["photographer", "videographer", "video editor", "content creator", "photo editor", "retoucher"],
+    "appsec": ["application security", "product security", "penetration tester", "security engineer", "devsecops", "cloud security", "soc analyst", "incident response"]
+  },
+  "nofluffjobs": {
+    "appsec": ["application security", "appsec", "penetration tester", "devsecops", "product security", "soc analyst", "incident response", "cloud security"]
+  },
+  "justjoin": {
+    "appsec": ["application security", "appsec", "penetration", "devsecops", "product security", "security engineer", "soc analyst", "cloud security", "incident response"]
+  },
+  "jobs_ch": {
+    "creative": ["Fotograf", "photographer", "Videograf", "videographer", "Video Editor", "Content Creator", "Bildbearbeiter", "Retusche"],
+    "appsec": ["Application Security", "Penetration Tester", "Security Engineer", "DevSecOps", "Product Security", "Cloud Security", "IT Security", "Cyber Security"]
+  },
+  "jobtech": {
+    "creative": ["fotograf", "videograf", "videoproducent", "content creator", "videoredigerare", "bildredigerare", "retuschör"],
+    "appsec": ["application security", "penetration tester", "penetrationstestare", "security engineer", "devsecops", "säkerhetsingenjör", "IT-säkerhet", "informationssäkerhet", "cybersäkerhet", "product security"]
+  },
+  "nav": {
+    "creative": ["fotograf", "videograf", "filmfotograf", "innholdsprodusent", "videoredigerer", "content creator", "bildebehandler"],
+    "appsec": ["application security", "penetrasjonstester", "sikkerhetsingeniør", "informasjonssikkerhet", "IT-sikkerhet", "security engineer", "devsecops", "cyber security"]
+  },
+  "jobindex": {
+    "creative": ["fotograf", "videograf", "videoproducent", "content creator", "video editor", "billedbehandler"],
+    "appsec": ["application security", "it-sikkerhed", "informationssikkerhed", "penetration", "security engineer", "devsecops", "cyber security", "product security"]
+  },
+  "berlinstartupjobs": {
+    "creative": ["photographer", "videographer", "video editor", "content creator", "photo"],
+    "appsec": ["security engineer", "application security", "penetration", "devsecops", "product security", "cyber security"]
+  },
+  "ictjob_be": {
+    "appsec": ["application security", "security engineer", "penetration tester", "devsecops", "cyber security", "product security", "soc analyst"]
+  },
+  "karriere_at": {
+    "creative": ["fotograf", "videograf", "video editor", "content creator", "bildbearbeiter"],
+    "appsec": ["application security", "penetration tester", "security engineer", "devsecops", "it security", "cyber security", "informationssicherheit"]
+  },
+  "profession_hu": {
+    "creative": ["fotós", "videós", "videóvágó", "tartalomgyártó", "content creator"],
+    "appsec": ["application security", "információbiztonsági", "it biztonsági", "security engineer", "penetration", "devsecops"]
+  },
+  "ejobs_ro": {
+    "creative": ["fotograf", "videograf", "video editor", "content creator", "retușor"],
+    "appsec": ["application security", "security engineer", "securitate cibernetica", "penetration tester", "devsecops", "securitate informatica"]
+  },
+  "finn_no": {
+    "creative": ["fotograf", "videograf", "innholdsprodusent", "videoredigerer", "content creator"],
+    "appsec": ["application security", "sikkerhetsingeniør", "informasjonssikkerhet", "security engineer", "penetrasjonstester", "devsecops"]
+  },
+  "pracuj_pl": {
+    "creative": ["fotograf", "videograf", "montażysta", "content creator", "grafik retuszer"],
+    "appsec": ["application security", "pentester", "security engineer", "cyberbezpieczeństwo", "devsecops", "specjalista ds. bezpieczeństwa"]
+  },
+  "cvbankas_lt": {
+    "creative": ["fotografas", "vaizdo operatorius", "videografas", "turinio kūrėjas", "video editor"],
+    "appsec": ["application security", "informacijos saugumo", "kibernetinio saugumo", "security engineer", "penetration"]
+  }
+}

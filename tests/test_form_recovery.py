@@ -48,13 +48,14 @@ def test_bot_wall_records_once_then_returns(page, tmp_path, monkeypatch):
     ctx = page.context
     monkeypatch.setattr(ctx, 'new_page', lambda: page)
     monkeypatch.setattr(A, 'launch_browser', lambda *a, **kw: ctx.browser)
+    monkeypatch.setattr(A, 'submit_block_reason', lambda *a: None)   # stub cfg has no persona CV
     monkeypatch.setattr(A, 'sync_playwright', lambda: nullcontext(None))
     monkeypatch.setattr(A, 'new_browser_context', lambda *a, **kw: ctx)
     monkeypatch.setattr(A, 'close_browser', lambda *a: None)
     monkeypatch.setattr(A, '_upload_copy', lambda *a: '')
     monkeypatch.setattr(ats_schema, 'fetch_schema', lambda *a: None)
     monkeypatch.setattr(ats_schema, 'knockout', lambda *a: None)
-    monkeypatch.setattr(A, 'click_apply', lambda *a: None)
+    monkeypatch.setattr(A, 'click_apply', lambda *a, **kw: None)
     monkeypatch.setattr(A, 'wait_for_form', lambda *a, **kw: False)
     monkeypatch.setattr(A, 'is_dead_listing', lambda *a: False)
     monkeypatch.setattr(A, '_bounced_off_listing', lambda *a: False)
@@ -81,6 +82,7 @@ def test_captcha_callback_never_causes_a_second_application_send(page, monkeypat
     ctx = page.context
     monkeypatch.setattr(ctx, 'new_page', lambda: page)
     monkeypatch.setattr(A, 'launch_browser', lambda *a, **kw: ctx.browser)
+    monkeypatch.setattr(A, 'submit_block_reason', lambda *a: None)   # stub cfg has no persona CV
     monkeypatch.setattr(A, 'sync_playwright', lambda: nullcontext(None))
     monkeypatch.setattr(A, 'new_browser_context', lambda *a, **kw: ctx)
     monkeypatch.setattr(A, 'close_browser', lambda *a: None)
@@ -103,8 +105,9 @@ def test_captcha_callback_never_causes_a_second_application_send(page, monkeypat
         return True
     monkeypatch.setattr(A, 'try_solve_turnstile_or_captcha', solve)
     monkeypatch.setitem(sys.modules, 'recruiter_outreach', SimpleNamespace(generate_outreach=lambda *a, **kw: None))
+    monkeypatch.setenv('AUTOPILOT_FORCE_IDS', 'fixture')
     cfg = {'profile': {'first_name': 'Test', 'last_name': 'Candidate', 'full_name': 'Test Candidate'},
-           'apply': {'force_ids': ['fixture']}, 'cv_path': 'fixture.pdf'}
+           'apply': {}, 'cv_path': 'fixture.pdf'}
     job = {'id': 'fixture', 'url': url, 'company': 'Fixture', 'title': 'AppSec Engineer', 'cv': 'fixture.pdf', 'persona': 'appsec'}
     with db.connect() as con:
         con.execute("INSERT INTO jobs(id,persona) VALUES('fixture','appsec')")

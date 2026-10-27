@@ -151,7 +151,7 @@ def test_jobspy_uses_each_market_country_and_keeps_later_market_results(monkeypa
     monkeypatch.setattr("jobspy.scrape_jobs", scrape)
     monkeypatch.setattr(A, "_jobspy_scrape", lambda kwargs, bounded=False: scrape(**kwargs))
     monkeypatch.setattr(A, "_jobspy_lenient_countries", lambda: None)
-    cfg = {"jobspy": {"sites": ["indeed"], "markets_per_run": 2, "locations": [
+    cfg = {"jobspy": {"sites": ["indeed"], "markets_per_run": 2, "workers": 1, "locations": [
         {"country": "germany", "location": "Germany"}, {"country": "japan", "location": "Japan"}]}}
     assert len(A.jobspy_source("medical security", 1, cfg)) == 2
     assert [c["country_indeed"] for c in calls] == ["germany", "japan"]
@@ -170,7 +170,7 @@ def test_failed_jobspy_site_does_not_discard_other_sites_or_repeat_429(monkeypat
     monkeypatch.setattr(A, "_jobspy_scrape", lambda kwargs, bounded=False: scrape(**kwargs))
     monkeypatch.setattr(A, "_jobspy_lenient_countries", lambda: None)
     monkeypatch.setattr(A, "_full_list_cache", {})
-    cfg = {"jobspy": {"sites": ["indeed", "google"], "markets_per_run": 2, "locations": ["Germany", "Japan"]}}
+    cfg = {"jobspy": {"sites": ["indeed", "google"], "markets_per_run": 2, "workers": 1, "locations": ["Germany", "Japan"]}}
     assert len(A.jobspy_source("medical security", 1, cfg)) == 2
     assert calls == ["indeed", "google", "indeed"]
     assert A._full_list_cache["jobspy_errors"][0]["http_status"] == 429

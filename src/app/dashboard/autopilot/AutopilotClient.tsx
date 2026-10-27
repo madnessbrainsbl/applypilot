@@ -7,7 +7,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toastError, toastSuccess } from "@/lib/toast";
+import { toastError, toastInfo, toastSuccess } from "@/lib/toast";
+import SourcesPanel, { type SourceRow } from "./SourcesPanel";
+import AnswerDecisionsPanel, { type AnswerDecision } from "./AnswerDecisionsPanel";
 import {
   AlertCircle,
   Briefcase,
@@ -40,6 +42,7 @@ type PendingQuestion = {
   company: string;
   job: string;
   seen: number;
+  reason?: string;
 };
 
 type Status = {
@@ -67,7 +70,7 @@ type Provider = {
   path?: string | null;
 };
 
-type ProbeResult = Pick<Provider, "ok" | "detail" | "installed" | "path">;
+type ProbeResult = Pick<Provider, "model" | "ok" | "detail" | "installed" | "path">;
 
 type ManualItem = {
   job_id: string;
@@ -127,7 +130,42 @@ type Report = {
   actions: OutcomeItem[];
   rejections: { total: number; kinds: Record<string, number>; reasons: Record<string, number>; recent: OutcomeItem[] };
   tips: string[];
+  segments?: Segment[];
+  paused_segments?: string[];
 };
+
+// persona x level x region x source x company size, from `report --json`
+type Segment = {
+  segment: string;
+  persona: string;
+  level: string;
+  region: string;
+  source: string;
+  size: string;
+  applied: number;
+  responses: number;
+  positive: number;
+  rejected: number;
+  response_rate: number;
+  positive_rate: number;
+  rejection_rate: number;
+};
+
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+
+// Links come from scraped postings and mail, so only http(s) (and mailto where a mail
+// field is expected) may reach an href; "javascript:" and "data:" never do.
+function safeHref(url?: string | null, mail = false): string | undefined {
+  if (!url) return undefined;
+  try {
+    const protocol = new URL(url).protocol;
+    return protocol === "https:" || protocol === "http:" || (mail && protocol === "mailto:") ? url : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const clampInt = (text: string, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.trunc(Number(text)) || lo));
 
 const ACTION_LABEL: Record<string, string> = { interview: "Interview", assessment: "Test / next stage", offer: "Offer" };
 const KIND_LABEL: Record<string, string> = { auto: "auto", template: "template after review", manual: "manual", unclear: "unclear" };
@@ -147,6 +185,7 @@ type State = {
   status?: Status;
   manual?: Manual;
   pending?: PendingQuestion[];
+  answerDecisions?: AnswerDecision[];
   providers?: Provider[];
   log?: string[];
   discovering?: boolean;
@@ -156,9 +195,14 @@ type State = {
   // an array on success, { error } when `resume list` failed
   resumes?: Resume[] | { error: string };
   report?: Report;
+  // per-source switches and statistics from `sources --json`
+  sources?: SourceRow[];
 };
 
 const POLL_MS = 5000;
+// how long Apply / Find stay locked after a start while the bot has not reported running yet
+const START_WAIT_MS = 15000;
+const FETCH_TIMEOUT_MS = 35000;
 // Parallel Chrome workers per apply run; more is faster but stalls more often on a
 // shared LLM proxy. Mirrors RECOMMENDED_WORKERS in tools/autopilot.py.
 const RECOMMENDED_WORKERS = 3;
@@ -166,14 +210,22 @@ const RECOMMENDED_WORKERS = 3;
 export default function AutopilotClient() {
   const [tab, setTab] = useState("run");
   const [state, setState] = useState<State>({});
-  const [batch, setBatch] = useState(5);
-  const [workers, setWorkers] = useState(RECOMMENDED_WORKERS);
+  // kept as text so clearing the field to retype does not snap it back to 1
+  const [batchText, setBatchText] = useState("5");
+  const [workersText, setWorkersText] = useState(String(RECOMMENDED_WORKERS));
+  const batch = clampInt(batchText, 1, 25);
+  const workers = clampInt(workersText, 1, 8);
   const [personaChoice, setPersona] = useState("all");
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [customLocation, setCustomLocation] = useState("");
   const isCustom = selectedCountry === "custom";
   const activeLocation = isCustom ? (customLocation.trim() || undefined) : (selectedCountry === "all" ? undefined : selectedCountry);
   const [busy, setBusy] = useState(false);
+  // true from a successful start until the poll reports running (or START_WAIT_MS passes)
+  const [starting, setStarting] = useState(false);
+  const [modelDraft, setModelDraft] = useState<Record<string, string>>({});
+  const arrowModel = useRef(false);
+  const committing = useRef(new Set<string>());
   const [manualPage, setManualPage] = useState(1);
   const MANUAL_PAGE_SIZE = 8;
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -191,7 +243,7 @@ export default function AutopilotClient() {
   function mergeProvider(next: Provider) {
     setProbes((prev) => ({
       ...prev,
-      [next.name]: { ok: next.ok, detail: next.detail, installed: next.installed, path: next.path },
+      [next.name]: { model: next.model, ok: next.ok, detail: next.detail, installed: next.installed, path: next.path },
     }));
   }
 
@@ -231,10 +283,14 @@ export default function AutopilotClient() {
     }
   }
   const logRef = useRef<HTMLPreElement>(null);
+  const inFlight = useRef(false);
 
   const load = useCallback(async () => {
+    // a slow backend must not stack up overlapping polls
+    if (inFlight.current) return;
+    inFlight.current = true;
     try {
-      const res = await fetch("/api/autopilot", { cache: "no-store" });
+      const res = await fetch("/api/autopilot", { cache: "no-store", signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
       const data = await res.json();
       // keep the last good data on a transient failure — replacing the whole state
       // blanked every card because one of the four CLI calls hiccuped
@@ -242,14 +298,36 @@ export default function AutopilotClient() {
       else setState(data);
     } catch {
       setState((prev) => ({ ...prev, error: "Autopilot is not reachable" }));
+    } finally {
+      inFlight.current = false;
     }
   }, []);
 
   useEffect(() => {
     load();
-    const timer = setInterval(load, POLL_MS);
-    return () => clearInterval(timer);
+    // no polling for a hidden tab; catch up as soon as it is visible again
+    const timer = setInterval(() => {
+      if (!document.hidden) load();
+    }, POLL_MS);
+    const onVisible = () => {
+      if (!document.hidden) load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [load]);
+
+  useEffect(() => {
+    if (!starting) return;
+    if (state.status?.running) {
+      setStarting(false);
+      return;
+    }
+    const t = setTimeout(() => setStarting(false), START_WAIT_MS);
+    return () => clearTimeout(t);
+  }, [starting, state.status?.running]);
 
   useEffect(() => {
     const el = logRef.current;
@@ -261,7 +339,8 @@ export default function AutopilotClient() {
     if (atBottom) el.scrollTop = el.scrollHeight;
   }, [state.log, tab]);
 
-  async function send(action: string, extra: Record<string, unknown> = {}) {
+  // resolves to the response body on success, null on failure (a toast was shown)
+  async function send(action: string, extra: Record<string, unknown> = {}): Promise<Record<string, unknown> | null> {
     setBusy(true);
     try {
       const res = await fetch("/api/autopilot", {
@@ -272,12 +351,12 @@ export default function AutopilotClient() {
       const data = await res.json();
       if (!res.ok || data.error) {
         toastError(data.error || "Action failed");
-        return false;
+        return null;
       }
-      return true;
+      return data;
     } catch {
       toastError("Autopilot is not reachable");
-      return false;
+      return null;
     } finally {
       setBusy(false);
       load();
@@ -294,6 +373,70 @@ export default function AutopilotClient() {
     if (ok) {
       toastSuccess("Saved — the bot reuses this on every future application");
       setAnswers((prev) => ({ ...prev, [q.key]: "" }));
+    }
+  }
+
+  async function startRun(kind: "apply" | "discover") {
+    const personaLabel = persona === "all" ? "all personas" : (resumes.find((r) => r.key === persona)?.role_title || persona);
+    const where = activeLocation ?? "worldwide";
+    if (
+      kind === "apply" && state.status?.submit_without_review === true &&
+      !window.confirm(
+        `Submit up to ${batch} real applications now?\nPersona: ${personaLabel}\nLocation: ${where}\nWorkers: ${workers}\n\nSubmitted applications cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    const data = await send(kind, { max: batch, workers, persona: persona === "all" ? undefined : persona, location: activeLocation });
+    if (data) {
+      setStarting(true);
+      toastSuccess(kind === "apply" ? `Apply run started (up to ${batch}, ${where})` : `Job search started (${where})`);
+    }
+  }
+
+  async function runSources(names: string[]) {
+    const data = await send("discover", { persona: persona === "all" ? undefined : persona, sources: names });
+    if (data) {
+      setStarting(true);
+      toastSuccess(`Discovery started (${names.length} source${names.length === 1 ? "" : "s"})`);
+    }
+  }
+
+  async function stopRun() {
+    const data = await send("stop");
+    if (!data) return;
+    if (data.note) toastInfo("Nothing is running");
+    else toastSuccess("Stop requested. The run ends after the current application.");
+  }
+
+  async function copyNote(note: string) {
+    if (!navigator.clipboard?.writeText) {
+      toastError("Copying is not available here. Select the note and copy it by hand.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(note);
+      toastSuccess(`Invite note copied (${note.length} chars)`);
+    } catch {
+      toastError("Could not copy the note");
+    }
+  }
+
+  // a model change writes config.json, so it must be a decision, not an arrow-key pass-through
+  function commitModel(name: string, value: string, current: string) {
+    arrowModel.current = false;
+    const clear = () => setModelDraft((prev) => {
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+    if (value === current) clear();
+    else if (!committing.current.has(name)) {
+      committing.current.add(name);
+      void send("model", { name, model: value }).then(() => {
+        committing.current.delete(name);
+        clear();
+      });
     }
   }
 
@@ -436,6 +579,7 @@ export default function AutopilotClient() {
           <TabsTrigger value="run">Run & activity</TabsTrigger>
           <TabsTrigger value="review">Review ({state.manual?.waiting_for_you ?? 0})</TabsTrigger>
           <TabsTrigger value="replies">Replies ({state.report?.actions?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="sources">Sources</TabsTrigger>
           <TabsTrigger value="resumes">Resumes</TabsTrigger>
           <TabsTrigger value="providers">AI providers</TabsTrigger>
         </TabsList>
@@ -469,8 +613,9 @@ export default function AutopilotClient() {
                 type="number"
                 min={1}
                 max={25}
-                value={batch}
-                onChange={(e) => setBatch(Math.max(1, Math.min(25, Number(e.target.value) || 1)))}
+                value={batchText}
+                onChange={(e) => setBatchText(e.target.value)}
+                onBlur={() => setBatchText(String(batch))}
                 className="w-12 bg-transparent text-sm font-semibold focus:outline-none"
               />
             </div>
@@ -481,9 +626,10 @@ export default function AutopilotClient() {
                 type="number"
                 min={1}
                 max={8}
-                value={workers}
+                value={workersText}
                 aria-describedby="workers-hint"
-                onChange={(e) => setWorkers(Math.max(1, Math.min(8, Number(e.target.value) || 1)))}
+                onChange={(e) => setWorkersText(e.target.value)}
+                onBlur={() => setWorkersText(String(workers))}
                 className="w-10 bg-transparent text-sm font-semibold focus:outline-none"
               />
               <span id="workers-hint" className="text-muted-foreground text-xs">
@@ -531,17 +677,17 @@ export default function AutopilotClient() {
               </div>
             )}
             <Button
-              disabled={busy || status.running}
-              onClick={() => send("apply", { max: batch, workers, persona: persona === "all" ? undefined : persona, location: activeLocation })}
+              disabled={busy || starting || status.running}
+              onClick={() => startRun("apply")}
               className="gap-1.5 font-medium shadow-sm"
             >
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
-              {status.submit_without_review ? "Apply to" : "Dry run"} {batch}
+              {busy || starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
+              {status.submit_without_review === true ? `Apply to ${batch}` : `Dry run ${batch}`}
             </Button>
             <Button
               variant="secondary"
-              disabled={busy || status.running}
-              onClick={() => send("discover", { persona: persona === "all" ? undefined : persona, location: activeLocation })}
+              disabled={busy || starting || status.running}
+              onClick={() => startRun("discover")}
               className="gap-1.5 font-medium"
             >
               <Search className="h-4 w-4" />
@@ -550,7 +696,7 @@ export default function AutopilotClient() {
             <Button
               variant="destructive"
               disabled={busy || !status.running}
-              onClick={() => send("stop")}
+              onClick={() => stopRun()}
               className="gap-1.5 font-medium"
             >
               <Square className="h-4 w-4 fill-current" />
@@ -565,7 +711,7 @@ export default function AutopilotClient() {
             <Layers className="h-3.5 w-3.5 text-primary" />
             <span>Target Persona:</span>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div role="group" aria-label="Target persona" className="flex flex-wrap items-center gap-1.5">
             {[{ key: "all", label: "All Personas", jobs: resumes.reduce((n, r) => n + r.jobs, 0) },
               ...resumes.map((r) => ({ key: r.key, label: r.role_title || r.name || r.key, jobs: r.jobs }))].map((p) => (
               <button
@@ -597,7 +743,7 @@ export default function AutopilotClient() {
             <Globe className="h-3.5 w-3.5 text-primary" />
             <span>Target Country:</span>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div role="group" aria-label="Target country" className="flex flex-wrap items-center gap-1.5">
             {[
               { code: "serbia", label: "Serbia" },
               { code: "all", label: "Worldwide" },
@@ -645,7 +791,10 @@ export default function AutopilotClient() {
         <CardContent>
           <pre
             ref={logRef}
-            className="bg-muted h-72 overflow-auto rounded-md p-3 text-xs leading-relaxed whitespace-pre-wrap break-words"
+            tabIndex={0}
+            role="region"
+            aria-label="Live activity log"
+            className="bg-muted h-72 overflow-auto rounded-md p-3 text-xs leading-relaxed whitespace-pre-wrap break-words focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {(state.log || []).join("\n") || "No activity yet."}
           </pre>
@@ -687,7 +836,7 @@ export default function AutopilotClient() {
                   >
                     <div className="min-w-0 flex-1">
                       <a
-                        href={m.apply_url}
+                        href={safeHref(m.apply_url)}
                         target="_blank"
                         rel="noreferrer"
                         className="group inline-flex items-center gap-1.5 text-sm font-semibold text-primary break-words hover:underline"
@@ -773,6 +922,7 @@ export default function AutopilotClient() {
                       {q.company || "any company"} · asked {q.seen}x
                     </span>
                   </div>
+                  {q.reason ? <p lang="en" className="text-sm text-muted-foreground">Why an answer is needed: {q.reason}</p> : null}
                   {options.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {options.map((o) => (
@@ -791,6 +941,7 @@ export default function AutopilotClient() {
                   <div className="flex gap-2">
                     <Input
                       value={answers[q.key] || ""}
+                      aria-label={`Your answer: ${q.question}`}
                       placeholder="Your answer"
                       onChange={(e) =>
                         setAnswers((prev) => ({ ...prev, [q.key]: e.target.value }))
@@ -810,6 +961,7 @@ export default function AutopilotClient() {
         </CardContent>
       </Card>
 
+        <AnswerDecisionsPanel decisions={Array.isArray(state.answerDecisions) ? state.answerDecisions : []} />
         </TabsContent>
         <TabsContent value="replies" className="flex flex-col gap-6 data-[state=inactive]:hidden">
       <Card
@@ -848,15 +1000,17 @@ export default function AutopilotClient() {
                     </div>
                     {a.subject ? <p className="mt-1 text-xs text-muted-foreground">{a.subject}</p> : null}
                     <div className="mt-2 flex flex-wrap gap-2">
-                      <a
-                        href={a.link ?? a.url ?? "#"}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                        Open {a.link ? "invitation" : "posting"}
-                      </a>
+                      {safeHref(a.link) ?? safeHref(a.url) ? (
+                        <a
+                          href={safeHref(a.link) ?? safeHref(a.url)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                          Open {safeHref(a.link) ? "invitation" : "posting"}
+                        </a>
+                      ) : null}
                       <Button size="sm" variant="secondary" disabled={busy} onClick={() => send("action_done", { jobId: a.job_id })}>
                         Mark as done
                       </Button>
@@ -900,6 +1054,63 @@ export default function AutopilotClient() {
               </>
             ) : null}
           </section>
+
+          {(state.report?.segments?.length ?? 0) > 0 ? (
+            <section aria-labelledby="segments-heading">
+              <h3 id="segments-heading" className="font-semibold">Results by segment</h3>
+              <p className="text-muted-foreground mt-1">
+                A segment with 30+ applications and no interview, test or offer is paused: new applications skip it.
+                Paused now: {state.report!.paused_segments?.length ?? 0}.
+              </p>
+              <div
+                className="mt-2 overflow-x-auto rounded-md border border-border/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                role="region"
+                aria-labelledby="segments-heading"
+                tabIndex={0}
+              >
+                <table className="w-full min-w-[40rem] text-xs">
+                  <caption className="sr-only">
+                    Response, interview and rejection rates per persona, level, region, source and company size. Top 15
+                    segments by applications.
+                  </caption>
+                  <thead className="bg-muted/50 text-left">
+                    <tr>
+                      <th scope="col" className="px-2 py-1.5 font-medium">Segment</th>
+                      <th scope="col" className="px-2 py-1.5 text-right font-medium">Applied</th>
+                      <th scope="col" className="px-2 py-1.5 text-right font-medium">Replied</th>
+                      <th scope="col" className="px-2 py-1.5 text-right font-medium">Interview</th>
+                      <th scope="col" className="px-2 py-1.5 text-right font-medium">Rejected</th>
+                      <th scope="col" className="px-2 py-1.5 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {state.report!.segments!.slice(0, 15).map((s) => {
+                      const paused = state.report!.paused_segments?.includes(s.segment);
+                      return (
+                        <tr key={s.segment}>
+                          <th scope="row" className="px-2 py-1.5 text-left font-normal break-words">
+                            {s.persona} · {s.level} · {s.region} · {s.source}
+                            {s.size !== "?" ? ` · ${s.size}` : ""}
+                          </th>
+                          <td className="px-2 py-1.5 text-right tabular-nums">{s.applied}</td>
+                          <td className="px-2 py-1.5 text-right tabular-nums">{pct(s.response_rate)}</td>
+                          <td className="px-2 py-1.5 text-right tabular-nums">{pct(s.positive_rate)}</td>
+                          <td className="px-2 py-1.5 text-right tabular-nums">{pct(s.rejection_rate)}</td>
+                          <td className="px-2 py-1.5">
+                            {paused ? <span className="rounded border border-border px-1.5 py-0.5 font-medium">Paused</span> : "Active"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Showing {Math.min(15, state.report!.segments!.length)} of {state.report!.segments!.length} segments. The
+                table scrolls sideways on narrow screens.
+              </p>
+            </section>
+          ) : null}
 
           {(state.report?.tips?.length ?? 0) > 0 ? (
             <section aria-labelledby="tips-heading">
@@ -962,7 +1173,7 @@ export default function AutopilotClient() {
                       className="h-8 text-xs gap-1"
                       asChild
                     >
-                      <a href={item.recruiter_search_url} target="_blank" rel="noreferrer">
+                      <a href={safeHref(item.recruiter_search_url)} target="_blank" rel="noreferrer">
                         <Search className="h-3 w-3" />
                         Recruiter
                         <ExternalLink className="h-2.5 w-2.5 opacity-60" />
@@ -974,19 +1185,19 @@ export default function AutopilotClient() {
                       className="h-8 text-xs gap-1"
                       asChild
                     >
-                      <a href={item.manager_search_url} target="_blank" rel="noreferrer">
+                      <a href={safeHref(item.manager_search_url)} target="_blank" rel="noreferrer">
                         Manager
                         <ExternalLink className="h-2.5 w-2.5 opacity-60" />
                       </a>
                     </Button>
-                    {item.mailto_url && (
+                    {safeHref(item.mailto_url, true) && (
                       <Button
                         variant="outline"
                         size="sm"
                         className="h-8 text-xs gap-1 text-primary"
                         asChild
                       >
-                        <a href={item.mailto_url}>
+                        <a href={safeHref(item.mailto_url, true)}>
                           <Mail className="h-3 w-3" />
                           Email
                         </a>
@@ -997,10 +1208,7 @@ export default function AutopilotClient() {
                         variant="secondary"
                         size="sm"
                         className="h-8 text-xs gap-1"
-                        onClick={() => {
-                          navigator.clipboard.writeText(item.connection_invite_note || "");
-                          toastSuccess("Invite note copied (220 chars)!");
-                        }}
+                        onClick={() => copyNote(item.connection_invite_note || "")}
                       >
                         <Copy className="h-3 w-3" />
                         Copy Note
@@ -1014,6 +1222,16 @@ export default function AutopilotClient() {
         </CardContent>
       </Card>
 
+        </TabsContent>
+        <TabsContent value="sources" className="flex flex-col gap-6 data-[state=inactive]:hidden">
+          <SourcesPanel
+            sources={Array.isArray(state.sources) ? state.sources : []}
+            persona={persona}
+            locked={starting || Boolean(status.running)}
+            busy={busy}
+            onToggle={(name, enabled) => void send("source_toggle", { name, enabled })}
+            onRun={runSources}
+          />
         </TabsContent>
         <TabsContent value="resumes" className="flex flex-col gap-6 data-[state=inactive]:hidden">
       <Card className="border border-border/70 shadow-sm">
@@ -1133,17 +1351,18 @@ export default function AutopilotClient() {
             <div className="flex items-center gap-2">
               <CardTitle className="text-base font-semibold">AI providers</CardTitle>
               <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                A → Z Priority
+                Fallback order
               </span>
             </div>
-            <CardDescription className="mt-1">
-              Providers are listed alphabetically. Enable the services you want to use, choose their models, and test the connection before a run.
+            <CardDescription lang="en" className="mt-1">
+              Auto tries available models with fallback on errors, timeouts or limits, then moves to the next provider. Cooldowns persist between requests and processes.
             </CardDescription>
           </div>
           <Button
             variant="secondary"
             size="sm"
             disabled={busy}
+            lang="en"
             className="shrink-0 font-medium"
             onClick={async () => {
               setBusy(true);
@@ -1169,20 +1388,20 @@ export default function AutopilotClient() {
         </CardHeader>
         <CardContent className="flex flex-col divide-y divide-border/60 p-0">
           {[...(state.providers || [])]
-            .sort((a, b) => a.name.localeCompare(b.name))
             .map((polled) => {
-              const p = { ...polled, ...probes[polled.name] };
+              const probe = probes[polled.name];
+              const p = { ...polled, ...(probe?.model === polled.model ? probe : {}) };
               const missing = p.kind === "cli" && p.installed === false;
               const noKey = !!p.key_env && p.has_key === false;
 
               const meta: { label: string; desc: string; tag: string } = {
                 antigravity: {
-                  label: "Antigravity Bridge",
+                  label: "Antigravity Tools (Local API)",
                   desc: "Local model bridge through an Antigravity-compatible proxy.",
                   tag: "Local Bridge",
                 },
                 claude: {
-                  label: "Anthropic Claude (CLI)",
+                  label: "Claude Code (CLI)",
                   desc: "Uses your locally installed Claude CLI and its configured authentication.",
                   tag: "CLI Tool",
                 },
@@ -1215,6 +1434,11 @@ export default function AutopilotClient() {
                   label: "OpenRouter Gateway",
                   desc: "Model gateway through OpenRouter. Availability and pricing depend on the selected model.",
                   tag: "Cloud API",
+                },
+                opencode: {
+                  label: "OpenCode (Free / Go)",
+                  desc: "Auto uses the configured free-model pool with fallback. Select a specific model explicitly; paid Go models require separate setup and explicit selection.",
+                  tag: "CLI Tool",
                 },
                 tokenharbor: {
                   label: "Token Harbor Hub",
@@ -1264,21 +1488,21 @@ export default function AutopilotClient() {
                         <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground uppercase">
                           {meta.tag}
                         </span>
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold tracking-wider ${badge.cls}`}>
+                        <span lang="en" className={`rounded-full px-2 py-0.5 text-xs font-bold tracking-wider ${badge.cls}`}>
                           {badge.text}
                         </span>
-                        <span className={`text-xs ${keyStatus.cls}`}>
+                        <span lang="en" className={`text-xs ${keyStatus.cls}`}>
                           {keyStatus.text}
                         </span>
                       </div>
-                      <p className="text-muted-foreground text-xs leading-relaxed">
+                      <p lang="en" className="text-muted-foreground text-xs leading-relaxed">
                         {meta.desc}
                       </p>
                       <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs">
                         <span className="font-medium text-foreground/80">
                           {p.kind === "cli" ? (p.path || "CLI not found in PATH") : p.url}
                         </span>
-                        {p.model && <span>· model: <span className="font-mono text-foreground">{p.model}</span></span>}
+                        {p.model && <span lang="en">· model: <span className="font-mono text-foreground">{p.model}</span></span>}
                       </div>
                     </div>
 
@@ -1288,6 +1512,7 @@ export default function AutopilotClient() {
                         size="sm"
                         disabled={testing === p.name || !p.enabled}
                         onClick={() => testOne(p.name)}
+                        lang="en"
                         className="h-8 px-3 text-xs font-medium"
                       >
                         {testing === p.name ? (
@@ -1299,6 +1524,7 @@ export default function AutopilotClient() {
                         size="sm"
                         disabled={busy}
                         onClick={() => send("toggle", { name: p.name, enabled: !p.enabled })}
+                        lang="en"
                         className={`h-8 px-3 text-xs font-semibold ${p.enabled ? "bg-primary hover:bg-primary text-primary-foreground" : ""}`}
                       >
                         {p.enabled ? "Turn off" : "Turn on"}
@@ -1307,7 +1533,7 @@ export default function AutopilotClient() {
                   </div>
 
                   {missing && (
-                    <div className="mt-2.5 rounded-md border border-warning/30 bg-warning/10 p-2 text-xs text-warning">
+                    <div lang="en" className="mt-2.5 rounded-md border border-warning/30 bg-warning/10 p-2 text-xs text-warning">
                       {p.name} was not found in PATH. Install the CLI and sign in before using it.
                     </div>
                   )}
@@ -1319,27 +1545,37 @@ export default function AutopilotClient() {
                   )}
 
                   <div className="mt-3 flex flex-wrap items-center gap-2.5">
-                    <span className="text-muted-foreground text-xs font-medium">Model:</span>
+                    <span lang="en" className="text-muted-foreground text-xs font-medium">Model:</span>
                     <select
                       aria-label={`Model for ${p.name}`}
                       className="border-input bg-background h-8 min-w-44 rounded-md border px-2.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary"
-                      value={p.model || ""}
+                      value={modelDraft[p.name] ?? (p.model || "")}
                       onFocus={() => loadModels(p.name)}
-                      onChange={(e) => send("model", { name: p.name, model: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowUp" || e.key === "ArrowDown") arrowModel.current = true;
+                        if (e.key === "Enter") commitModel(p.name, e.currentTarget.value, p.model || "");
+                      }}
+                      onBlur={(e) => commitModel(p.name, e.currentTarget.value, p.model || "")}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setModelDraft((prev) => ({ ...prev, [p.name]: value }));
+                        // a mouse pick is a decision; arrow keys only browse until Enter or blur
+                        if (!arrowModel.current) commitModel(p.name, value, p.model || "");
+                      }}
                     >
-                      <option value={p.model || ""}>{p.model || "Default model"}</option>
+                      <option lang="en" value={p.model || ""}>{p.model || "Default model"}</option>
                       {(models[p.name] || [])
                         .filter((m) => m !== p.model)
                         .map((m) => (
                           <option key={m} value={m}>{m}</option>
                         ))}
                     </select>
-                    <Button variant="ghost" size="sm" onClick={() => loadModels(p.name)} className="h-8 px-2.5 text-xs">
+                    <Button variant="ghost" size="sm" lang="en" onClick={() => loadModels(p.name)} className="h-8 px-2.5 text-xs">
                       List models
                     </Button>
                     {models[p.name] && (
-                      <span className="text-muted-foreground text-xs">
-                        available: {models[p.name].length}
+                      <span lang="en" className="text-muted-foreground text-xs">
+                        available: {models[p.name].filter((model) => model !== "auto").length}
                       </span>
                     )}
                   </div>
@@ -1349,6 +1585,8 @@ export default function AutopilotClient() {
                       <div className="relative flex-1">
                         <Input
                           type="password"
+                          aria-label={`API key ${p.key_env}`}
+                          autoComplete="off"
                           value={keys[p.key_env] || ""}
                           placeholder={p.has_key ? `${p.key_env} configured (paste to replace)` : `Paste key (${p.key_env})`}
                           onChange={(e) => setKeys((prev) => ({ ...prev, [p.key_env!]: e.target.value }))}
@@ -1367,10 +1605,11 @@ export default function AutopilotClient() {
                         onClick={async () => {
                           const ok = await send("key", { env: p.key_env, value: keys[p.key_env!] });
                           if (ok) {
-                            toastSuccess(`${p.key_env} saved`);
+                            toastSuccess(`${p.key_env}: key saved in secrets.env; applies to the next run`);
                             setKeys((prev) => ({ ...prev, [p.key_env!]: "" }));
                           }
                         }}
+                        lang="en"
                         className="h-8 px-3.5 text-xs font-medium shrink-0"
                       >
                         Save key

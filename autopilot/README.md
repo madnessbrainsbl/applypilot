@@ -81,6 +81,11 @@ The session is stored in `autopilot/browser-state.json`. Keep that file private.
 
 ## Discovery sources
 
+The dashboard now includes a Sources tab with adapter health, source switches and queue-filter diagnostics.
+Career-page JSON-LD crawling, remote/sponsorship boards, optional FindAll inputs and optional JobWatch exports
+are covered in the [discovery and review guide](../docs/discovery-and-review.md). JobWatch and local FindAll imports
+start disabled; configure your own input directories. No cloud delivery is bundled.
+
 `vendor` boards, `workable`, `tavily` (set `TAVILY_API_KEY`; restricted to direct ATS posting URLs), `jobspy`
 (Indeed, Google, LinkedIn search only: a LinkedIn posting is kept when the same title exists on the company's
 own Greenhouse/Ashby/Workable board; Easy Apply is never used), `adzuna`, `jooble`, and several remote-job feeds.

@@ -24,12 +24,13 @@ import hashlib
 import sqlite3
 import argparse
 import urllib.request
+import urllib.error
 import urllib.parse
 import html
 import re
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 socket.setdefaulttimeout(10.0)
@@ -55,13 +56,13 @@ CYBERSEC_KEYWORDS = [
 ]
 
 CREATIVE_KEYWORDS = [
-    "product designer", "brand designer", "art director", "creative director",
-    "visual designer", "video", "motion", "fashion", "lookbook", "producer",
-    "multimedia", "photographer", "graphic designer", "ui/ux", "digital designer",
-    "content designer", "production designer", "lead designer", "design lead",
-    "senior designer", "ui designer", "ux designer", "design systems", "web designer",
-    "illustrator", "3d artist", "animator", "video editor", "videographer", "colorist",
-    "creative lead", "visual lead", "creative strategist", "content creator"
+    "photographer", "photography", "photo", "retoucher", "photo editor",
+    "image editor", "portrait", "fashion photographer", "commercial photographer",
+    "studio photographer", "videographer", "video editor", "video producer",
+    "video content", "content creator", "content producer", "camera operator",
+    "visual content", "creative content", "creative producer", "filmmaker",
+    "colorist", "visual storyteller", "image creator", "fotograf", "videograf",
+    "videoproduzent", "videoeditor", "social video", "multimedia producer"
 ]
 
 GREENHOUSE_BOARDS = [
@@ -152,143 +153,112 @@ def classify_role(title: str):
         return "appsec"
     return None
 
-def fetch_greenhouse(board: str):
-    company = extract_slug(board).capitalize()
-    if board.startswith("http"):
-        url = board.replace("content=true", "content=false")
-        if "content=false" not in url:
-            url += ("&" if "?" in url else "?") + "content=false"
-    else:
-        url = f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs?content=false"
+def _text(raw):
+    """Board HTML -> plain text with paragraph breaks. Greenhouse escapes its HTML
+    once more (&lt;p&gt;), hence unescape, strip tags, unescape."""
+    t = html.unescape(raw or "")
+    t = re.sub(r"(?i)<br\s*/?>|</(?:p|div|li|h\d|ul|ol|tr)>", "\n", t)
+    t = html.unescape(re.sub(r"<[^>]+>", " ", t))
+    t = re.sub(r"[ \t\xa0]+", " ", t)
+    return re.sub(r"\s*\n\s*", "\n", t).strip()
 
-    req = urllib.request.Request(url, headers=HEADERS)
+def _get(url, timeout=20):
+    with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8", "ignore"))
+
+def _posting(title, url, location, description="", ident=""):
+    return {"title": (title or "").strip(), "url": url, "location": location, "description": description,
+            "ident": str(ident or "")}
+
+def greenhouse_postings(board, timeout=30):
+    """Every posting on the board, description included. Raises on a network/HTTP error
+    (an empty list means the board is really empty) - same for the three below."""
+    url = board if board.startswith("http") else f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs"
+    url = url.replace("content=false", "content=true")
+    if "content=true" not in url:
+        url += ("&" if "?" in url else "?") + "content=true"
+    return [_posting(j.get("title"), j.get("absolute_url"), (j.get("location") or {}).get("name") or "Remote / Worldwide",
+                     _text(j.get("content")), j.get("id"))
+            for j in _get(url, timeout).get("jobs") or []]
+
+def ashby_postings(board, timeout=30):
+    url = board if board.startswith("http") else f"https://api.ashbyhq.com/posting-api/job-board/{board}"
+    if "includeCompensation" not in url:
+        url += ("&" if "?" in url else "?") + "includeCompensation=true"
+    return [_posting(j.get("title"), j.get("jobUrl"), j.get("location") or "Remote",
+                     (j.get("descriptionPlain") or "").strip() or _text(j.get("descriptionHtml")), j.get("id"))
+            for j in _get(url, timeout).get("jobs") or []]
+
+def lever_postings(board, timeout=30):
+    url = board if board.startswith("http") else f"https://api.lever.co/v0/postings/{board}?mode=json"
+    data = _get(url, timeout)
+    out = []
+    for j in data if isinstance(data, list) else []:
+        parts = [j.get("descriptionPlain") or _text(j.get("description"))]
+        parts += [f"{l.get('text') or ''}\n{_text(l.get('content'))}" for l in j.get("lists") or []]
+        parts.append(j.get("additionalPlain") or _text(j.get("additional")))
+        out.append(_posting(j.get("text"), j.get("hostedUrl"), (j.get("categories") or {}).get("location") or "Remote",
+                            "\n".join(p.strip() for p in parts if p and p.strip()), j.get("id")))
+    return out
+
+def smartrecruiters_postings(board, timeout=30):
+    """The list API carries no description; smartrecruiters_description() fetches one."""
+    url = board if board.startswith("http") else f"https://api.smartrecruiters.com/v1/companies/{board}/postings"
+    out = []
+    for j in _get(url, timeout).get("content") or []:
+        loc_obj = j.get("location") or {}
+        loc = ", ".join(p for p in (loc_obj.get("city"), loc_obj.get("country")) if p) or "Remote"
+        j_url = ((j.get("actions") or {}).get("public") or {}).get("jobAd") or \
+            f"https://jobs.smartrecruiters.com/{extract_slug(board)}/{j.get('id')}"
+        out.append(_posting(j.get("name"), j_url, loc))
+    return out
+
+def smartrecruiters_description(url, timeout=20, strict=False):
+    """Description of one jobs.smartrecruiters.com/<company>/<id> posting, '' if unknown.
+    strict=True: None when the posting is gone (HTTP 404); other errors raise."""
+    m = re.search(r"smartrecruiters\.com/([^/?#]+)/(\d+)", url or "")
+    if not m:
+        return ""
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            jobs = data.get("jobs", [])
-            results = []
-            for j in jobs:
-                title = j.get("title", "").strip()
-                persona = classify_role(title)
-                if not persona:
-                    continue
-                loc = j.get("location", {}).get("name", "Remote / Worldwide")
-                j_url = j.get("absolute_url")
-                if title and j_url:
-                    results.append({
-                        "source": "greenhouse",
-                        "company": company,
-                        "title": title,
-                        "location": loc,
-                        "url": j_url,
-                        "persona": persona
-                    })
-            return results
+        sections = (_get(f"https://api.smartrecruiters.com/v1/companies/{m[1]}/postings/{m[2]}", timeout)
+                    .get("jobAd") or {}).get("sections") or {}
+    except Exception as e:
+        if not strict:
+            return ""
+        if isinstance(e, urllib.error.HTTPError) and e.code == 404:
+            return None
+        raise
+    keys = ("companyDescription", "jobDescription", "qualifications", "additionalInformation")
+    return "\n".join(t for t in (_text((sections.get(k) or {}).get("text")) for k in keys) if t)
+
+BOARD_POSTINGS = {"greenhouse": greenhouse_postings, "ashby": ashby_postings,
+                  "lever": lever_postings, "smartrecruiters": smartrecruiters_postings}
+
+def _fetch_board(src, board):
+    """Role-matching postings of one board for harvest_all; [] on any error."""
+    company = extract_slug(board).capitalize()
+    try:
+        postings = BOARD_POSTINGS[src](board)
     except Exception:
         return []
+    out = []
+    for p in postings:
+        persona = classify_role(p["title"])
+        if persona and p["title"] and p["url"]:
+            out.append({**p, "source": src, "company": company, "persona": persona})
+    return out
+
+def fetch_greenhouse(board: str):
+    return _fetch_board("greenhouse", board)
 
 def fetch_ashby(board: str):
-    company = extract_slug(board).capitalize()
-    if board.startswith("http"):
-        url = board
-    else:
-        url = f"https://api.ashbyhq.com/posting-api/job-board/{board}"
-
-    req = urllib.request.Request(url, headers=HEADERS)
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            jobs = data.get("jobs", [])
-            results = []
-            for j in jobs:
-                title = j.get("title", "").strip()
-                persona = classify_role(title)
-                if not persona:
-                    continue
-                loc = j.get("location", "Remote")
-                j_url = j.get("jobUrl")
-                if title and j_url:
-                    results.append({
-                        "source": "ashby",
-                        "company": company,
-                        "title": title,
-                        "location": loc,
-                        "url": j_url,
-                        "persona": persona
-                    })
-            return results
-    except Exception:
-        return []
+    return _fetch_board("ashby", board)
 
 def fetch_lever(board: str):
-    company = extract_slug(board).capitalize()
-    if board.startswith("http"):
-        url = board
-    else:
-        url = f"https://api.lever.co/v0/postings/{board}?mode=json"
-
-    req = urllib.request.Request(url, headers=HEADERS)
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            jobs = json.loads(resp.read().decode("utf-8"))
-            results = []
-            if isinstance(jobs, list):
-                for j in jobs:
-                    title = j.get("text", "").strip()
-                    persona = classify_role(title)
-                    if not persona:
-                        continue
-                    cats = j.get("categories", {})
-                    loc = cats.get("location", "Remote")
-                    j_url = j.get("hostedUrl")
-                    if title and j_url:
-                        results.append({
-                            "source": "lever",
-                            "company": company,
-                            "title": title,
-                            "location": loc,
-                            "url": j_url,
-                            "persona": persona
-                        })
-            return results
-    except Exception:
-        return []
+    return _fetch_board("lever", board)
 
 def fetch_smartrecruiters(board: str):
-    company = extract_slug(board).capitalize()
-    if board.startswith("http"):
-        url = board
-    else:
-        url = f"https://api.smartrecruiters.com/v1/companies/{board}/postings"
-
-    req = urllib.request.Request(url, headers=HEADERS)
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            jobs = data.get("content", [])
-            results = []
-            for j in jobs:
-                title = j.get("name", "").strip()
-                persona = classify_role(title)
-                if not persona:
-                    continue
-                loc_obj = j.get("location", {})
-                loc_parts = [loc_obj.get("city"), loc_obj.get("country")]
-                loc = ", ".join(p for p in loc_parts if p) or "Remote"
-                actions = j.get("actions", {})
-                j_url = actions.get("public", {}).get("jobAd") or f"https://jobs.smartrecruiters.com/{extract_slug(board)}/{j.get('id')}"
-                if title and j_url:
-                    results.append({
-                        "source": "smartrecruiters",
-                        "company": company,
-                        "title": title,
-                        "location": loc,
-                        "url": j_url,
-                        "persona": persona
-                    })
-            return results
-    except Exception:
-        return []
+    return _fetch_board("smartrecruiters", board)
 
 def fetch_wwr_jobs():
     import xml.etree.ElementTree as ET
@@ -321,7 +291,8 @@ def fetch_wwr_jobs():
                         "title": title,
                         "location": "Remote / Worldwide",
                         "url": link,
-                        "persona": persona
+                        "persona": persona,
+                        "description": _text(item.findtext("description")),
                     })
         except Exception:
             pass
@@ -353,7 +324,8 @@ def fetch_remoteok_jobs():
                             "title": title,
                             "location": loc,
                             "url": j_url,
-                            "persona": persona
+                            "persona": persona,
+                            "description": _text(j.get("description")),
                         })
         except Exception:
             pass
@@ -425,7 +397,8 @@ def fetch_jobicy_jobs():
                         "title": title,
                         "location": loc,
                         "url": j_url,
-                        "persona": persona
+                        "persona": persona,
+                        "description": _text(j.get("jobDescription") or j.get("jobExcerpt")),
                     })
         except Exception:
             pass
@@ -455,7 +428,8 @@ def fetch_arbeitnow_jobs():
                     "title": title,
                     "location": loc,
                     "url": j_url,
-                    "persona": persona
+                    "persona": persona,
+                    "description": _text(j.get("description")),
                 })
     except Exception:
         pass
@@ -485,10 +459,13 @@ def fetch_himalayas_jobs():
                     "title": title,
                     "location": loc,
                     "url": j_url,
-                    "persona": persona
+                    "persona": persona,
+                    "description": _text(j.get("description") or j.get("excerpt")),
                 })
     except Exception:
         pass
+    return results
+
 def fetch_hacker_news_jobs():
     results = []
     try:
@@ -553,7 +530,8 @@ def fetch_hacker_news_jobs():
                         "title": title,
                         "location": loc,
                         "url": j_url,
-                        "persona": persona
+                        "persona": persona,
+                        "description": _text(raw),
                     })
     except Exception:
         pass
@@ -585,7 +563,8 @@ def fetch_cryptocurrency_jobs():
                     "title": title.strip(),
                     "location": "Remote / Worldwide",
                     "url": link,
-                    "persona": persona
+                    "persona": persona,
+                    "description": _text(it.findtext("description")),
                 })
     except Exception:
         pass
@@ -727,6 +706,14 @@ def harvest_all(limit_boards: int = 0, dry_run: bool = False, max_workers: int =
     cyber_found = sum(1 for j in total_harvested if j["persona"] == "appsec")
     print(f"\nHarvesting complete. Discovered: {len(total_harvested)} matching vacancies (Creative: {creative_found}, Cybersec: {cyber_found}).")
 
+    # SmartRecruiters lists postings without text: one detail call per NEW posting
+    sr_new = [j for j in total_harvested if j["source"] == "smartrecruiters"
+              and not j.get("description") and j["url"] not in existing_urls]
+    if sr_new and not dry_run:
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            for j, d in zip(sr_new, ex.map(lambda j: smartrecruiters_description(j["url"]), sr_new)):
+                j["description"] = d
+
     new_jobs = []
     now_iso = datetime.now(timezone.utc).isoformat()
 
@@ -752,7 +739,7 @@ def harvest_all(limit_boards: int = 0, dry_run: bool = False, max_workers: int =
             comp,
             j["location"],
             url,
-            f"Auto-harvested via {j['source']} board public API.",
+            j.get("description") or f"Auto-harvested via {j['source']} board public API.",
             score,
             cv_file,
             "queued",
@@ -774,7 +761,7 @@ def harvest_all(limit_boards: int = 0, dry_run: bool = False, max_workers: int =
 
     if not dry_run and new_jobs:
         cur.executemany("""
-            INSERT INTO jobs (
+            INSERT OR IGNORE INTO jobs (
                 id, source, keyword, title, company, location, url,
                 description, score, cv, status, created_at, updated_at,
                 dead_listing, hidden, claim_token, claimed_at, salary, persona
@@ -787,12 +774,132 @@ def harvest_all(limit_boards: int = 0, dry_run: bool = False, max_workers: int =
 
     con.close()
 
+PLACEHOLDER_LIKE = "Auto-harvested via %"
+SPONSOR_PLACEHOLDER_LIKE = "% register of % (board %/%)."   # tools/sponsors.py discover_postings
+MISS_CACHE = DB_PATH.parent / "desc_backfill_misses.json"
+MISS_TTL_HOURS = 24
+
+def board_of(row):
+    """(ats, board slug) a harvested row's posting lives on, else None."""
+    from ats_schema import _route
+    u = urllib.parse.urlparse(row.get("url") or "")
+    host, parts = u.netloc.lower(), [p for p in u.path.split("/") if p]
+    route = _route(row.get("url"))
+    if route and route[0] in ("greenhouse", "ashby"):
+        return route[0], route[1]
+    if host.endswith("greenhouse.io") and parts and parts[0] != "embed":
+        return "greenhouse", parts[0]
+    if host == "jobs.lever.co" and parts:
+        return "lever", parts[0]
+    if host == "jobs.smartrecruiters.com" and parts:
+        return "smartrecruiters", parts[0]
+    if "gh_jid=" in u.query:   # custom careers domain: the board is named after the company
+        return "greenhouse", (row.get("company") or "").lower()
+    if row.get("source") in BOARD_POSTINGS and row.get("company"):
+        return row["source"], row["company"].lower()
+    return None
+
+def _refresh_board(ats, slug, rows):
+    """One board call for all its rows -> ({id: description}, [dead ids]); raises when the
+    board itself can't be read, so a network blip never marks anything dead."""
+    found, dead = {}, []
+    if ats == "smartrecruiters":   # the list API is paginated, so ask for each posting itself
+        for r in rows:
+            d = smartrecruiters_description(r["url"], strict=True)
+            if d is None:
+                dead.append(r["id"])
+            elif d:
+                found[r["id"]] = d
+        return found, dead
+    postings = BOARD_POSTINGS[ats](slug)
+    by_url = {p["url"]: p for p in postings if p["url"]}
+    by_id = {p["ident"]: p for p in postings if p["ident"]}
+    by_title = {p["title"].lower(): p for p in postings if p["title"]}
+    for r in rows:
+        m = re.search(r"(?:gh_jid=|/jobs/|/)(\d{5,}|[0-9a-f]{8}-[0-9a-f-]{27})", r["url"] or "")
+        p = by_url.get(r["url"]) or (m and by_id.get(m[1])) or by_title.get((r["title"] or "").strip().lower())
+        if not p:
+            dead.append(r["id"])
+        elif p["description"]:
+            found[r["id"]] = p["description"]
+    return found, dead
+
+def backfill_descriptions(limit=0, days=7, workers=12, dry_run=False):
+    """Replace "Auto-harvested via ..." placeholders with the posting text for recent
+    queued title-fit rows, one API call per board; postings gone from their board
+    become dead_listing=1. Boards that failed are skipped for MISS_TTL_HOURS."""
+    import autopilot as A
+    cfg = A.read_json(A.CFG)
+    con = sqlite3.connect(DB_PATH, timeout=30)
+    con.row_factory = sqlite3.Row
+    con.execute("PRAGMA busy_timeout=30000")
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()[:19]
+    rows = [dict(r) for r in con.execute(
+        "SELECT id, url, title, company, source, persona FROM jobs WHERE (description LIKE ? OR description LIKE ? OR length(coalesce(description, '')) < 200) "
+        "AND status='queued' AND dead_listing=0 AND hidden=0 AND created_at >= ? ORDER BY created_at DESC",
+        (PLACEHOLDER_LIKE, SPONSOR_PLACEHOLDER_LIKE, since))]
+    rows = [r for r in rows if A.title_fit(r, cfg)]
+    if limit:
+        rows = rows[:limit]
+    try:
+        misses = json.loads(MISS_CACHE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        misses = {}
+    now = datetime.now(timezone.utc)
+    fresh_miss = {k for k, ts in misses.items()
+                  if now - datetime.fromisoformat(ts) < timedelta(hours=MISS_TTL_HOURS)}
+    boards, no_board = {}, 0
+    for r in rows:
+        b = board_of(r)
+        if b is None:
+            no_board += 1
+        elif f"{b[0]}:{b[1]}" not in fresh_miss:
+            boards.setdefault(b, []).append(r)
+    print(f"Backfill: {len(rows)} title-fit placeholder rows (last {days}d) on {len(boards)} boards; "
+          f"{no_board} rows have no board API, {len(fresh_miss)} boards skipped as recent misses")
+    got, dead, failed, failed_rows = {}, [], [], 0
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futs = {ex.submit(_refresh_board, ats, slug, rs): (ats, slug) for (ats, slug), rs in boards.items()}
+        for f in as_completed(futs):
+            ats, slug = futs[f]
+            try:
+                found, gone = f.result()
+            except Exception as e:
+                failed.append(f"{ats}:{slug}")
+                failed_rows += len(boards[(ats, slug)])
+                print(f"  [miss] {ats}:{slug}: {type(e).__name__}: {str(e)[:80]}")
+                continue
+            got.update(found)
+            dead += gone
+    now_iso = now.isoformat()
+    if not dry_run:
+        con.executemany("UPDATE jobs SET description=?, updated_at=? WHERE id=?",
+                        [(d, now_iso, jid) for jid, d in got.items()])
+        con.executemany("UPDATE jobs SET dead_listing=1, updated_at=? WHERE id=?", [(now_iso, jid) for jid in dead])
+        con.commit()
+        misses = {k: ts for k, ts in misses.items() if k in fresh_miss}
+        misses.update({k: now_iso for k in failed})
+        MISS_CACHE.write_text(json.dumps(misses, indent=1), encoding="utf-8")
+    con.close()
+    result = {"rows": len(rows), "boards": len(boards), "described": len(got), "dead": len(dead),
+              "failed_boards": len(failed), "failed_board_rows": failed_rows, "no_board_api": no_board, "dry_run": dry_run}
+    print(json.dumps(result))
+    return result
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Continuous ATS Board Harvester")
     parser.add_argument("--limit-boards", type=int, default=0, help="Limit number of boards to query per ATS (for testing)")
     parser.add_argument("--dry-run", action="store_true", help="Simulate without inserting into jobs.db")
     parser.add_argument("--workers", type=int, default=20, help="Thread pool concurrency")
     parser.add_argument("--source", type=str, default="all", choices=["all", "ats", "direct_feeds", "api_feeds", "yc", "hidden", "hn", "crypto"], help="Source filter")
+    parser.add_argument("--backfill-descriptions", action="store_true",
+                        help="Fill placeholder descriptions of recent title-fit queued jobs from their boards")
+    parser.add_argument("--limit", type=int, default=0, help="Backfill: max rows (newest first)")
+    parser.add_argument("--days", type=float, default=7, help="Backfill: only rows created in the last D days")
     args = parser.parse_args()
 
+    if args.backfill_descriptions:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        backfill_descriptions(limit=args.limit, days=args.days, workers=min(args.workers, 12), dry_run=args.dry_run)
+        sys.exit(0)
     harvest_all(limit_boards=args.limit_boards, dry_run=args.dry_run, max_workers=args.workers, source_filter=args.source)

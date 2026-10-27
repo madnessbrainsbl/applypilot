@@ -50,6 +50,14 @@ CREATE TABLE IF NOT EXISTS pending_questions (
     first_seen TEXT,
     last_seen TEXT
 );
+CREATE TABLE IF NOT EXISTS answer_decisions (
+    question_key TEXT NOT NULL, job_url TEXT NOT NULL, persona TEXT,
+    question TEXT, company TEXT, source TEXT, method TEXT, status TEXT,
+    draft TEXT, answer TEXT, reason TEXT, evidence TEXT, context_key TEXT,
+    cv TEXT, checked_at TEXT,
+    PRIMARY KEY (question_key, job_url)
+);
+CREATE INDEX IF NOT EXISTS idx_answer_decisions_context ON answer_decisions(context_key);
 CREATE TABLE IF NOT EXISTS run_locks (
     name TEXT PRIMARY KEY,
     token TEXT NOT NULL,
@@ -105,6 +113,13 @@ CREATE TABLE IF NOT EXISTS auto_replies (
     status TEXT DEFAULT 'sent'
 );
 CREATE INDEX IF NOT EXISTS idx_replies_msg ON auto_replies(message_id);
+CREATE TABLE IF NOT EXISTS source_runs (
+    run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source TEXT, persona TEXT, started_at TEXT, finished_at TEXT,
+    found INTEGER DEFAULT 0, stored INTEGER DEFAULT 0,
+    queued_after INTEGER DEFAULT 0, errors INTEGER DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_source_runs_src ON source_runs(source, finished_at);
 """
 
 OUTCOME_STATUSES = ["replied", "screening", "interview", "offer",
@@ -129,7 +144,7 @@ def connect():
 
 def _migrate_columns(con):
     """CREATE TABLE IF NOT EXISTS doesn't add columns to an already-existing
-    table — patch older jobs.db files created before these columns existed."""
+    table \u2014 patch older jobs.db files created before these columns existed."""
     cols = {r["name"] for r in con.execute("PRAGMA table_info(jobs)").fetchall()}
     if "hidden" not in cols:
         con.execute("ALTER TABLE jobs ADD COLUMN hidden INTEGER DEFAULT 0")
@@ -141,7 +156,14 @@ def _migrate_columns(con):
         con.execute("ALTER TABLE jobs ADD COLUMN salary TEXT")
     if "persona" not in cols:
         con.execute("ALTER TABLE jobs ADD COLUMN persona TEXT DEFAULT 'appsec'")
+    # CV<->description keyword match, cached; cv_match_key names the CV file+mtime and
+    # the text it was computed from, so a new CV or an edited posting recomputes
+    if "cv_match" not in cols:
+        con.execute("ALTER TABLE jobs ADD COLUMN cv_match REAL")
+    if "cv_match_key" not in cols:
+        con.execute("ALTER TABLE jobs ADD COLUMN cv_match_key TEXT")
     con.execute("CREATE INDEX IF NOT EXISTS idx_jobs_persona ON jobs(persona)")
+    con.execute("CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status)")
 
     acols = {r["name"] for r in con.execute("PRAGMA table_info(applications)").fetchall()}
     for col, ddl in (("needs_manual", "needs_manual INTEGER DEFAULT 0"),
@@ -149,6 +171,7 @@ def _migrate_columns(con):
                      ("persona", "persona TEXT DEFAULT 'appsec'"), ("confirmation", "confirmation TEXT")):
         if col not in acols:
             con.execute(f"ALTER TABLE applications ADD COLUMN {ddl}")
+    con.execute("CREATE INDEX IF NOT EXISTS idx_apps_submitted ON applications(submitted, applied_at)")
     con.commit()
 
 
@@ -196,7 +219,8 @@ def upsert_job(con, job, commit=True):
            ON CONFLICT(id) DO UPDATE SET
                score=excluded.score, description=excluded.description,
                title=excluded.title, company=excluded.company, location=excluded.location,
-               status=excluded.status, cv=excluded.cv,
+               status=CASE WHEN jobs.status IN ('applied','manual','manual_contact','dead_listing','pending','pending_confirmation')
+                           THEN jobs.status ELSE excluded.status END, cv=excluded.cv,
                salary=COALESCE(excluded.salary, jobs.salary),
                persona=COALESCE(excluded.persona, jobs.persona, 'appsec'),
                updated_at=excluded.created_at""",
@@ -237,7 +261,7 @@ def insert_application(con, rec, commit=True):
 
 def manual_needed(con):
     """Jobs the bot filled but couldn't auto-submit (Ashby spam-block, captcha, etc.)
-    and that haven't since been resolved — the dashboard shows these as alerts with a
+    and that haven't since been resolved \u2014 the dashboard shows these as alerts with a
     link so the user can finish them by hand. One row per job (latest attempt); drops
     any job later marked submitted or dismissed."""
     rows = con.execute(
@@ -259,24 +283,34 @@ def dismiss_manual(con, job_id):
     con.commit()
 
 
+# A watchdog stall before the form is touched cannot have sent anything: the first one
+# leaves the vacancy eligible, a second one skips it. A stall at any later step stays
+# skipped at once (the outcome is unknown; a timeout never authorizes another send).
+_SAFE_STALL_STEPS = ("start", "ats schema", "launch browser", "open page", "resolve apply url", "cover letter")
+_SAFE_STALL = " OR ".join(f"manual_reason LIKE '%stalled the run at step ''{x}''%'" for x in _SAFE_STALL_STEPS)
+
+
 def skip_ids(con):
     """Exclude submitted, manual and delisted jobs. Unconfirmed attempts remain
     for human review regardless of age; a timeout never authorizes another send."""
     rows = con.execute(
-        """SELECT job_id FROM applications WHERE submitted=1
+        f"""SELECT job_id FROM applications WHERE submitted=1
            UNION SELECT id FROM jobs WHERE dead_listing=1
-           UNION SELECT job_id FROM applications WHERE needs_manual=1
+           UNION SELECT job_id FROM applications WHERE needs_manual=1 AND NOT coalesce({_SAFE_STALL}, 0)
            UNION SELECT id FROM jobs WHERE status IN ('pending','pending_confirmation')
            UNION SELECT job_id FROM applications WHERE coalesce(dry_run,0)=0 AND manual_reason LIKE '%confirm%'
            UNION SELECT job_id FROM applications WHERE manual_reason LIKE '%blocked this automated session as spam%'
            UNION SELECT job_id FROM applications WHERE manual_reason LIKE '%signing in with a Google account%'
            UNION SELECT job_id FROM applications WHERE manual_reason LIKE '%creating or signing in to a site account%'
            UNION SELECT job_id FROM applications WHERE manual_reason LIKE '%posting requires pre-existing eligibility%'
-           UNION SELECT job_id FROM applications WHERE manual_reason LIKE '%stalled the run%'
-                 GROUP BY job_id HAVING COUNT(*) >= 2"""
+           UNION SELECT job_id FROM (SELECT job_id FROM applications WHERE {_SAFE_STALL}
+                                     GROUP BY job_id HAVING COUNT(*) >= 2)"""
     ).fetchall()
     return {r[0] for r in rows}
 
+
+_JOB_COLS_NO_DESC = ("id, source, keyword, title, company, location, url, score, cv, status, created_at, updated_at, "
+                     "dead_listing, hidden, claim_token, claimed_at, salary, persona, cv_match, cv_match_key")
 
 STALENESS_PENALTY = """
     CASE
@@ -297,7 +331,8 @@ TIER_BOOST = """
 """
 
 
-def eligible_jobs(con, min_score, persona=None):
+def eligible_jobs(con, min_score, persona=None, with_description=True):
+    # ponytail: callers that only count (status) pass with_description=False; the apply gate reads the text, so it keeps it
     skip = skip_ids(con)
     stale = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
     claimed_rows = con.execute("SELECT id, claim_token FROM jobs WHERE claim_token IS NOT NULL").fetchall()
@@ -319,8 +354,9 @@ def eligible_jobs(con, min_score, persona=None):
         where_extra = "AND (persona = ? OR (persona IS NULL AND ? = 'appsec'))"
         params.extend([persona, persona])
 
+    cols = "*" if with_description else _JOB_COLS_NO_DESC
     rows = con.execute(
-        f"""SELECT *, score - ({STALENESS_PENALTY}) + ({TIER_BOOST}) AS priority FROM jobs
+        f"""SELECT {cols}, score - ({STALENESS_PENALTY}) + ({TIER_BOOST}) AS priority FROM jobs
            WHERE score >= ? AND dead_listing=0 AND hidden=0
            AND (claim_token IS NULL OR claimed_at < ?)
            {where_extra}
@@ -330,26 +366,72 @@ def eligible_jobs(con, min_score, persona=None):
 
 
 def _slug(s):
-    # same as autopilot.slug — importing autopilot here would be circular
+    # same as autopilot.slug \u2014 importing autopilot here would be circular
     return re.sub(r"[^a-z0-9]+", "-", (s or "job").lower()).strip("-")[:80] or "job"
 
 
+def _recent_submitted(con, days):
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    return con.execute(
+        """SELECT DISTINCT a.job_id, j.company, j.title FROM applications a
+           JOIN jobs j ON j.id = a.job_id
+           WHERE (a.submitted = 1
+                  OR (a.needs_manual = 1 AND coalesce(a.dry_run,0) = 0 AND a.manual_reason LIKE '%confirm%'))
+             AND a.applied_at >= ?""", (since,)).fetchall()
+
+
 def recent_company_counts(con, days):
-    """{company_slug: submitted applications in the last `days` days} — the
+    """{company_slug: submitted applications in the last `days` days} \u2014 the
     per-run company cap has no memory, so repeated runs kept hitting the same
     company (Ashby: ~5 per 180 days, spam-blocks bursts). applied_at is Python
     isoformat, so the cut-off is too: SQLite datetime('now') uses a different
     format and string comparison against it is wrong."""
-    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
-    rows = con.execute(
-        """SELECT j.company, COUNT(DISTINCT a.job_id) FROM applications a
-           JOIN jobs j ON j.id = a.job_id
-           WHERE a.submitted = 1 AND a.applied_at >= ?
-           GROUP BY j.company""", (since,)).fetchall()
     out = {}
-    for company, n in rows:
-        out[_slug(company)] = out.get(_slug(company), 0) + n
+    for _jid, company, _t in _recent_submitted(con, days):
+        out[_slug(company)] = out.get(_slug(company), 0) + 1
     return out
+
+
+_LOC = (r"remote|hybrid|emea|apac|amer|latam|europe|eu|uk|us|usa|germany|berlin|london|munich|amsterdam|paris|dublin|"
+        r"warsaw|madrid|barcelona|lisbon|zurich|vienna|singapore|new york|san francisco|dubai|belgrade|toronto|sydney")
+_GENDER_RE = re.compile(r"\b[mwfdx]\s*[/|,]\s*[mwfdx*]\b(?:\s*[/|,]\s*[mwfdx*]\b)*|\ball genders?\b", re.I)
+_LOC_TAIL_RE = re.compile(r"\s*[-\u2013\u2014|,]\s*(?:" + _LOC + r")\b[^-\u2013\u2014|]*$", re.I)
+
+
+def norm_title(title):
+    """Role identity for duplicate checks: drops (m/f/d) style gender marks, bracketed
+    gender/location notes and a trailing '- Berlin' style location."""
+    t = re.sub(r"[(\[]([^)\]]*)[)\]]",
+               lambda m: " " if _GENDER_RE.search(m.group(1)) or re.search(r"\b(?:" + _LOC + r")\b", m.group(1), re.I)
+               else m.group(0), title or "")
+    t = _GENDER_RE.sub(" ", t)
+    return _slug(_LOC_TAIL_RE.sub("", t.strip()))
+
+
+def role_submitted(con, company, title, days=90):
+    """Was this (company, role) already submitted in the window, under any job id?"""
+    key = (_slug(company), norm_title(title))
+    return any((_slug(c), norm_title(t)) == key for _j, c, t in _recent_submitted(con, days))
+
+
+def _company_ids(con, company, days, exclude=None):
+    """Job ids at `company` submitted in the window, plus ones a live worker has claimed
+    right now (a claim is the only thing visible before the application row exists)."""
+    s = _slug(company)
+    ids = {j for j, c, _t in _recent_submitted(con, days) if _slug(c) == s}
+    stale = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    for jid, c, tok in con.execute(
+            "SELECT id, company, claim_token FROM jobs WHERE claim_token IS NOT NULL AND claimed_at >= ?", (stale,)):
+        pid = _token_pid(tok)
+        if _slug(c) == s and not (pid > 0 and not _pid_alive(pid)):
+            ids.add(jid)
+    ids.discard(exclude)
+    return ids
+
+
+def save_cv_match(con, job_id, key, pct):
+    """Caller commits: the apply gate writes one row per job, then commits once."""
+    con.execute("UPDATE jobs SET cv_match=?, cv_match_key=? WHERE id=?", (pct, key, job_id))
 
 
 def live_cv_references(con, cv_name):
@@ -364,7 +446,7 @@ def reassign_cv(con, old_name, new_name):
     con.commit()
     return cur.rowcount
 
-def claim_job(con, job_id, token, stale_seconds=3600):
+def claim_job(con, job_id, token, stale_seconds=3600, company_cap=None, window_days=90):
     stale = (datetime.now(timezone.utc) - timedelta(seconds=stale_seconds)).isoformat()
     now = datetime.now(timezone.utc).isoformat()
     try:
@@ -374,6 +456,12 @@ def claim_job(con, job_id, token, stale_seconds=3600):
             pid = _token_pid(held[0])
             if pid > 0 and not _pid_alive(pid):
                 con.execute("UPDATE jobs SET claim_token=NULL, claimed_at=NULL WHERE id=?", (job_id,))
+        if company_cap:
+            # under the write lock, so parallel workers cannot both pass for one company
+            co = con.execute("SELECT company FROM jobs WHERE id=?", (job_id,)).fetchone()
+            if co and len(_company_ids(con, co[0], window_days, exclude=job_id)) >= company_cap:
+                con.rollback()
+                return False
         cur = con.execute(
             """UPDATE jobs SET claim_token=?, claimed_at=? WHERE id=?
                AND dead_listing=0 AND hidden=0
@@ -431,7 +519,7 @@ def acquire_run_lock(con, name, token, stale_seconds=7200):
         held = con.execute("SELECT token, acquired_at FROM run_locks WHERE name=?", (name,)).fetchone()
         if held:
             pid = _token_pid(held[0])
-            # age alone must not free a lock whose process is still running — a long
+            # age alone must not free a lock whose process is still running \u2014 a long
             # single-worker batch outlives stale_seconds and got a second run beside it
             if (not _pid_alive(pid)) if pid > 0 else held[1] < stale:
                 con.execute("DELETE FROM run_locks WHERE name=? AND token=?", (name, held[0]))
@@ -472,14 +560,14 @@ def applications_with_job(con, limit=15):
 
 def mark_dead_if_missing(con, source, seen_ids, exclude_companies=()):
     """A vendor board fetch returns the company's FULL current listing every
-    run — any previously-stored job from that source absent from the fresh
+    run \u2014 any previously-stored job from that source absent from the fresh
     fetch has been delisted (and vice versa: reappearing ids are un-marked).
     No per-job page visit needed. `exclude_companies` skips boards whose fetch
     failed this run (a network hiccup must not look like a mass delisting)."""
     exclude = {c.lower() for c in exclude_companies}
     rows = con.execute("SELECT id, company, dead_listing FROM jobs WHERE source=?", (source,)).fetchall()
     # substring match: the board-slug guess ("wolt") often isn't the exact stored
-    # company name (the board's own feed can say "Wolt - English") — a straight
+    # company name (the board's own feed can say "Wolt - English") \u2014 a straight
     # equality check missed that and wrongly nuked 140 real jobs on a failed fetch.
     rows = [r for r in rows if not any(x in (r["company"] or "").lower() for x in exclude)]
     newly_dead = [r["id"] for r in rows if r["id"] not in seen_ids and not r["dead_listing"]]
@@ -499,7 +587,7 @@ def set_dead_listing(con, job_id, dead=True):
 
 def recheck_candidates(con, min_score, limit):
     """Jobs due for a liveness re-visit: not already known-dead/hidden, above the
-    score floor, oldest-checked first. Excludes 'vendor' — mark_dead_if_missing
+    score floor, oldest-checked first. Excludes 'vendor' \u2014 mark_dead_if_missing
     already re-verifies those in full on every discover() run."""
     rows = con.execute(
         """SELECT id, url, company, title FROM jobs
@@ -512,10 +600,51 @@ def recheck_candidates(con, min_score, limit):
 
 def hide_job(con, job_id):
     """User manually removed this listing from the queue. Separate from
-    dead_listing (which the scraper owns and can revive) — discover() must
+    dead_listing (which the scraper owns and can revive) \u2014 discover() must
     never un-hide something the user deliberately hid."""
     con.execute("UPDATE jobs SET hidden=1 WHERE id=?", (job_id,))
     con.commit()
+
+
+def record_source_run(con, source, persona, started_at, finished_at, found=0, stored=0, queued_after=0, errors=0, commit=True):
+    """One row per discover pass of one source for one persona (`sources` / `report --json`)."""
+    con.execute("INSERT INTO source_runs (source, persona, started_at, finished_at, found, stored, queued_after, errors) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (source, persona, started_at, finished_at, int(found), int(stored), int(queued_after), int(errors)))
+    if commit:
+        con.commit()
+
+
+def empty_source_row(src):
+    return {"source": src, "runs": 0, "last_run": None, "last_found": 0, "last_stored": 0, "last_errors": 0,
+            "found_total": 0, "stored_total": 0, "jobs": 0, "queued": 0, "submitted": 0, "interviews": 0}
+
+
+def source_stats(con):
+    """{source: {...}} over source_runs plus jobs/applications/outcomes by jobs.source.
+    last_* describe the newest run (all personas of it summed); submitted / interviews are
+    confirmed applications and interview+ outcomes (interview, offer, hired) of that source's jobs."""
+    out = {}
+
+    def row(src):
+        return out.setdefault(src, empty_source_row(src))
+    for r in con.execute("SELECT source, count(*) n, max(finished_at) last, sum(found) f, sum(stored) s "
+                         "FROM source_runs GROUP BY source"):
+        d = row(r["source"]); d.update(runs=r["n"], last_run=r["last"], found_total=r["f"] or 0, stored_total=r["s"] or 0)
+    for src, d in out.items():   # newest invocation: one discover run writes all its persona rows with the same finished_at
+        r = con.execute("SELECT sum(found) f, sum(stored) s, sum(errors) e FROM source_runs "
+                        "WHERE source=? AND finished_at = (SELECT max(finished_at) FROM source_runs WHERE source=?)",
+                        (src, src)).fetchone()
+        d.update(last_found=r["f"] or 0, last_stored=r["s"] or 0, last_errors=r["e"] or 0)
+    for r in con.execute("SELECT coalesce(source,'?') src, count(*) n, sum(status='queued') q FROM jobs GROUP BY 1"):
+        d = row(r["src"]); d.update(jobs=r["n"], queued=r["q"] or 0)
+    for r in con.execute("SELECT coalesce(j.source,'?') src, count(DISTINCT a.job_id) n FROM applications a "
+                         "JOIN jobs j ON j.id=a.job_id WHERE a.submitted=1 GROUP BY 1"):
+        row(r["src"])["submitted"] = r["n"]
+    for r in con.execute("SELECT coalesce(j.source,'?') src, count(DISTINCT o.job_id) n FROM outcomes o "
+                         "JOIN jobs j ON j.id=o.job_id WHERE o.status IN ('interview','offer','hired') GROUP BY 1"):
+        row(r["src"])["interviews"] = r["n"]
+    return out
 
 
 def counts(con):
@@ -539,9 +668,25 @@ def get_qa_answer(con, key):
     """Look up a cached form-question answer; bumps the reuse counter so hit
     rate is visible (most vacancies repeat the same handful of questions)."""
     row = con.execute("SELECT answer FROM qa_answers WHERE question_key=?", (key,)).fetchone()
+    target_key = key
+    if row is None and " | options:" in key:
+        base_key = key.split(" | options:")[0]
+        row = con.execute("SELECT answer FROM qa_answers WHERE question_key=?", (base_key,)).fetchone()
+        if row is not None:
+            target_key = base_key
+    if row is None and "@" in key:
+        unscoped = key.split("@", 1)[1]
+        row = con.execute("SELECT answer FROM qa_answers WHERE question_key=?", (unscoped,)).fetchone()
+        if row is not None:
+            target_key = unscoped
+        elif " | options:" in unscoped:
+            base_unscoped = unscoped.split(" | options:")[0]
+            row = con.execute("SELECT answer FROM qa_answers WHERE question_key=?", (base_unscoped,)).fetchone()
+            if row is not None:
+                target_key = base_unscoped
     if row is None:
         return None
-    con.execute("UPDATE qa_answers SET hits = hits + 1 WHERE question_key=?", (key,))
+    con.execute("UPDATE qa_answers SET hits = hits + 1 WHERE question_key=?", (target_key,))
     con.commit()
     return row["answer"]
 
@@ -555,7 +700,8 @@ def save_qa_answer(con, key, label, answer, company=""):
                answer=excluded.answer, company=excluded.company, updated_at=excluded.updated_at""",
         (key, label, answer, company, now, now),
     )
-    con.commit()
+    clear_answered_pending(con)   # commits
+
 
 
 def record_outcome(con, job_id, status, note="", commit=True):
@@ -698,7 +844,7 @@ def qa_stats(con):
 
 def application_stats(con):
     """Aggregates over the FULL application history (not just the recent-N
-    shown in the Applied table) — for the dashboard's Statistics tab."""
+    shown in the Applied table) \u2014 for the dashboard's Statistics tab."""
     row = con.execute(
         "SELECT COUNT(*), COALESCE(SUM(submitted),0), COALESCE(SUM(dead_listing),0), COALESCE(AVG(filled_fields),0) FROM applications"
     ).fetchone()
@@ -715,7 +861,7 @@ def application_stats(con):
 
 
 def list_qa_answers(con):
-    """Most-reused first — the questions worth double-checking, since a wrong
+    """Most-reused first \u2014 the questions worth double-checking, since a wrong
     answer here gets repeated on every future vacancy until corrected."""
     rows = con.execute("SELECT * FROM qa_answers ORDER BY hits DESC, updated_at DESC").fetchall()
     return [dict(r) for r in rows]
@@ -729,6 +875,7 @@ def record_pending_question(con, key, label, options, company, job_url, commit=T
            VALUES (?,?,?,?,?,1,?,?)
            ON CONFLICT(question_key) DO UPDATE SET
                seen = seen + 1, last_seen = excluded.last_seen,
+               job_url = COALESCE(NULLIF(excluded.job_url,''), job_url),
                company = COALESCE(NULLIF(excluded.company,''), company)""",
         (key, label, json.dumps(list(options or []), ensure_ascii=False), company or "", job_url or "", now, now))
     if commit: con.commit()
@@ -736,18 +883,80 @@ def record_pending_question(con, key, label, options, company, job_url, commit=T
 
 def list_pending_questions(con, limit=50):
     rows = con.execute(
-        """SELECT p.* FROM pending_questions p
-           WHERE NOT EXISTS (SELECT 1 FROM qa_answers a WHERE a.question_key = p.question_key)
+        f"""SELECT p.*, d.reason FROM pending_questions p
+           LEFT JOIN answer_decisions d ON d.question_key=p.question_key AND d.job_url=p.job_url
+           WHERE {_PENDING_UNRESOLVED}
            ORDER BY p.seen DESC, p.last_seen DESC LIMIT ?""", (limit,)).fetchall()
     return [dict(r) for r in rows]
 
 
 def clear_answered_pending(con):
     n = con.execute(
-        """DELETE FROM pending_questions
-           WHERE question_key IN (SELECT question_key FROM qa_answers)""").rowcount
+        f"""DELETE FROM pending_questions WHERE question_key IN
+           (SELECT p.question_key FROM pending_questions p WHERE NOT ({_PENDING_UNRESOLVED}))""").rowcount
     con.commit()
     return n
+
+
+_PENDING_UNRESOLVED = """NOT EXISTS (
+    SELECT 1 FROM qa_answers a WHERE a.question_key=p.question_key
+    AND NOT EXISTS (SELECT 1 FROM answer_decisions d
+        WHERE d.question_key=p.question_key AND d.job_url=p.job_url AND d.status='manual'
+        AND d.checked_at >= coalesce(a.updated_at, '')))"""
+
+
+def record_answer_decision(con, decision):
+    fields = ("question_key", "job_url", "persona", "question", "company", "source", "method",
+              "status", "draft", "answer", "reason", "evidence", "context_key", "cv", "checked_at")
+    row = {**decision, "checked_at": datetime.now(timezone.utc).isoformat(),
+           "evidence": json.dumps(decision.get("evidence", []), ensure_ascii=False)}
+    con.execute("INSERT INTO answer_decisions (" + ",".join(fields) + ") VALUES (" +
+                ",".join("?" for _ in fields) + ") ON CONFLICT(question_key,job_url) DO UPDATE SET " +
+                ",".join(f"{f}=excluded.{f}" for f in fields[2:]), [row.get(f, "") for f in fields])
+    con.commit()
+
+
+def get_answer_review(con, context_key):
+    row = con.execute("SELECT * FROM answer_decisions WHERE context_key=? AND method='cv_review' "
+                      "AND status IN ('approved','revised') ORDER BY checked_at DESC LIMIT 1",
+                      (context_key,)).fetchone()
+    return {**dict(row), "evidence": json.loads(row["evidence"])} if row else None
+
+
+def list_answer_decisions(con, limit=30):
+    rows = con.execute("SELECT * FROM answer_decisions ORDER BY checked_at DESC LIMIT ?", (limit,)).fetchall()
+    return [{**dict(r), "evidence": json.loads(r["evidence"] or "[]")} for r in rows]
+
+
+def fix_job_statuses(con):
+    """One-off repair: upsert_job used to reset applied jobs to 'queued' on re-discovery.
+    Submitted jobs get 'applied' again; 'applied' without any submission goes back to 'queued'."""
+    sub = "SELECT job_id FROM applications WHERE submitted=1"
+    up = con.execute(f"UPDATE jobs SET status='applied' WHERE coalesce(status,'')<>'applied' AND id IN ({sub})").rowcount
+    down = con.execute(f"UPDATE jobs SET status='queued' WHERE status='applied' AND id NOT IN ({sub})").rowcount
+    con.commit()
+    return up, down
+
+
+_CREATIVE_RE = re.compile(r"photograph|davinci|premiere pro|after effects|lightroom|photo and video|photo & video|"
+                          r"commercial production|tilda\.ws|video ads you", re.I)
+
+
+def fix_qa_personas(con):
+    """One-off repair: creative answers filed under unprefixed (appsec) keys move to
+    'creative@<key>' (dropped if that exists); the AppSec certifications answer filed under a
+    creative key is deleted so it regenerates. Returns (moved, dropped)."""
+    moved = dropped = 0
+    for key, answer in con.execute(
+            "SELECT question_key, answer FROM qa_answers WHERE question_key NOT LIKE 'creative@%'").fetchall():
+        if _CREATIVE_RE.search(answer or "") and not re.search(r"security", answer, re.I):   # mixed answers stay appsec
+            n = con.execute("UPDATE OR IGNORE qa_answers SET question_key=? WHERE question_key=?", ("creative@" + key, key)).rowcount
+            if n: moved += 1
+            else:
+                con.execute("DELETE FROM qa_answers WHERE question_key=?", (key,)); dropped += 1
+    dropped += con.execute("DELETE FROM qa_answers WHERE question_key LIKE 'creative@%' AND answer LIKE '%Security+%'").rowcount
+    con.commit()
+    return moved, dropped
 
 
 def update_qa_answer(con, key, answer):

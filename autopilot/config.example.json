@@ -77,6 +77,14 @@
         "key_env": "TOKENHARBOR_API_KEY",
         "model": "deepseek-v4-flash:free",
         "enabled": false
+      },
+      {
+        "name": "opencode",
+        "kind": "cli",
+        "cli": "opencode",
+        "model": "auto",
+        "enabled": false,
+        "timeout_seconds": 90
       }
     ]
   },
@@ -130,7 +138,7 @@
       "role_title": "Application Security Engineer",
       "cv": "autopilot/resumes/appsec.pdf",
       "profile": {
-        "discipline": "Application Security",
+        "discipline": "Computer Science",
         "bio": ""
       },
       "search": {
@@ -240,6 +248,35 @@
           "dod",
           "cleared"
         ]
+      }
+    },
+    "creative": {
+      "name": "Creative professional",
+      "role_title": "Photographer / Videographer",
+      "cv": "autopilot/resumes/creative.pdf",
+      "profile": {
+        "school": "",
+        "degree": "",
+        "discipline": "",
+        "bio": ""
+      },
+      "search": {
+        "keywords": [
+          "photographer",
+          "videographer",
+          "video editor"
+        ],
+        "required_title_terms": [
+          "photographer",
+          "videographer",
+          "video editor"
+        ],
+        "excluded_title_terms": [
+          "senior",
+          "lead"
+        ],
+        "good_terms": [],
+        "bad_terms": []
       }
     }
   },
@@ -443,7 +480,8 @@
       "applicant privacy notice": "Yes",
       "by selecting 'i acknowledge' and submitting this application": "I acknowledge",
       "candidate privacy statement": "I acknowledge"
-    }
+    },
+    "max_posting_age_days": 14
   },
   "vendor_boards": {
     "greenhouse": [
@@ -551,5 +589,17 @@
     "country_indeed": "UK",
     "hours_old": 336,
     "is_remote": null
+  },
+  "discovery": {
+    "jobwatch": {
+      "enabled": false,
+      "directory": ""
+    },
+    "findall_osint": {
+      "import": {
+        "enabled": false,
+        "root": ""
+      }
+    }
   }
 }

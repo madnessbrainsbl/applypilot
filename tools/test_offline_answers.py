@@ -10,7 +10,7 @@ def demo():
     def ans(label, options=()):
         return A.offline_answer(label, list(options), CFG)
 
-    assert ans("How did you hear about us?") == "Company careers page"
+    assert ans("How did you hear about us?") is None
     assert ans("Do you require visa sponsorship?", ["Yes", "No"]) == "Yes"
     assert ans("Are you legally authorized to work in the UK?", ["Yes", "No"]) == "No"
     assert A.offline_answer("Do you require visa sponsorship?", ["Yes", "No"], {**CFG, "apply": {}}) is None,         "an unset apply.require_sponsorship must not be guessed"

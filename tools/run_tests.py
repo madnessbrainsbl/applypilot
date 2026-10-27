@@ -1,5 +1,6 @@
 """Run tools/test_*.py self-checks with an isolated example profile and database."""
 import os
+import shutil
 import runpy
 import sys
 import tempfile
@@ -21,6 +22,7 @@ def main():
         A.ROOT = folder
         runtime = folder / "autopilot"
         runtime.mkdir()
+        shutil.copytree(HERE.parent / "autopilot/seeds", runtime / "seeds")
         A.SHOTS, A.COVERS = runtime / "screenshots", runtime / "covers"
         A.CONTROL, A.PROGRESS = runtime / "control.json", runtime / "progress.json"
         A.RESUMES = runtime / "resumes"
@@ -33,6 +35,14 @@ def main():
         A.CFG.write_bytes(example)
         A.SECRETS = folder / "secrets.env"
         db.DB_PATH = folder / "jobs.db"
+        import importlib
+        for name in ("jobwatch", "jsonld_careers", "findall_osint", "remote_visa_boards", "security_osint", "osint_sources", "sponsors", "opencode_llm"):
+            module = importlib.import_module(name)
+            for key, value in vars(module).copy().items():
+                if isinstance(value, Path) and value.is_absolute() and value.is_relative_to(HERE.parent):
+                    setattr(module, key, folder / value.relative_to(HERE.parent))
+        os.environ["JOBWATCH_EXPORT_DIR"] = str(runtime / "jobwatch")
+        os.environ["AUTOPILOT_SECRETS_FILE"] = str(A.SECRETS)
         if pytest_mode:
             os.environ["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
             import pytest

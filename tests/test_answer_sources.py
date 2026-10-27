@@ -5,8 +5,7 @@ import db
 
 
 CV = "Application Security Engineer, 5 years of experience. Python, secure code review."
-CFG = {"profile": {"location": "Springfield, Russia"},
-       "apply": {"require_sponsorship": True, "answers": {"holds_work_permit": "No", "open_to_relocation": "Yes"}}, "active_persona": "appsec"}
+CFG = {"profile": {"location": "Springfield, Russia"}, "apply": {"require_sponsorship": True, "answers": {"open_to_relocation": "Yes"}}, "active_persona": "appsec"}
 JOB = {"id": "fixture", "title": "Engineer", "company": "Fixture", "url": "https://example.invalid/job"}
 
 
@@ -181,3 +180,42 @@ def test_explicit_citizenship_replaces_bad_cache_without_inferring_from_residenc
     assert A.offline_answer(EXPORT_LABEL, (), cfg) == CITIZENSHIP
     assert A.llm_fill(page, cfg, JOB) == 1
     assert page.locator("#status").input_value() == CITIZENSHIP
+
+
+@pytest.mark.parametrize("source", ["cache", "llm", "offline"])
+@pytest.mark.parametrize("approve", [True, False])
+def test_complex_answers_are_reviewed_before_fill_or_cache(page, monkeypatch, source, approve):
+    import json
+    cv = "Built Python tools for secure code review at Cedar Labs."
+    label = "Describe a project you are proud of"
+    draft = "I built Python tools for secure code review at Cedar Labs."
+    monkeypatch.setattr(A, "extract_cv_text", lambda *_: cv)
+    monkeypatch.setattr(A, "_answer_grounding", lambda *_: cv)
+    monkeypatch.setattr(A, "ask_llm_answers", lambda *_: {label: draft} if source == "llm" else {})
+    monkeypatch.setattr(A, "offline_answer", lambda *_: draft if source == "offline" else None)
+    def review(*args, **kwargs):
+        return json.dumps({"reviews": [{"index": 0, "verdict": "approve" if approve else "manual",
+            "answer": draft if approve else "", "reason": "Подтверждено" if approve else "Не подтверждено",
+            "evidence": [cv] if approve else []}]})
+    monkeypatch.setattr(A, "llm_complete", review)
+    page.set_content(f'<label for="project">{label}</label><textarea id="project" required></textarea>')
+    key = A._qa_key(label, (), JOB["company"], "appsec")
+    if source == "cache":
+        with db.connect() as con:
+            db.save_qa_answer(con, key, label, draft)
+    assert A.llm_fill(page, CFG.copy(), JOB) == int(approve)
+    assert page.locator("#project").input_value() == (draft if approve else "")
+    with db.connect() as con:
+        row = db.list_answer_decisions(con)[0]
+        assert row["source"] == {"cache": "cache", "llm": "llm", "offline": "rules"}[source]
+        assert row["status"] == ("approved" if approve else "manual")
+        assert bool(db.list_pending_questions(con)) == (not approve)
+        assert con.execute("SELECT count(*) FROM qa_answers").fetchone()[0] == int(approve or source == "cache")
+
+
+def test_complex_stock_value_is_deferred_to_shared_review(page, monkeypatch):
+    label = "Describe a project you are proud of"
+    page.set_content(f'<label for="project">{label}</label><textarea id="project"></textarea>')
+    monkeypatch.setattr(A, "_match_dropdown_answer", lambda *_: "I built Python tools for secure code review at Cedar Labs.")
+    assert not A.fill_field(page.locator("#project"), CFG)
+    assert page.locator("#project").input_value() == ""

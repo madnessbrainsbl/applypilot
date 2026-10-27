@@ -1,0 +1,1316 @@
+{
+ "list": "curated",
+ "fetched": "2026-10-16T10:10:31+00:00",
+ "companies": [
+  {
+   "name": "1Password",
+   "domain": "1password.com",
+   "country": "CA"
+  },
+  {
+   "name": "Abnormal Security",
+   "domain": "abnormalsecurity.com",
+   "country": "US"
+  },
+  {
+   "name": "Acronis",
+   "domain": "acronis.com",
+   "country": "CH"
+  },
+  {
+   "name": "Advenica",
+   "domain": "advenica.com",
+   "country": "SE"
+  },
+  {
+   "name": "Adyen",
+   "domain": "adyen.com",
+   "country": "NL"
+  },
+  {
+   "name": "Aikido Security",
+   "domain": "aikido.dev",
+   "country": "BE"
+  },
+  {
+   "name": "Akamai",
+   "domain": "akamai.com",
+   "country": "US"
+  },
+  {
+   "name": "Apiiro",
+   "domain": "apiiro.com",
+   "country": "IL"
+  },
+  {
+   "name": "Approov",
+   "domain": "approov.io",
+   "country": "UK"
+  },
+  {
+   "name": "Aqua Security",
+   "domain": "aquasec.com",
+   "country": "IL"
+  },
+  {
+   "name": "Arctic Wolf",
+   "domain": "arcticwolf.com",
+   "country": "US"
+  },
+  {
+   "name": "Armis",
+   "domain": "armis.com",
+   "country": "US"
+  },
+  {
+   "name": "Arnica",
+   "domain": "arnica.io",
+   "country": "US"
+  },
+  {
+   "name": "Avast",
+   "domain": "avast.com",
+   "country": "CZ"
+  },
+  {
+   "name": "Axonius",
+   "domain": "axonius.com",
+   "country": "US"
+  },
+  {
+   "name": "Backslash Security",
+   "domain": "backslash.security",
+   "country": "IL"
+  },
+  {
+   "name": "Beyond Identity",
+   "domain": "beyondidentity.com",
+   "country": "US"
+  },
+  {
+   "name": "Binance",
+   "domain": "binance.com",
+   "country": "MT"
+  },
+  {
+   "name": "Bishop Fox",
+   "domain": "bishopfox.com",
+   "country": "US"
+  },
+  {
+   "name": "Bitdefender",
+   "domain": "bitdefender.com",
+   "country": "RO"
+  },
+  {
+   "name": "Bitpanda",
+   "domain": "bitpanda.com",
+   "country": "AT"
+  },
+  {
+   "name": "BitSight",
+   "domain": "bitsight.com",
+   "country": "US"
+  },
+  {
+   "name": "Bitwarden",
+   "domain": "bitwarden.com",
+   "country": "US"
+  },
+  {
+   "name": "Booking.com",
+   "domain": "booking.com",
+   "country": "NL"
+  },
+  {
+   "name": "Bugcrowd",
+   "domain": "bugcrowd.com",
+   "country": "US"
+  },
+  {
+   "name": "Bulletproof",
+   "domain": "bulletproof.co.uk",
+   "country": "UK"
+  },
+  {
+   "name": "bunq",
+   "domain": "bunq.com",
+   "country": "NL"
+  },
+  {
+   "name": "Bybit",
+   "domain": "bybit.com",
+   "country": "AE"
+  },
+  {
+   "name": "Cado Security",
+   "domain": "cadosecurity.com",
+   "country": "UK"
+  },
+  {
+   "name": "Canonical",
+   "domain": "canonical.com",
+   "country": "UK"
+  },
+  {
+   "name": "Cato Networks",
+   "domain": "catonetworks.com",
+   "country": "IL"
+  },
+  {
+   "name": "Celonis",
+   "domain": "celonis.com",
+   "country": "DE"
+  },
+  {
+   "name": "CertiK",
+   "domain": "certik.com",
+   "country": "US"
+  },
+  {
+   "name": "Chainalysis",
+   "domain": "chainalysis.com",
+   "country": "US"
+  },
+  {
+   "name": "Chainguard",
+   "domain": "chainguard.dev",
+   "country": "US"
+  },
+  {
+   "name": "Check Point",
+   "domain": "checkpoint.com",
+   "country": "IL"
+  },
+  {
+   "name": "Checkmarx",
+   "domain": "checkmarx.com",
+   "country": "IL"
+  },
+  {
+   "name": "Checkout.com",
+   "domain": "checkout.com",
+   "country": "UK"
+  },
+  {
+   "name": "Claranet",
+   "domain": "claranet.com",
+   "country": "UK"
+  },
+  {
+   "name": "Claroty",
+   "domain": "claroty.com",
+   "country": "US"
+  },
+  {
+   "name": "Cloudflare",
+   "domain": "cloudflare.com",
+   "country": "US"
+  },
+  {
+   "name": "Cloudflare Zero Trust",
+   "domain": "cloudflare.com",
+   "country": "US"
+  },
+  {
+   "name": "Cobalt",
+   "domain": "cobalt.io",
+   "country": "US"
+  },
+  {
+   "name": "Compass Security",
+   "domain": "compass-security.com",
+   "country": "CH"
+  },
+  {
+   "name": "Computest",
+   "domain": "computest.nl",
+   "country": "NL"
+  },
+  {
+   "name": "Consensys",
+   "domain": "consensys.io",
+   "country": "US"
+  },
+  {
+   "name": "Context Information Security",
+   "domain": "contextis.com",
+   "country": "UK"
+  },
+  {
+   "name": "CrowdStrike",
+   "domain": "crowdstrike.com",
+   "country": "US"
+  },
+  {
+   "name": "Crypto.com",
+   "domain": "crypto.com",
+   "country": "MT"
+  },
+  {
+   "name": "Cure53",
+   "domain": "cure53.de",
+   "country": "DE"
+  },
+  {
+   "name": "CyberArk",
+   "domain": "cyberark.com",
+   "country": "IL"
+  },
+  {
+   "name": "Cybereason",
+   "domain": "cybereason.com",
+   "country": "US"
+  },
+  {
+   "name": "Cyberhaven",
+   "domain": "cyberhaven.com",
+   "country": "US"
+  },
+  {
+   "name": "Cyberis",
+   "domain": "cyberis.com",
+   "country": "UK"
+  },
+  {
+   "name": "Cybernews",
+   "domain": "cybernews.com",
+   "country": "LT"
+  },
+  {
+   "name": "CybSafe",
+   "domain": "cybsafe.com",
+   "country": "UK"
+  },
+  {
+   "name": "Cycode",
+   "domain": "cycode.com",
+   "country": "IL"
+  },
+  {
+   "name": "Cyera",
+   "domain": "cyera.io",
+   "country": "IL"
+  },
+  {
+   "name": "Cyfirma",
+   "domain": "cyfirma.com",
+   "country": "SG"
+  },
+  {
+   "name": "Darktrace",
+   "domain": "darktrace.com",
+   "country": "UK"
+  },
+  {
+   "name": "Datadog",
+   "domain": "datadoghq.com",
+   "country": "US"
+  },
+  {
+   "name": "Detectify",
+   "domain": "detectify.com",
+   "country": "SE"
+  },
+  {
+   "name": "DigiCert",
+   "domain": "digicert.com",
+   "country": "US"
+  },
+  {
+   "name": "Digital Interruption",
+   "domain": "digitalinterruption.com",
+   "country": "UK"
+  },
+  {
+   "name": "Doppler",
+   "domain": "doppler.com",
+   "country": "US"
+  },
+  {
+   "name": "Doyensec",
+   "domain": "doyensec.com",
+   "country": "US"
+  },
+  {
+   "name": "Drata",
+   "domain": "drata.com",
+   "country": "US"
+  },
+  {
+   "name": "Egress",
+   "domain": "egress.com",
+   "country": "UK"
+  },
+  {
+   "name": "Elastic",
+   "domain": "elastic.co",
+   "country": "NL"
+  },
+  {
+   "name": "Element",
+   "domain": "element.io",
+   "country": "UK"
+  },
+  {
+   "name": "Elliptic",
+   "domain": "elliptic.co",
+   "country": "UK"
+  },
+  {
+   "name": "Endor Labs",
+   "domain": "endorlabs.com",
+   "country": "US"
+  },
+  {
+   "name": "Entrust",
+   "domain": "entrust.com",
+   "country": "US"
+  },
+  {
+   "name": "ESET",
+   "domain": "eset.com",
+   "country": "SK"
+  },
+  {
+   "name": "Eviden",
+   "domain": "eviden.com",
+   "country": "FR"
+  },
+  {
+   "name": "Exoscale",
+   "domain": "exoscale.com",
+   "country": "CH"
+  },
+  {
+   "name": "Expel",
+   "domain": "expel.com",
+   "country": "US"
+  },
+  {
+   "name": "Eye Security",
+   "domain": "eye.security",
+   "country": "NL"
+  },
+  {
+   "name": "F-Secure",
+   "domain": "f-secure.com",
+   "country": "FI"
+  },
+  {
+   "name": "Fastly",
+   "domain": "fastly.com",
+   "country": "US"
+  },
+  {
+   "name": "Fireblocks",
+   "domain": "fireblocks.com",
+   "country": "US"
+  },
+  {
+   "name": "Forescout",
+   "domain": "forescout.com",
+   "country": "US"
+  },
+  {
+   "name": "Fortinet",
+   "domain": "fortinet.com",
+   "country": "US"
+  },
+  {
+   "name": "Fox-IT",
+   "domain": "fox-it.com",
+   "country": "NL"
+  },
+  {
+   "name": "G DATA CyberDefense",
+   "domain": "gdata.de",
+   "country": "DE"
+  },
+  {
+   "name": "Gen Digital",
+   "domain": "gendigital.com",
+   "country": "US"
+  },
+  {
+   "name": "genua",
+   "domain": "genua.eu",
+   "country": "DE"
+  },
+  {
+   "name": "Giskard",
+   "domain": "giskard.ai",
+   "country": "FR"
+  },
+  {
+   "name": "GitHub",
+   "domain": "github.com",
+   "country": "US"
+  },
+  {
+   "name": "GitLab",
+   "domain": "gitlab.com",
+   "country": "US"
+  },
+  {
+   "name": "Group-IB",
+   "domain": "group-ib.com",
+   "country": "SG"
+  },
+  {
+   "name": "Guardsquare",
+   "domain": "guardsquare.com",
+   "country": "BE"
+  },
+  {
+   "name": "Hacken",
+   "domain": "hacken.io",
+   "country": "EE"
+  },
+  {
+   "name": "HackerOne",
+   "domain": "hackerone.com",
+   "country": "US"
+  },
+  {
+   "name": "Hacknowledge",
+   "domain": "hacknowledge.com",
+   "country": "CH"
+  },
+  {
+   "name": "Halborn",
+   "domain": "halborn.com",
+   "country": "US"
+  },
+  {
+   "name": "HarfangLab",
+   "domain": "harfanglab.io",
+   "country": "FR"
+  },
+  {
+   "name": "HashiCorp",
+   "domain": "hashicorp.com",
+   "country": "US"
+  },
+  {
+   "name": "Heimdal",
+   "domain": "heimdalsecurity.com",
+   "country": "DK"
+  },
+  {
+   "name": "Help AG",
+   "domain": "helpag.com",
+   "country": "AE"
+  },
+  {
+   "name": "Hetzner",
+   "domain": "hetzner.com",
+   "country": "DE"
+  },
+  {
+   "name": "HiddenLayer",
+   "domain": "hiddenlayer.com",
+   "country": "US"
+  },
+  {
+   "name": "Hudson Rock",
+   "domain": "hudsonrock.com",
+   "country": "IL"
+  },
+  {
+   "name": "Hunt and Hackett",
+   "domain": "huntandhackett.com",
+   "country": "NL"
+  },
+  {
+   "name": "Huntress",
+   "domain": "huntress.com",
+   "country": "US"
+  },
+  {
+   "name": "Immersive Labs",
+   "domain": "immersivelabs.com",
+   "country": "UK"
+  },
+  {
+   "name": "Immunefi",
+   "domain": "immunefi.com",
+   "country": "US"
+  },
+  {
+   "name": "Imperva",
+   "domain": "imperva.com",
+   "country": "US"
+  },
+  {
+   "name": "Include Security",
+   "domain": "includesecurity.com",
+   "country": "US"
+  },
+  {
+   "name": "Infisical",
+   "domain": "infisical.com",
+   "country": "US"
+  },
+  {
+   "name": "Intigriti",
+   "domain": "intigriti.com",
+   "country": "BE"
+  },
+  {
+   "name": "Intruder",
+   "domain": "intruder.io",
+   "country": "UK"
+  },
+  {
+   "name": "Island",
+   "domain": "island.io",
+   "country": "US"
+  },
+  {
+   "name": "Jit",
+   "domain": "jit.io",
+   "country": "IL"
+  },
+  {
+   "name": "Kaspersky",
+   "domain": "kaspersky.com",
+   "country": "RU"
+  },
+  {
+   "name": "Keepit",
+   "domain": "keepit.com",
+   "country": "DK"
+  },
+  {
+   "name": "Keyfactor",
+   "domain": "keyfactor.com",
+   "country": "US"
+  },
+  {
+   "name": "Klarna",
+   "domain": "klarna.com",
+   "country": "SE"
+  },
+  {
+   "name": "Kraken",
+   "domain": "kraken.com",
+   "country": "US"
+  },
+  {
+   "name": "Kraken Technologies",
+   "domain": "kraken.tech",
+   "country": "UK"
+  },
+  {
+   "name": "Kudelski Security",
+   "domain": "kudelskisecurity.com",
+   "country": "CH"
+  },
+  {
+   "name": "Lacework",
+   "domain": "lacework.com",
+   "country": "US"
+  },
+  {
+   "name": "Lakera",
+   "domain": "lakera.ai",
+   "country": "CH"
+  },
+  {
+   "name": "Least Authority",
+   "domain": "leastauthority.com",
+   "country": "DE"
+  },
+  {
+   "name": "Ledger",
+   "domain": "ledger.com",
+   "country": "FR"
+  },
+  {
+   "name": "Legit Security",
+   "domain": "legitsecurity.com",
+   "country": "IL"
+  },
+  {
+   "name": "Leviathan Security Group",
+   "domain": "leviathansecurity.com",
+   "country": "US"
+  },
+  {
+   "name": "Link11",
+   "domain": "link11.com",
+   "country": "DE"
+  },
+  {
+   "name": "Malwarebytes",
+   "domain": "malwarebytes.com",
+   "country": "US"
+  },
+  {
+   "name": "Mandiant",
+   "domain": "mandiant.com",
+   "country": "US"
+  },
+  {
+   "name": "Material Security",
+   "domain": "material.security",
+   "country": "US"
+  },
+  {
+   "name": "Matrix Security",
+   "domain": "matrix.org",
+   "country": "UK"
+  },
+  {
+   "name": "MDSec",
+   "domain": "mdsec.co.uk",
+   "country": "UK"
+  },
+  {
+   "name": "Mend",
+   "domain": "mend.io",
+   "country": "IL"
+  },
+  {
+   "name": "Mimecast",
+   "domain": "mimecast.com",
+   "country": "UK"
+  },
+  {
+   "name": "Mindgard",
+   "domain": "mindgard.ai",
+   "country": "UK"
+  },
+  {
+   "name": "Mollie",
+   "domain": "mollie.com",
+   "country": "NL"
+  },
+  {
+   "name": "Monzo",
+   "domain": "monzo.com",
+   "country": "UK"
+  },
+  {
+   "name": "Mozilla",
+   "domain": "mozilla.org",
+   "country": "US"
+  },
+  {
+   "name": "Mullvad VPN",
+   "domain": "mullvad.net",
+   "country": "SE"
+  },
+  {
+   "name": "N26",
+   "domain": "n26.com",
+   "country": "DE"
+  },
+  {
+   "name": "NCC Group",
+   "domain": "nccgroup.com",
+   "country": "UK"
+  },
+  {
+   "name": "Nethermind",
+   "domain": "nethermind.io",
+   "country": "UK"
+  },
+  {
+   "name": "NetSPI",
+   "domain": "netspi.com",
+   "country": "US"
+  },
+  {
+   "name": "Nettitude",
+   "domain": "nettitude.com",
+   "country": "UK"
+  },
+  {
+   "name": "Nixu",
+   "domain": "nixu.com",
+   "country": "FI"
+  },
+  {
+   "name": "Noma Security",
+   "domain": "noma.security",
+   "country": "IL"
+  },
+  {
+   "name": "Nord Security",
+   "domain": "nordsec.com",
+   "country": "LT"
+  },
+  {
+   "name": "Northwave",
+   "domain": "northwave-cybersecurity.com",
+   "country": "NL"
+  },
+  {
+   "name": "Nozomi Networks",
+   "domain": "nozominetworks.com",
+   "country": "CH"
+  },
+  {
+   "name": "Nym Technologies",
+   "domain": "nym.com",
+   "country": "CH"
+  },
+  {
+   "name": "Okta",
+   "domain": "okta.com",
+   "country": "US"
+  },
+  {
+   "name": "OKX",
+   "domain": "okx.com",
+   "country": "MT"
+  },
+  {
+   "name": "Oligo Security",
+   "domain": "oligo.security",
+   "country": "IL"
+  },
+  {
+   "name": "Oneconsult",
+   "domain": "oneconsult.com",
+   "country": "CH"
+  },
+  {
+   "name": "OneTrust",
+   "domain": "onetrust.com",
+   "country": "US"
+  },
+  {
+   "name": "Open-Xchange",
+   "domain": "open-xchange.com",
+   "country": "DE"
+  },
+  {
+   "name": "OpenZeppelin",
+   "domain": "openzeppelin.com",
+   "country": "US"
+  },
+  {
+   "name": "Orange Cyberdefense",
+   "domain": "orangecyberdefense.com",
+   "country": "FR"
+  },
+  {
+   "name": "Orca Security",
+   "domain": "orca.security",
+   "country": "IL"
+  },
+  {
+   "name": "Outpost24",
+   "domain": "outpost24.com",
+   "country": "SE"
+  },
+  {
+   "name": "OVHcloud",
+   "domain": "ovhcloud.com",
+   "country": "FR"
+  },
+  {
+   "name": "OX Security",
+   "domain": "ox.security",
+   "country": "IL"
+  },
+  {
+   "name": "Palo Alto Networks",
+   "domain": "paloaltonetworks.com",
+   "country": "US"
+  },
+  {
+   "name": "Panaseer",
+   "domain": "panaseer.com",
+   "country": "UK"
+  },
+  {
+   "name": "Pen Test Partners",
+   "domain": "pentestpartners.com",
+   "country": "UK"
+  },
+  {
+   "name": "Pentera",
+   "domain": "pentera.io",
+   "country": "IL"
+  },
+  {
+   "name": "Personio",
+   "domain": "personio.com",
+   "country": "DE"
+  },
+  {
+   "name": "Ping Identity",
+   "domain": "pingidentity.com",
+   "country": "US"
+  },
+  {
+   "name": "Praetorian",
+   "domain": "praetorian.com",
+   "country": "US"
+  },
+  {
+   "name": "Prism Infosec",
+   "domain": "prisminfosec.com",
+   "country": "UK"
+  },
+  {
+   "name": "Promon",
+   "domain": "promon.co",
+   "country": "NO"
+  },
+  {
+   "name": "Prompt Security",
+   "domain": "prompt.security",
+   "country": "IL"
+  },
+  {
+   "name": "Proofpoint",
+   "domain": "proofpoint.com",
+   "country": "US"
+  },
+  {
+   "name": "Protect AI",
+   "domain": "protectai.com",
+   "country": "US"
+  },
+  {
+   "name": "Proton",
+   "domain": "proton.me",
+   "country": "CH"
+  },
+  {
+   "name": "Push Security",
+   "domain": "pushsecurity.com",
+   "country": "UK"
+  },
+  {
+   "name": "Qualys",
+   "domain": "qualys.com",
+   "country": "US"
+  },
+  {
+   "name": "Quantstamp",
+   "domain": "quantstamp.com",
+   "country": "US"
+  },
+  {
+   "name": "Rapid7",
+   "domain": "rapid7.com",
+   "country": "US"
+  },
+  {
+   "name": "Recorded Future",
+   "domain": "recordedfuture.com",
+   "country": "US"
+  },
+  {
+   "name": "Red Canary",
+   "domain": "redcanary.com",
+   "country": "US"
+  },
+  {
+   "name": "Red Hat",
+   "domain": "redhat.com",
+   "country": "US"
+  },
+  {
+   "name": "Revolut",
+   "domain": "revolut.com",
+   "country": "UK"
+  },
+  {
+   "name": "Risk Ledger",
+   "domain": "riskledger.com",
+   "country": "UK"
+  },
+  {
+   "name": "Sapphire",
+   "domain": "sapphire.net",
+   "country": "UK"
+  },
+  {
+   "name": "Scaleway",
+   "domain": "scaleway.com",
+   "country": "FR"
+  },
+  {
+   "name": "Scip",
+   "domain": "scip.ch",
+   "country": "CH"
+  },
+  {
+   "name": "SEC Consult",
+   "domain": "sec-consult.com",
+   "country": "AT"
+  },
+  {
+   "name": "Sectigo",
+   "domain": "sectigo.com",
+   "country": "US"
+  },
+  {
+   "name": "secunet",
+   "domain": "secunet.com",
+   "country": "DE"
+  },
+  {
+   "name": "Secura",
+   "domain": "secura.com",
+   "country": "NL"
+  },
+  {
+   "name": "Secureframe",
+   "domain": "secureframe.com",
+   "country": "US"
+  },
+  {
+   "name": "Secureworks",
+   "domain": "secureworks.com",
+   "country": "US"
+  },
+  {
+   "name": "Securitum",
+   "domain": "securitum.com",
+   "country": "PL"
+  },
+  {
+   "name": "SecurityScorecard",
+   "domain": "securityscorecard.com",
+   "country": "US"
+  },
+  {
+   "name": "Securosys",
+   "domain": "securosys.com",
+   "country": "CH"
+  },
+  {
+   "name": "Sekoia",
+   "domain": "sekoia.io",
+   "country": "FR"
+  },
+  {
+   "name": "Semgrep",
+   "domain": "semgrep.dev",
+   "country": "US"
+  },
+  {
+   "name": "SentinelOne",
+   "domain": "sentinelone.com",
+   "country": "US"
+  },
+  {
+   "name": "Signal",
+   "domain": "signal.org",
+   "country": "US"
+  },
+  {
+   "name": "Silverfort",
+   "domain": "silverfort.com",
+   "country": "IL"
+  },
+  {
+   "name": "Snyk",
+   "domain": "snyk.io",
+   "country": "UK"
+  },
+  {
+   "name": "Socket",
+   "domain": "socket.dev",
+   "country": "US"
+  },
+  {
+   "name": "SonarSource",
+   "domain": "sonarsource.com",
+   "country": "CH"
+  },
+  {
+   "name": "Sophos",
+   "domain": "sophos.com",
+   "country": "UK"
+  },
+  {
+   "name": "Spearbit",
+   "domain": "spearbit.com",
+   "country": "US"
+  },
+  {
+   "name": "Spire Solutions",
+   "domain": "spiresolutions.com",
+   "country": "AE"
+  },
+  {
+   "name": "Spotify",
+   "domain": "spotify.com",
+   "country": "SE"
+  },
+  {
+   "name": "Sprinto",
+   "domain": "sprinto.com",
+   "country": "IN"
+  },
+  {
+   "name": "Stacklok",
+   "domain": "stacklok.com",
+   "country": "US"
+  },
+  {
+   "name": "Starling Bank",
+   "domain": "starlingbank.com",
+   "country": "UK"
+  },
+  {
+   "name": "Stormshield",
+   "domain": "stormshield.com",
+   "country": "FR"
+  },
+  {
+   "name": "StrongDM",
+   "domain": "strongdm.com",
+   "country": "US"
+  },
+  {
+   "name": "Sublime Security",
+   "domain": "sublime.security",
+   "country": "US"
+  },
+  {
+   "name": "SumUp",
+   "domain": "sumup.com",
+   "country": "DE"
+  },
+  {
+   "name": "Surfshark",
+   "domain": "surfshark.com",
+   "country": "NL"
+  },
+  {
+   "name": "SUSE",
+   "domain": "suse.com",
+   "country": "DE"
+  },
+  {
+   "name": "Swisscom",
+   "domain": "swisscom.ch",
+   "country": "CH"
+  },
+  {
+   "name": "Synack",
+   "domain": "synack.com",
+   "country": "US"
+  },
+  {
+   "name": "Sysdig",
+   "domain": "sysdig.com",
+   "country": "US"
+  },
+  {
+   "name": "SySS",
+   "domain": "syss.de",
+   "country": "DE"
+  },
+  {
+   "name": "Tailscale",
+   "domain": "tailscale.com",
+   "country": "CA"
+  },
+  {
+   "name": "Tehtris",
+   "domain": "tehtris.com",
+   "country": "FR"
+  },
+  {
+   "name": "Teleport",
+   "domain": "goteleport.com",
+   "country": "US"
+  },
+  {
+   "name": "Tenable",
+   "domain": "tenable.com",
+   "country": "US"
+  },
+  {
+   "name": "Tesorion",
+   "domain": "tesorion.nl",
+   "country": "NL"
+  },
+  {
+   "name": "Tessian",
+   "domain": "tessian.com",
+   "country": "UK"
+  },
+  {
+   "name": "Thales",
+   "domain": "thalesgroup.com",
+   "country": "FR"
+  },
+  {
+   "name": "Thoropass",
+   "domain": "thoropass.com",
+   "country": "US"
+  },
+  {
+   "name": "Threema",
+   "domain": "threema.ch",
+   "country": "CH"
+  },
+  {
+   "name": "Tines",
+   "domain": "tines.com",
+   "country": "IE"
+  },
+  {
+   "name": "Trade Republic",
+   "domain": "traderepublic.com",
+   "country": "DE"
+  },
+  {
+   "name": "Trail of Bits",
+   "domain": "trailofbits.com",
+   "country": "US"
+  },
+  {
+   "name": "Trellix",
+   "domain": "trellix.com",
+   "country": "US"
+  },
+  {
+   "name": "Trend Micro",
+   "domain": "trendmicro.com",
+   "country": "JP"
+  },
+  {
+   "name": "Truesec",
+   "domain": "truesec.com",
+   "country": "SE"
+  },
+  {
+   "name": "Truffle Security",
+   "domain": "trufflesecurity.com",
+   "country": "US"
+  },
+  {
+   "name": "TrustedSec",
+   "domain": "trustedsec.com",
+   "country": "US"
+  },
+  {
+   "name": "Trustpilot",
+   "domain": "trustpilot.com",
+   "country": "DK"
+  },
+  {
+   "name": "Tuta",
+   "domain": "tuta.com",
+   "country": "DE"
+  },
+  {
+   "name": "UpCloud",
+   "domain": "upcloud.com",
+   "country": "FI"
+  },
+  {
+   "name": "UpGuard",
+   "domain": "upguard.com",
+   "country": "AU"
+  },
+  {
+   "name": "Upwind",
+   "domain": "upwind.io",
+   "country": "IL"
+  },
+  {
+   "name": "Vade",
+   "domain": "vadesecure.com",
+   "country": "FR"
+  },
+  {
+   "name": "Vanta",
+   "domain": "vanta.com",
+   "country": "US"
+  },
+  {
+   "name": "Venafi",
+   "domain": "venafi.com",
+   "country": "US"
+  },
+  {
+   "name": "Veracode",
+   "domain": "veracode.com",
+   "country": "US"
+  },
+  {
+   "name": "Visma",
+   "domain": "visma.com",
+   "country": "NO"
+  },
+  {
+   "name": "Wallix",
+   "domain": "wallix.com",
+   "country": "FR"
+  },
+  {
+   "name": "Wire",
+   "domain": "wire.com",
+   "country": "CH"
+  },
+  {
+   "name": "Wise",
+   "domain": "wise.com",
+   "country": "UK"
+  },
+  {
+   "name": "WithSecure",
+   "domain": "withsecure.com",
+   "country": "FI"
+  },
+  {
+   "name": "Wiz",
+   "domain": "wiz.io",
+   "country": "IL"
+  },
+  {
+   "name": "XM Cyber",
+   "domain": "xmcyber.com",
+   "country": "IL"
+  },
+  {
+   "name": "YesWeHack",
+   "domain": "yeswehack.com",
+   "country": "FR"
+  },
+  {
+   "name": "Yubico",
+   "domain": "yubico.com",
+   "country": "SE"
+  },
+  {
+   "name": "Zafran",
+   "domain": "zafran.io",
+   "country": "IL"
+  },
+  {
+   "name": "Zalando",
+   "domain": "zalando.com",
+   "country": "DE"
+  },
+  {
+   "name": "Zellic",
+   "domain": "zellic.io",
+   "country": "US"
+  },
+  {
+   "name": "Zerocopter",
+   "domain": "zerocopter.com",
+   "country": "NL"
+  },
+  {
+   "name": "Zscaler",
+   "domain": "zscaler.com",
+   "country": "US"
+  }
+ ]
+}

@@ -7,13 +7,14 @@ Zero external API tokens, $0 budget.
 """
 import concurrent.futures
 import re
-import sqlite3
 import sys
 import time
 import urllib.request
 import urllib.error
 from typing import Dict, Any, List, Tuple
 from pathlib import Path
+
+import db
 
 _UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
 
@@ -80,7 +81,7 @@ def check_url_liveness(job_id: str, url: str, timeout: int = 4) -> Tuple[str, bo
 def prune_dead_listings(db_path: str = None, batch_size: int = 150, max_workers: int = 25) -> Dict[str, int]:
     """Audit queued jobs in jobs.db and prune closed/defunct listings."""
     con_path = db_path or (Path(__file__).resolve().parents[1] / "autopilot" / "jobs.db")
-    con = sqlite3.connect(con_path)
+    con = db.connect() if db_path is None else db.sqlite3.connect(con_path, timeout=30)  # WAL + busy_timeout
     cur = con.cursor()
 
     cur.execute(

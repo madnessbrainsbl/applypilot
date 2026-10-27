@@ -189,16 +189,21 @@ def _board_slugs(company):
 def company_board(company, timeout=10, slugs=()):
     """((title, url, location), ...) from the company's Greenhouse, Ashby or Workable
     board, or (). `slugs` are tried first (a known board id, e.g. a YC slug)."""
-    for slug in dict.fromkeys([*slugs, *_board_slugs(company)]):
-        if not slug:
-            continue
-        for fetch in (_gh_board, _ashby_board, _workable_board, _lever_board):
-            try:
-                jobs = fetch(slug, timeout)
-            except Exception:
-                jobs = []
-            if jobs:
-                return tuple(jobs)
+    from concurrent.futures import ThreadPoolExecutor
+    def fetch_one(args):
+        try:
+            return args[0](args[1], timeout)
+        except Exception:
+            return []
+    # the four ATS are asked at once (mostly 404s, ~4 s each through a proxy); the first
+    # board in the usual order that has postings still wins
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        for slug in dict.fromkeys([*slugs, *_board_slugs(company)]):
+            if not slug:
+                continue
+            for jobs in ex.map(fetch_one, [(f, slug) for f in (_gh_board, _ashby_board, _workable_board, _lever_board)]):
+                if jobs:
+                    return tuple(jobs)
     return ()
 
 

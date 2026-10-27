@@ -1,0 +1,5 @@
+{
+  "_comment": "Seed title queries for tools/remote_visa_boards.py. Override per adapter with config discovery.remote_visa_boards.<adapter>.queries.<persona>, add with .extra_queries.<persona>. The persona's ASCII required_title_terms are appended automatically (max_queries, default 14).",
+  "appsec": ["application security", "product security", "penetration tester", "pentester", "security engineer", "devsecops", "cloud security", "security analyst", "soc analyst", "incident response", "vulnerability", "appsec", "healthtech security", "medtech security", "medical cybersecurity", "healthcare security"],
+  "creative": ["photographer", "videographer", "video editor", "content creator", "photo editor", "retoucher", "video producer", "social media content", "fashion photographer", "videograf", "fotograf"]
+}

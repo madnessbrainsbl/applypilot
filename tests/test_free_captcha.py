@@ -74,6 +74,7 @@ def test_local_vision_never_falls_back_to_loopback_cloud_gateway(monkeypatch, ca
 
 def test_camoufox_preserves_chrome_profile_and_identity(monkeypatch, tmp_path):
     calls = []
+    monkeypatch.setattr(A, "camoufox_setup", lambda: None)
     ctx = SimpleNamespace(add_init_script=lambda *a: None, set_default_timeout=lambda *a: None,
                           set_default_navigation_timeout=lambda *a: None)
     monkeypatch.setitem(sys.modules, 'camoufox.sync_api', SimpleNamespace(

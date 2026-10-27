@@ -9,10 +9,10 @@
     "safari >= 16.4"
   ],
   "scripts": {
-    "dev": "next dev --turbopack -p 3737",
-    "dev:webpack": "next dev -p 3737",
+    "dev": "next dev --turbopack -p 3737 -H 127.0.0.1",
+    "dev:webpack": "next dev -p 3737 -H 127.0.0.1",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -H 127.0.0.1",
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "npx playwright test --project=chromium",

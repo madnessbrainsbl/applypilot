@@ -1,0 +1,1370 @@
+{
+ "list": "ecso",
+ "fetched": "2026-10-16T10:08:41+00:00",
+ "companies": [
+  {
+   "name": "#CyberMadeInPoland",
+   "domain": "cybermadeinpoland.pl"
+  },
+  {
+   "name": "33N Ventures",
+   "domain": "33n.vc"
+  },
+  {
+   "name": "A42",
+   "domain": "a42.tech"
+  },
+  {
+   "name": "ABI Lab",
+   "domain": "abilab.it"
+  },
+  {
+   "name": "Accelerat",
+   "domain": "accelerat.eu"
+  },
+  {
+   "name": "Accenture",
+   "domain": "accenture.com"
+  },
+  {
+   "name": "Access Partnership",
+   "domain": "accesspartnership.com"
+  },
+  {
+   "name": "ACN",
+   "domain": "confiance-numerique.fr"
+  },
+  {
+   "name": "ACN – Agenzia per la Cybersicurezza Nazionale (Italy)",
+   "domain": "acn.gov.it"
+  },
+  {
+   "name": "Adara Ventures",
+   "domain": "adara.vc"
+  },
+  {
+   "name": "Additess",
+   "domain": "additess.com"
+  },
+  {
+   "name": "Advisera Expert Solutions",
+   "domain": "advisera.com"
+  },
+  {
+   "name": "Agencia de Ciberseguridad de la Comunidad de Madrid",
+   "domain": "comunidad.madrid"
+  },
+  {
+   "name": "Agency for Cybersecurity (Republic of Moldova)",
+   "domain": "asc.gov.md"
+  },
+  {
+   "name": "AGH",
+   "domain": "agh.edu.pl"
+  },
+  {
+   "name": "Agència de Ciberseguretat de Catalunya",
+   "domain": "ciberseguretat.gencat.cat"
+  },
+  {
+   "name": "Airbus Protect",
+   "domain": "protect.airbus.com"
+  },
+  {
+   "name": "AIT",
+   "domain": "ait.ac.at"
+  },
+  {
+   "name": "Aivivid",
+   "domain": "aivivid.com"
+  },
+  {
+   "name": "aizoOn",
+   "domain": "aizoongroup.com"
+  },
+  {
+   "name": "AKSHI (Albania)",
+   "domain": "akshi.gov.al"
+  },
+  {
+   "name": "Amadeus",
+   "domain": "amadeus.com"
+  },
+  {
+   "name": "Amazon Web Services",
+   "domain": "aws.amazon.com"
+  },
+  {
+   "name": "Amonet Consulting",
+   "domain": "arbitcds.com"
+  },
+  {
+   "name": "APWG.EU",
+   "domain": "apwg.org"
+  },
+  {
+   "name": "Arthur’s Legal",
+   "domain": "arthurslegal.com"
+  },
+  {
+   "name": "aruba",
+   "domain": "aruba.it"
+  },
+  {
+   "name": "Aspiro",
+   "domain": "aspiro.cz"
+  },
+  {
+   "name": "Aspisec",
+   "domain": "aspisec.com"
+  },
+  {
+   "name": "Athena",
+   "domain": "athenarc.gr"
+  },
+  {
+   "name": "Atlantica",
+   "domain": "atlantica.it"
+  },
+  {
+   "name": "Atos",
+   "domain": "atos.net"
+  },
+  {
+   "name": "Auriga Partners",
+   "domain": "aurigapartners.net"
+  },
+  {
+   "name": "AVA Cyber",
+   "domain": "ava-cyber.com"
+  },
+  {
+   "name": "AVM",
+   "domain": "avmgestioni.com"
+  },
+  {
+   "name": "AWARE7",
+   "domain": "aware7.com"
+  },
+  {
+   "name": "Axeleo Capital",
+   "domain": "axc.vc"
+  },
+  {
+   "name": "Axon Partners",
+   "domain": "axonpartnersgroup.com"
+  },
+  {
+   "name": "Axyome",
+   "domain": "axyome.ro"
+  },
+  {
+   "name": "Banca March",
+   "domain": "bancamarch.es"
+  },
+  {
+   "name": "BBVA",
+   "domain": "bbva.es"
+  },
+  {
+   "name": "Belgian Institute for Postal Services and Telecommunications",
+   "domain": "bipt.be"
+  },
+  {
+   "name": "Belnet",
+   "domain": "belnet.be"
+  },
+  {
+   "name": "BforeAI",
+   "domain": "bfore.ai"
+  },
+  {
+   "name": "Bitdefender",
+   "domain": "bitdefender.com"
+  },
+  {
+   "name": "Blackshell",
+   "domain": "blackshell.tech"
+  },
+  {
+   "name": "Blindspot",
+   "domain": "blindspot.cloud"
+  },
+  {
+   "name": "BlueFlag Security",
+   "domain": "blueflagsecurity.com"
+  },
+  {
+   "name": "Board of Cyber",
+   "domain": "boardofcyber.io"
+  },
+  {
+   "name": "Bochum Wirtschaftentwicklung",
+   "domain": "bochum-wirtschaft.de"
+  },
+  {
+   "name": "Bright Pixel Capital",
+   "domain": "brpx.com"
+  },
+  {
+   "name": "Brightside",
+   "domain": "brside.com"
+  },
+  {
+   "name": "Bryan, Garnier & Co",
+   "domain": "bryangarnier.com"
+  },
+  {
+   "name": "Bundesdruckerei",
+   "domain": "bundesdruckerei.de"
+  },
+  {
+   "name": "Caixa Capital Risc",
+   "domain": "criteriacaixa.com"
+  },
+  {
+   "name": "CanaryBit",
+   "domain": "canarybit.eu"
+  },
+  {
+   "name": "CASD – School of Advanced Defense Studies",
+   "domain": "unicasd.difesa.it"
+  },
+  {
+   "name": "CCB – Centre for Cybersecurity Belgium",
+   "domain": "ccb.belgium.be"
+  },
+  {
+   "name": "CDEX",
+   "domain": "cdex.cloud"
+  },
+  {
+   "name": "CEA List",
+   "domain": "list.cea.fr"
+  },
+  {
+   "name": "Cedars International",
+   "domain": "cedars.rs"
+  },
+  {
+   "name": "CenSec",
+   "domain": "censec.dk"
+  },
+  {
+   "name": "Centre NRD Cyber Security",
+   "domain": "nrdcs.eu"
+  },
+  {
+   "name": "CEPIS",
+   "domain": "cepis.org"
+  },
+  {
+   "name": "CEPS",
+   "domain": "ceps.eu"
+  },
+  {
+   "name": "CERTH",
+   "domain": "certh.gr"
+  },
+  {
+   "name": "CESIN",
+   "domain": "cesin.fr"
+  },
+  {
+   "name": "CETIC",
+   "domain": "cetic.be"
+  },
+  {
+   "name": "CITIC",
+   "domain": "citic.udc.es"
+  },
+  {
+   "name": "Clavister",
+   "domain": "clavister.com"
+  },
+  {
+   "name": "Codacy",
+   "domain": "codacy.com"
+  },
+  {
+   "name": "Commissioner of Communications, Digital Security Authority",
+   "domain": "iicom.org"
+  },
+  {
+   "name": "Connect Europe",
+   "domain": "connecteurope.org"
+  },
+  {
+   "name": "Consiglio Nazionale delle Ricerche",
+   "domain": "cnr.it"
+  },
+  {
+   "name": "Copla",
+   "domain": "copla.com"
+  },
+  {
+   "name": "CORTE",
+   "domain": "corte.be"
+  },
+  {
+   "name": "Cosmian",
+   "domain": "cosmian.com"
+  },
+  {
+   "name": "CrabNebula",
+   "domain": "crabnebula.dev"
+  },
+  {
+   "name": "Croatian Academic and Research Network (CARNET)",
+   "domain": "carnet.hr"
+  },
+  {
+   "name": "Cronos Europa",
+   "domain": "cronoseuropa.com"
+  },
+  {
+   "name": "CS Visor",
+   "domain": "csvisor.de"
+  },
+  {
+   "name": "CSIT",
+   "domain": "qub.ac.uk"
+  },
+  {
+   "name": "CYBASQUE",
+   "domain": "cybasque.eus"
+  },
+  {
+   "name": "Cyber 4.0",
+   "domain": "cyber40.it"
+  },
+  {
+   "name": "Cyber Cert Labs",
+   "domain": "cybercertlabs.com"
+  },
+  {
+   "name": "Cyber Diia",
+   "domain": "cyberdiia.org"
+  },
+  {
+   "name": "Cyber Guru",
+   "domain": "cyberguru.it"
+  },
+  {
+   "name": "Cyber Ireland",
+   "domain": "cyberireland.ie"
+  },
+  {
+   "name": "Cyber Security Coalition",
+   "domain": "cybersecuritycoalition.be"
+  },
+  {
+   "name": "CyberEcoCul",
+   "domain": "cyberecocul.com"
+  },
+  {
+   "name": "CyberLur",
+   "domain": "cyberlur.es"
+  },
+  {
+   "name": "Cybernetica",
+   "domain": "cyber.ee"
+  },
+  {
+   "name": "CyberSecTV",
+   "domain": "cybersectv.eu"
+  },
+  {
+   "name": "Cybersecurity Foundation",
+   "domain": "cybersecurity%20foundation"
+  },
+  {
+   "name": "Cyberzaintza",
+   "domain": "zibersegurtasun.euskadi.eus"
+  },
+  {
+   "name": "Cyber’Occ, centre cybersécurité d’occitanie",
+   "domain": "cyberocc.com"
+  },
+  {
+   "name": "CybExer",
+   "domain": "cybexer.com"
+  },
+  {
+   "name": "Cybi",
+   "domain": "cybi.fr"
+  },
+  {
+   "name": "CyCommSec",
+   "domain": "cycommsec.com"
+  },
+  {
+   "name": "Cyprus Chamber of Commerce and Industry (CPPI)",
+   "domain": "ccci.org.cy"
+  },
+  {
+   "name": "Dawnguard",
+   "domain": "dawnguard.ai"
+  },
+  {
+   "name": "dec (Digital Equipment Commuication)",
+   "domain": "digitalequipment.co"
+  },
+  {
+   "name": "Deloitte Risk Advisory",
+   "domain": "deloitte.com"
+  },
+  {
+   "name": "Department for Digital, Culture, Media and Sport (United Kingdom)",
+   "domain": "gov.uk"
+  },
+  {
+   "name": "Detack",
+   "domain": "detack.de"
+  },
+  {
+   "name": "Diateam",
+   "domain": "diateam.net"
+  },
+  {
+   "name": "Digital Cubes",
+   "domain": "digital-cubes.com"
+  },
+  {
+   "name": "DongIT",
+   "domain": "dongit.eu"
+  },
+  {
+   "name": "DriveLock",
+   "domain": "drivelock.com"
+  },
+  {
+   "name": "DTU",
+   "domain": "dtu.dk"
+  },
+  {
+   "name": "Dublin City Council",
+   "domain": "dublincity.ie"
+  },
+  {
+   "name": "Durana Tech Park (Albania)",
+   "domain": "duranatechpark.com"
+  },
+  {
+   "name": "eCAPITAL ENTREPRENEURIAL PARTNERS",
+   "domain": "ecapital.vc"
+  },
+  {
+   "name": "EcomWall",
+   "domain": "ecomwall.com"
+  },
+  {
+   "name": "EDF",
+   "domain": "edf.fr"
+  },
+  {
+   "name": "Edligo",
+   "domain": "edligo.net"
+  },
+  {
+   "name": "EMA (Ukrainian Interbank Payments Systems Members Association)",
+   "domain": "ema3d.com"
+  },
+  {
+   "name": "Emproof",
+   "domain": "emproof.com"
+  },
+  {
+   "name": "Energy One",
+   "domain": "energyone.com"
+  },
+  {
+   "name": "Engie",
+   "domain": "engie.com"
+  },
+  {
+   "name": "Engineering",
+   "domain": "eng.it"
+  },
+  {
+   "name": "Entryzero",
+   "domain": "entryzero.ai"
+  },
+  {
+   "name": "Equixly",
+   "domain": "equixly.com"
+  },
+  {
+   "name": "Ericsson",
+   "domain": "ericsson.com"
+  },
+  {
+   "name": "Erium",
+   "domain": "erium.fr"
+  },
+  {
+   "name": "ESCRA",
+   "domain": "escra.de"
+  },
+  {
+   "name": "eShard",
+   "domain": "eshard.com"
+  },
+  {
+   "name": "Eurecat",
+   "domain": "eurecat.org"
+  },
+  {
+   "name": "eurobits",
+   "domain": "eurobits.de"
+  },
+  {
+   "name": "EuroFlash",
+   "domain": "euroflash.com"
+  },
+  {
+   "name": "European DIGITAL SME Alliance",
+   "domain": "digitalsme.eu"
+  },
+  {
+   "name": "Excalibur",
+   "domain": "getexcalibur.com"
+  },
+  {
+   "name": "Experiree",
+   "domain": "experiree.com"
+  },
+  {
+   "name": "Federal Chancellery Republic of Austria",
+   "domain": "bundeskanzleramt.gv.at"
+  },
+  {
+   "name": "Finnish Information Security Cluster",
+   "domain": "fisc.fi"
+  },
+  {
+   "name": "FINSA",
+   "domain": "finsa.com"
+  },
+  {
+   "name": "Fluidra",
+   "domain": "fluidra.com"
+  },
+  {
+   "name": "Forgepoint Capital International",
+   "domain": "forgepointcap.com"
+  },
+  {
+   "name": "FORTH",
+   "domain": "forth.gr"
+  },
+  {
+   "name": "Fraunhofer AISEC",
+   "domain": "aisec.fraunhofer.de"
+  },
+  {
+   "name": "Fudo Security",
+   "domain": "fudosecurity.com"
+  },
+  {
+   "name": "Fundación ZIUR",
+   "domain": "ziur.eus"
+  },
+  {
+   "name": "Funditec",
+   "domain": "funditec.es"
+  },
+  {
+   "name": "Gambit Cyber",
+   "domain": "gambitcyber.org"
+  },
+  {
+   "name": "Giesecke-Devrient",
+   "domain": "gi-de.com"
+  },
+  {
+   "name": "GigaCloud",
+   "domain": "gigacloud.eu"
+  },
+  {
+   "name": "GITAC (Georgian Information and Technology Analysis Center)",
+   "domain": "georgian%20information%20and%20technology%20analysis%20center-%20gitac"
+  },
+  {
+   "name": "Global Cyber Alliance",
+   "domain": "globalcyberalliance.org"
+  },
+  {
+   "name": "Global Information Space",
+   "domain": "globalinfospace.com"
+  },
+  {
+   "name": "Goethe-Universität Frankfurt",
+   "domain": "uni-frankfurt.de"
+  },
+  {
+   "name": "Government Information Security Office",
+   "domain": "gov.si"
+  },
+  {
+   "name": "Gradiant",
+   "domain": "gradiant.org"
+  },
+  {
+   "name": "GRC+",
+   "domain": "grc.plus"
+  },
+  {
+   "name": "Hack The Box",
+   "domain": "hackthebox.com"
+  },
+  {
+   "name": "Hackshield",
+   "domain": "nl.joinhackshield.com"
+  },
+  {
+   "name": "Haier Europe",
+   "domain": "corporate.haier-europe.com"
+  },
+  {
+   "name": "HarfangLab",
+   "domain": "harfanglab.io"
+  },
+  {
+   "name": "Hexatrust",
+   "domain": "hexatrust.com"
+  },
+  {
+   "name": "heylogin",
+   "domain": "heylogin.com"
+  },
+  {
+   "name": "Hideez",
+   "domain": "hideez.com"
+  },
+  {
+   "name": "Hivehack",
+   "domain": "hivehack.tech"
+  },
+  {
+   "name": "Hoxhunt",
+   "domain": "hoxhunt.com"
+  },
+  {
+   "name": "HSD Security Delta",
+   "domain": "securitydelta.nl"
+  },
+  {
+   "name": "HSLU",
+   "domain": "hslu.ch"
+  },
+  {
+   "name": "HWG Sababa",
+   "domain": "hwgsababa.com"
+  },
+  {
+   "name": "HyperBUNKER",
+   "domain": "hyperbunker.com"
+  },
+  {
+   "name": "i2CAT",
+   "domain": "i2cat.net"
+  },
+  {
+   "name": "IANUS Consulting",
+   "domain": "ianus-technologies.com"
+  },
+  {
+   "name": "ICI Bucharest – National Institute for Research and Development in Informatics",
+   "domain": "ici.ro"
+  },
+  {
+   "name": "ICT Association of Slovenia",
+   "domain": "ikthm.gzs.si"
+  },
+  {
+   "name": "IFE",
+   "domain": "ife.no"
+  },
+  {
+   "name": "IKARUS",
+   "domain": "ikarussecurity.com"
+  },
+  {
+   "name": "IKERLAN",
+   "domain": "ikerlan.es"
+  },
+  {
+   "name": "IMT",
+   "domain": "imt.fr"
+  },
+  {
+   "name": "INCERT",
+   "domain": "incert.lu"
+  },
+  {
+   "name": "INCIBE (Spain)",
+   "domain": "incibe.es"
+  },
+  {
+   "name": "Informa",
+   "domain": "informa.es"
+  },
+  {
+   "name": "Innovalia",
+   "domain": "innovalia.org"
+  },
+  {
+   "name": "INOV",
+   "domain": "inov.pt"
+  },
+  {
+   "name": "Inria",
+   "domain": "inria.fr"
+  },
+  {
+   "name": "Instituto para la Competitividad Empresarial (ICE) de Castilla y León",
+   "domain": "empresas.jcyl.es"
+  },
+  {
+   "name": "Instituto Tecnológico de Castilla y León (ITCL)",
+   "domain": "itcl.es"
+  },
+  {
+   "name": "Interdisciplinary Centre for Security, Reliability and Trust (uni.lu)",
+   "domain": "ictluxembourg.lu"
+  },
+  {
+   "name": "International Information Academy",
+   "domain": "interacademy.info"
+  },
+  {
+   "name": "Intesa Sanpaolo",
+   "domain": "group.intesasanpaolo.com"
+  },
+  {
+   "name": "Irish Water",
+   "domain": "water.ie"
+  },
+  {
+   "name": "IriusRisk",
+   "domain": "iriusrisk.com"
+  },
+  {
+   "name": "IS Consulting",
+   "domain": "isconsulting.pl"
+  },
+  {
+   "name": "ISACA",
+   "domain": "isaca.org"
+  },
+  {
+   "name": "ISC2",
+   "domain": "isc2.org"
+  },
+  {
+   "name": "ISEP",
+   "domain": "isep.ipp.pt"
+  },
+  {
+   "name": "ISSP",
+   "domain": "issp.com"
+  },
+  {
+   "name": "IstroSec",
+   "domain": "istrosec.com"
+  },
+  {
+   "name": "It-sa – Home of IT Security",
+   "domain": "itsa365.de"
+  },
+  {
+   "name": "Italgas",
+   "domain": "italgas.it"
+  },
+  {
+   "name": "Jamk",
+   "domain": "jamk.fi"
+  },
+  {
+   "name": "JOANNEUM RESEARCH",
+   "domain": "joanneum.at"
+  },
+  {
+   "name": "Jožef Stefan Institute",
+   "domain": "ijs.si"
+  },
+  {
+   "name": "Kadir Has Univeristy CCIP",
+   "domain": "ccip.khas.edu.tr"
+  },
+  {
+   "name": "KINEAS Consulting Ltd",
+   "domain": "ncc.cy"
+  },
+  {
+   "name": "Klecha & Co.",
+   "domain": "klecha-co.com"
+  },
+  {
+   "name": "Kosciuszko Institute",
+   "domain": "ik.org.pl"
+  },
+  {
+   "name": "Kroll Strategie",
+   "domain": "kroll-strategie.de"
+  },
+  {
+   "name": "KSO",
+   "domain": "kompetenzzentrum-sicheres-oesterreich.at"
+  },
+  {
+   "name": "Labyrinth",
+   "domain": "labyrinth.tech"
+  },
+  {
+   "name": "Laurea",
+   "domain": "laurea.fi"
+  },
+  {
+   "name": "Leonardo",
+   "domain": "leonardo.com"
+  },
+  {
+   "name": "LevelQuantum",
+   "domain": "levelquantum.eu"
+  },
+  {
+   "name": "Lincoln International",
+   "domain": "lincolninternational.com"
+  },
+  {
+   "name": "Link Campus University",
+   "domain": "unilink.it"
+  },
+  {
+   "name": "Llywodraeth Cymru Welsh Government",
+   "domain": "gov.wales"
+  },
+  {
+   "name": "LSEC",
+   "domain": "digitalsecuritycatalyst.com"
+  },
+  {
+   "name": "Luxembourg House of Cybersecurity – LHC",
+   "domain": "lhc.lu"
+  },
+  {
+   "name": "Mandat International",
+   "domain": "mandint.org"
+  },
+  {
+   "name": "MarCySCoE",
+   "domain": "cysec.center"
+  },
+  {
+   "name": "Mastercard",
+   "domain": "mastercard.com"
+  },
+  {
+   "name": "Mattermost",
+   "domain": "mattermost.com"
+  },
+  {
+   "name": "Ministry of Defence (Estonia)",
+   "domain": "kaitseministeerium.ee"
+  },
+  {
+   "name": "Ministry of Defence Latvia",
+   "domain": "mod.gov.lv"
+  },
+  {
+   "name": "Ministry of Digital Affairs (Poland)",
+   "domain": "gov.pl"
+  },
+  {
+   "name": "Ministry of Electronic Governance (Bulgaria)",
+   "domain": "e-gov.bg"
+  },
+  {
+   "name": "Ministry of Migration and Asylum (Hellenic Republic)",
+   "domain": "migration.gov.gr"
+  },
+  {
+   "name": "Ministry of Public Administration (Montenegro)",
+   "domain": "gov.me"
+  },
+  {
+   "name": "MKB Cyber Campus",
+   "domain": "mkbcybercampus.nl"
+  },
+  {
+   "name": "mnemonic",
+   "domain": "mnemonic.io"
+  },
+  {
+   "name": "MON5",
+   "domain": "mon5.it"
+  },
+  {
+   "name": "Myra Security",
+   "domain": "myrasecurity.com"
+  },
+  {
+   "name": "NASK (Poland)",
+   "domain": "nask.pl"
+  },
+  {
+   "name": "National Agency for Communication and Information Technologies (NAKIT) (Czechia)",
+   "domain": "nakit.cz"
+  },
+  {
+   "name": "National Security Authority (Slovakia)",
+   "domain": "nbu.gov.sk"
+  },
+  {
+   "name": "National Standards Authority of Ireland (NSAI)",
+   "domain": "nsai.ie"
+  },
+  {
+   "name": "National Statistics Office (NSO) (Malta)",
+   "domain": "nso.gov.mt"
+  },
+  {
+   "name": "NBIP",
+   "domain": "nbip.nl"
+  },
+  {
+   "name": "necc",
+   "domain": "cybersecurityintelligence.com"
+  },
+  {
+   "name": "Nexova",
+   "domain": "nexovagroup.eu"
+  },
+  {
+   "name": "NNEAT",
+   "domain": "nneatcyber.com"
+  },
+  {
+   "name": "Nordic Data Compliance",
+   "domain": "datacompliancecentre.com"
+  },
+  {
+   "name": "Norwegian Cybersecurity Cluster",
+   "domain": "cybersecuritycluster.no"
+  },
+  {
+   "name": "Novartis",
+   "domain": "novartis.com"
+  },
+  {
+   "name": "NR",
+   "domain": "nr.no"
+  },
+  {
+   "name": "NTNU",
+   "domain": "ntnu.edu"
+  },
+  {
+   "name": "NTT DATA",
+   "domain": "nttdata.com"
+  },
+  {
+   "name": "ONEKEY",
+   "domain": "onekey.com"
+  },
+  {
+   "name": "Panik Button",
+   "domain": "panikbutton.eu"
+  },
+  {
+   "name": "Planven",
+   "domain": "planvenev.com"
+  },
+  {
+   "name": "Protostars",
+   "domain": "protostars.ai"
+  },
+  {
+   "name": "Pylones",
+   "domain": "pylones.gr"
+  },
+  {
+   "name": "Pôle d’excellence cyber",
+   "domain": "pole-excellence-cyber.org"
+  },
+  {
+   "name": "Q-Sec",
+   "domain": "q-sec.eu"
+  },
+  {
+   "name": "QuoIntelligence",
+   "domain": "quointelligence.eu"
+  },
+  {
+   "name": "Red Alert Labs",
+   "domain": "redalertlabs.com"
+  },
+  {
+   "name": "Red Sift",
+   "domain": "redsift.com"
+  },
+  {
+   "name": "Regione Toscana",
+   "domain": "regione.toscana.it"
+  },
+  {
+   "name": "Reiss Romoli",
+   "domain": "reissromoli.com"
+  },
+  {
+   "name": "RENIC",
+   "domain": "renic.es"
+  },
+  {
+   "name": "Republic of Estonia Information System Authority",
+   "domain": "ria.ee"
+  },
+  {
+   "name": "Resecurity",
+   "domain": "resecurity.com"
+  },
+  {
+   "name": "revel8",
+   "domain": "revel8.ai"
+  },
+  {
+   "name": "RIA – Information System Authority (Estonia)",
+   "domain": "ria.ee"
+  },
+  {
+   "name": "RISE",
+   "domain": "ri.se"
+  },
+  {
+   "name": "Rohde & Schwarz",
+   "domain": "rohde-schwarz.com"
+  },
+  {
+   "name": "Romanian National Cyber Security Directorate",
+   "domain": "dnsc.ro"
+  },
+  {
+   "name": "RTL Group",
+   "domain": "company.rtl.com"
+  },
+  {
+   "name": "Rublon",
+   "domain": "rublon.com"
+  },
+  {
+   "name": "RWE",
+   "domain": "rwe.com"
+  },
+  {
+   "name": "Région Bretagne",
+   "domain": "bretagne.bzh"
+  },
+  {
+   "name": "S2 Grupo",
+   "domain": "s2grupo.es"
+  },
+  {
+   "name": "Safetech Innovations",
+   "domain": "safetech.ro"
+  },
+  {
+   "name": "SAMA PARTNERS",
+   "domain": "samapartners.com"
+  },
+  {
+   "name": "SAP",
+   "domain": "sap.com"
+  },
+  {
+   "name": "Saporo",
+   "domain": "saporo.io"
+  },
+  {
+   "name": "SecDojo",
+   "domain": "sec-dojo.com"
+  },
+  {
+   "name": "Seclab",
+   "domain": "seclab-security.com"
+  },
+  {
+   "name": "Secure Practice",
+   "domain": "securepractice.co"
+  },
+  {
+   "name": "Security Made in Luxembourg",
+   "domain": "securitymadein.lu"
+  },
+  {
+   "name": "SEDICII INNOVATIONS",
+   "domain": "sedicii.com"
+  },
+  {
+   "name": "Sekoia",
+   "domain": "sekoia.com"
+  },
+  {
+   "name": "Senkron",
+   "domain": "senkrondigital.com"
+  },
+  {
+   "name": "Sensor Fu",
+   "domain": "sensorfu.com"
+  },
+  {
+   "name": "ShardSec",
+   "domain": "shardsec.cc"
+  },
+  {
+   "name": "Shawn Applebee",
+   "domain": "shawneapplebee.com"
+  },
+  {
+   "name": "SignPath",
+   "domain": "signpath.io"
+  },
+  {
+   "name": "Sogei",
+   "domain": "sogei.it"
+  },
+  {
+   "name": "Sopra Steria",
+   "domain": "soprasteria.com"
+  },
+  {
+   "name": "SPIREE",
+   "domain": "spiree.io"
+  },
+  {
+   "name": "SPRI – Agencia Vasca de Desarrollo Empresarial",
+   "domain": "spri.eus"
+  },
+  {
+   "name": "StackBob",
+   "domain": "stackbob.ai"
+  },
+  {
+   "name": "State Sci. and Res. Inst. of Cybersec. Tech. & Info. Protection (Ukraine)",
+   "domain": "csi.cip.gov.ua"
+  },
+  {
+   "name": "Stedin Groep",
+   "domain": "stedin.net"
+  },
+  {
+   "name": "Stephens",
+   "domain": "stephens.com"
+  },
+  {
+   "name": "STMicroelectronics",
+   "domain": "st.com"
+  },
+  {
+   "name": "SUEZ",
+   "domain": "suez.com"
+  },
+  {
+   "name": "Swascan",
+   "domain": "tinextacyber.com"
+  },
+  {
+   "name": "Sweepatic",
+   "domain": "sweepatic.com"
+  },
+  {
+   "name": "Syntho",
+   "domain": "syntho.ai"
+  },
+  {
+   "name": "Synthos",
+   "domain": "synthosgroup.com"
+  },
+  {
+   "name": "Systematic Paris Region Deep Tech Ecosystem",
+   "domain": "systematic-paris-region.org"
+  },
+  {
+   "name": "T-REGS",
+   "domain": "t-regs.com"
+  },
+  {
+   "name": "Talgen",
+   "domain": "talgen.com"
+  },
+  {
+   "name": "Tata Consulting Services",
+   "domain": "tcs.com"
+  },
+  {
+   "name": "Tecnalia",
+   "domain": "tecnalia.com"
+  },
+  {
+   "name": "TeleTrusT",
+   "domain": "teletrust.de"
+  },
+  {
+   "name": "Terna Driving Energy",
+   "domain": "terna.it"
+  },
+  {
+   "name": "Thales",
+   "domain": "thalesgroup.com"
+  },
+  {
+   "name": "The Hague",
+   "domain": "denhaag.nl"
+  },
+  {
+   "name": "The Research Council of Norway",
+   "domain": "forskningsradet.no"
+  },
+  {
+   "name": "The Shadowserver Foundation",
+   "domain": "shadowserver.org"
+  },
+  {
+   "name": "TheGreenBow",
+   "domain": "thegreenbow.com"
+  },
+  {
+   "name": "Tikehau Capital",
+   "domain": "tikehaucapital.com"
+  },
+  {
+   "name": "TIN Capital",
+   "domain": "tincapital.vc"
+  },
+  {
+   "name": "Truffle Capital",
+   "domain": "truffle.com"
+  },
+  {
+   "name": "TURKU AMK",
+   "domain": "turkuamk.fi"
+  },
+  {
+   "name": "Ubiqu",
+   "domain": "ubiqu.com"
+  },
+  {
+   "name": "UBITECH",
+   "domain": "ubitech.eu"
+  },
+  {
+   "name": "UFPPEE",
+   "domain": "ssibg.org"
+  },
+  {
+   "name": "Ulysses Systems",
+   "domain": "ulysses-systems.com"
+  },
+  {
+   "name": "United Ventures SGR",
+   "domain": "unitedventures.com"
+  },
+  {
+   "name": "Universidad de Murcia",
+   "domain": "um.es"
+  },
+  {
+   "name": "Universidad de Málaga",
+   "domain": "uma.es"
+  },
+  {
+   "name": "University of Bologna",
+   "domain": "unibo.it"
+  },
+  {
+   "name": "University of Copenhagen",
+   "domain": "ku.dk"
+  },
+  {
+   "name": "Université Bretagne Sud",
+   "domain": "univ-ubs.fr"
+  },
+  {
+   "name": "UP Cybersecurity and Privacy Centre",
+   "domain": "cybersec4europe.eu"
+  },
+  {
+   "name": "Utimaco",
+   "domain": "utimaco.com"
+  },
+  {
+   "name": "Vicomtech",
+   "domain": "vicomtech.org"
+  },
+  {
+   "name": "Vinnova (Sweden)",
+   "domain": "vinnova.se"
+  },
+  {
+   "name": "VirtualBrowser",
+   "domain": "virtualbrowser.com"
+  },
+  {
+   "name": "VisionWare",
+   "domain": "visionware.pt"
+  },
+  {
+   "name": "Wavestone",
+   "domain": "wavestone.com"
+  },
+  {
+   "name": "WEDOS",
+   "domain": "wedos.com"
+  },
+  {
+   "name": "Whalebone",
+   "domain": "whalebone.io"
+  },
+  {
+   "name": "WINGS ICT SOLUTIONS",
+   "domain": "wings-ict-solutions.eu"
+  },
+  {
+   "name": "WithSecure",
+   "domain": "withsecure.com"
+  },
+  {
+   "name": "Wklaster",
+   "domain": "wklaster.pl"
+  },
+  {
+   "name": "Xopero",
+   "domain": "xopero.com"
+  },
+  {
+   "name": "YesWeHack",
+   "domain": "yeswehack.com"
+  },
+  {
+   "name": "Yubico",
+   "domain": "yubico.com"
+  },
+  {
+   "name": "Zanasi & Partners",
+   "domain": "zanasi-alessandro.eu"
+  },
+  {
+   "name": "Zepo",
+   "domain": "zepo.ai"
+  },
+  {
+   "name": "Zetta Systems",
+   "domain": "zetta.systems"
+  },
+  {
+   "name": "ZHAW",
+   "domain": "zhaw.ch"
+  }
+ ]
+}

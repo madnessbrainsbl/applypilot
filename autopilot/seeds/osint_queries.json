@@ -1,0 +1,18 @@
+{
+  "_comment": "Seed queries for tools/osint_sources.py. Override per persona with config.json discovery.<source>.queries. Keep terms short: the APIs match on the job title.",
+  "arbeitsagentur": {
+    "creative": ["Fotograf", "Fotografin", "Videograf", "Videograph", "Videoproduzent", "Video Editor", "Videoeditor", "Cutter Video", "Content Creator", "Social Media Creator", "Kameramann", "Bildbearbeiter", "Retusche", "Bildredakteur", "Mediengestalter Bild und Ton", "Produktfotograf", "Modefotograf", "Fotoproduktion"],
+    "appsec": ["Application Security", "Anwendungssicherheit", "Penetrationstester", "Penetration Tester", "Pentester", "Security Engineer", "DevSecOps", "Product Security", "Cyber Security Engineer", "IT-Sicherheit Engineer", "Informationssicherheit", "Security Analyst", "Cloud Security Engineer", "Schwachstellenmanagement", "Medizintechnik IT-Sicherheit", "Medical Cybersecurity"]
+  },
+  "eu_portals": {
+    "creative": ["photographer", "videographer", "video editor", "content creator", "photo editor", "retoucher", "fotograf", "photographe", "fotografo", "fotograaf", "videograf", "monteur video", "creador de contenido"],
+    "appsec": ["application security", "penetration tester", "security engineer", "devsecops", "product security", "cyber security engineer", "information security", "security analyst", "ciberseguridad", "cybersécurité", "sicurezza informatica", "healthtech security", "medtech security"]
+  },
+  "dorks": {
+    "smartrecruiters": ["photographer", "photography", "video", "content creator", "fotograf", "photographe", "application security", "penetration", "security engineer", "product security", "healthtech security", "medical cybersecurity"]
+  },
+  "hn_hiring": {
+    "creative": ["photograph", "videograph", "video editor", "content creator", "retouch"],
+    "appsec": ["application security", "appsec", "product security", "penetration", "pentest", "security engineer", "devsecops", "healthtech security", "biotech security"]
+  }
+}

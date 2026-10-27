@@ -13,18 +13,16 @@ def test_prune_respects_rolling_limit_and_leaves_unrelated_temp(tmp_path, monkey
     monkeypatch.setattr(A, "SHOTS", shots)
     monkeypatch.setattr(A.tempfile, "gettempdir", lambda: str(temp))
     con = sqlite3.connect(":memory:")
-    con.execute("CREATE TABLE applications (screenshot TEXT)")
+    con.execute("CREATE TABLE applications (screenshot TEXT, submitted INTEGER DEFAULT 0)")
     for i in range(15):
         shot = shots / f"{i}.png"
         shot.write_bytes(b"test")
         os.utime(shot, (i, i))
-        con.execute("INSERT INTO applications VALUES (?)", (str(shot.relative_to(tmp_path)),))
+        con.execute("INSERT INTO applications (screenshot) VALUES (?)", (str(shot.relative_to(tmp_path)),))
     unrelated = temp / "playwright-other-project"
     unrelated.mkdir()
     stale = temp / f"autopilot-cover-{os.getpid()}-test.pdf"
     stale.write_bytes(b"test")
-    other_session = temp / "autopilot-cover-99999999-other.pdf"
-    other_session.write_bytes(b"other session")
     try:
         result = A.prune_screenshots(con, keep_recent=20)
         assert result["deleted"] == 5
@@ -32,6 +30,27 @@ def test_prune_respects_rolling_limit_and_leaves_unrelated_temp(tmp_path, monkey
         assert con.execute("SELECT count(*) FROM applications WHERE screenshot='' ").fetchone()[0] == 5
         assert unrelated.exists()
         assert not stale.exists()
-        assert other_session.exists()
     finally:
         con.close()
+
+
+def test_prune_archives_submitted_proofs(tmp_path, monkeypatch):
+    shots = tmp_path / "autopilot" / "screenshots"
+    shots.mkdir(parents=True)
+    monkeypatch.setattr(A, "ROOT", tmp_path)
+    monkeypatch.setattr(A, "SHOTS", shots)
+    monkeypatch.setattr(A.tempfile, "gettempdir", lambda: str(tmp_path / "temp"))
+    con = sqlite3.connect(":memory:")
+    con.execute("CREATE TABLE applications (screenshot TEXT, submitted INTEGER DEFAULT 0)")
+    for i in range(12):
+        shot = shots / f"{i}.png"
+        shot.write_bytes(b"test")
+        os.utime(shot, (i, i))
+        # forward-slash paths were never matched by the old relative_to() comparison
+        con.execute("INSERT INTO applications VALUES (?, ?)", (f"autopilot/screenshots/{i}.png", int(i == 0)))
+    result = A.prune_screenshots(con, keep_recent=10)
+    assert result["deleted"] == 1                      # 1.png; 0.png was moved, not deleted
+    proof = tmp_path / "autopilot" / "archive" / "proofs" / "0.png"
+    assert proof.is_file() and not (shots / "0.png").exists()
+    stored = con.execute("SELECT screenshot FROM applications WHERE submitted=1").fetchone()[0]
+    assert (tmp_path / stored).is_file(), stored

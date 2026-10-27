@@ -12,6 +12,7 @@ vi.mock("@/lib/db", () => {
   const mockPrisma = {
     user: {
       findUnique: vi.fn(),
+      count: vi.fn().mockResolvedValue(0),
       create: vi.fn(),
     },
     jobSource: {

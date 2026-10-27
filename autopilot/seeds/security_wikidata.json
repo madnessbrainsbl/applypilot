@@ -1,0 +1,2281 @@
+{
+ "list": "wikidata",
+ "fetched": "2026-10-16T10:09:10+00:00",
+ "companies": [
+  {
+   "name": "11/11 AI",
+   "domain": "1111ai.com",
+   "country": "United States"
+  },
+  {
+   "name": "Acium",
+   "domain": "acium.io",
+   "country": "United States"
+  },
+  {
+   "name": "Acronis",
+   "domain": "acronis.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Actus-Info",
+   "domain": "actus-info.pl",
+   "country": "Poland"
+  },
+  {
+   "name": "Adamanture",
+   "domain": "adamanture.com",
+   "country": "India"
+  },
+  {
+   "name": "ADF Solutions",
+   "domain": "adfsolutions.com",
+   "country": ""
+  },
+  {
+   "name": "Agentic Fabriq",
+   "domain": "agenticfabriq.com",
+   "country": "United States"
+  },
+  {
+   "name": "AI Solutions",
+   "domain": "rateit10.vercel.app",
+   "country": ""
+  },
+  {
+   "name": "Alcott Enterprises Managed IT Services & Cybersecurity",
+   "domain": "alcottenterprises.com",
+   "country": "United States"
+  },
+  {
+   "name": "Algofy s.r.o.",
+   "domain": "algofy.eu",
+   "country": "Czech Republic"
+  },
+  {
+   "name": "AlgoSec",
+   "domain": "algosec.com",
+   "country": ""
+  },
+  {
+   "name": "Alpha Code Technologies",
+   "domain": "alphacode.tech",
+   "country": "Indonesia"
+  },
+  {
+   "name": "Alpine Security",
+   "domain": "alpinesecurity.com",
+   "country": "United States"
+  },
+  {
+   "name": "altaniche",
+   "domain": "altaniche.ai",
+   "country": "Australia"
+  },
+  {
+   "name": "Altor Networks",
+   "domain": "altornetworks.com",
+   "country": "United States"
+  },
+  {
+   "name": "Altuofianco srl",
+   "domain": "altuofianco.it",
+   "country": "Italy"
+  },
+  {
+   "name": "Alvor",
+   "domain": "alvor.io",
+   "country": "Australia"
+  },
+  {
+   "name": "Amastra",
+   "domain": "amastra.io",
+   "country": ""
+  },
+  {
+   "name": "Andesite AI",
+   "domain": "andesite.ai",
+   "country": "United States"
+  },
+  {
+   "name": "Anomali",
+   "domain": "anomali.com",
+   "country": ""
+  },
+  {
+   "name": "Anomity",
+   "domain": "anomity.ai",
+   "country": ""
+  },
+  {
+   "name": "Anonymizer",
+   "domain": "anonymizer.com",
+   "country": ""
+  },
+  {
+   "name": "Anonymous Proxies",
+   "domain": "anonymous-proxies.net",
+   "country": "Romania"
+  },
+  {
+   "name": "Ansvar Systems AB",
+   "domain": "ansvar.eu",
+   "country": "Sweden"
+  },
+  {
+   "name": "Anuxis",
+   "domain": "anuxis.com",
+   "country": "Spain"
+  },
+  {
+   "name": "AppSec Santa",
+   "domain": "appsecsanta.com",
+   "country": "Finland"
+  },
+  {
+   "name": "Arctic Wolf Networks",
+   "domain": "arcticwolf.com",
+   "country": "United States"
+  },
+  {
+   "name": "Argos Security GmbH",
+   "domain": "argos.security",
+   "country": "Germany"
+  },
+  {
+   "name": "Armadin",
+   "domain": "armadin.com",
+   "country": "United States"
+  },
+  {
+   "name": "ARPSyndicate",
+   "domain": "arpsyndicate.io",
+   "country": "India"
+  },
+  {
+   "name": "Arsen Security",
+   "domain": "arsen.co",
+   "country": "France"
+  },
+  {
+   "name": "ARX",
+   "domain": "arx.com",
+   "country": "United States"
+  },
+  {
+   "name": "Arxan Technologies",
+   "domain": "arxan.com",
+   "country": "United States"
+  },
+  {
+   "name": "AT&T Cybersecurity",
+   "domain": "cybersecurity.att.com",
+   "country": "United States"
+  },
+  {
+   "name": "Audiocodes Ltd.",
+   "domain": "audiocodes.com",
+   "country": "Israel"
+  },
+  {
+   "name": "AuthentiLens",
+   "domain": "authentilens.com",
+   "country": ""
+  },
+  {
+   "name": "Automiq",
+   "domain": "automiq.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Avira",
+   "domain": "avira.com",
+   "country": "Germany"
+  },
+  {
+   "name": "Awareness Technologies",
+   "domain": "awarenesstechnologies.com",
+   "country": ""
+  },
+  {
+   "name": "BAE Systems",
+   "domain": "baesystems.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Barracuda Networks",
+   "domain": "barracuda.com",
+   "country": "United States"
+  },
+  {
+   "name": "BCIT",
+   "domain": "bcit.fr",
+   "country": "France"
+  },
+  {
+   "name": "BeforeCrypt",
+   "domain": "beforecrypt.com",
+   "country": "Cyprus"
+  },
+  {
+   "name": "Bitdefender",
+   "domain": "bitdefender.com",
+   "country": "Romania"
+  },
+  {
+   "name": "BitScore Cybertech LLP",
+   "domain": "bitscore.in",
+   "country": "India"
+  },
+  {
+   "name": "Bitsight",
+   "domain": "bitsight.com",
+   "country": "United States"
+  },
+  {
+   "name": "Blast Security",
+   "domain": "blast.security",
+   "country": "Israel"
+  },
+  {
+   "name": "Blue Coat Systems",
+   "domain": "bluecoat.com",
+   "country": ""
+  },
+  {
+   "name": "BlueRock Security",
+   "domain": "bluerock.io",
+   "country": "United States"
+  },
+  {
+   "name": "BlueTalon",
+   "domain": "bluetalon.com",
+   "country": ""
+  },
+  {
+   "name": "Bondgate IT",
+   "domain": "bondgate.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Boston Managed IT",
+   "domain": "bostonmit.com",
+   "country": "United States"
+  },
+  {
+   "name": "Brain Security",
+   "domain": "startbrain.io",
+   "country": "France"
+  },
+  {
+   "name": "Bromium",
+   "domain": "bromium.com",
+   "country": "United States"
+  },
+  {
+   "name": "Bugcrowd",
+   "domain": "bugcrowd.com",
+   "country": "United States"
+  },
+  {
+   "name": "Buypass",
+   "domain": "buypass.no",
+   "country": "Norway"
+  },
+  {
+   "name": "CA/Browser Forum",
+   "domain": "cabforum.org",
+   "country": "United States"
+  },
+  {
+   "name": "CAI Technology",
+   "domain": "caitech.eu",
+   "country": "Romania"
+  },
+  {
+   "name": "Canima",
+   "domain": "canima.com",
+   "country": "United States"
+  },
+  {
+   "name": "Canticle Research",
+   "domain": "canticle.cc",
+   "country": "United States"
+  },
+  {
+   "name": "Centeye Security",
+   "domain": "centeye.io",
+   "country": "United States"
+  },
+  {
+   "name": "Centre for Strategic Communication and Information Security",
+   "domain": "spravdi.gov.ua",
+   "country": "Ukraine"
+  },
+  {
+   "name": "Certisyn, Inc.",
+   "domain": "certisyn.com",
+   "country": "United States"
+  },
+  {
+   "name": "CertiVox",
+   "domain": "certivox.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Chaitanya Digital Solutions",
+   "domain": "chaitanyadigitalsolutions.com",
+   "country": "India"
+  },
+  {
+   "name": "ChangeMyIP",
+   "domain": "changemyip.com",
+   "country": "Romania"
+  },
+  {
+   "name": "Check Point",
+   "domain": "checkpoint.com",
+   "country": "Israel"
+  },
+  {
+   "name": "Checkmarx",
+   "domain": "checkmarx.com",
+   "country": "United States"
+  },
+  {
+   "name": "Chronicle",
+   "domain": "chronicle.security",
+   "country": ""
+  },
+  {
+   "name": "Cigital",
+   "domain": "cigital.com",
+   "country": "United States"
+  },
+  {
+   "name": "Clampd",
+   "domain": "clampd.dev",
+   "country": ""
+  },
+  {
+   "name": "Clario",
+   "domain": "clario.co",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Clarysec",
+   "domain": "clarysec.com",
+   "country": "United States"
+  },
+  {
+   "name": "Clavister",
+   "domain": "clavister.com",
+   "country": "Sweden"
+  },
+  {
+   "name": "Clearswift",
+   "domain": "clearswift.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Cloudbric",
+   "domain": "cloudbric.com",
+   "country": ""
+  },
+  {
+   "name": "Cloudrise",
+   "domain": "cloudrise.com",
+   "country": "United States"
+  },
+  {
+   "name": "CodeTechLab",
+   "domain": "codetechlab.com",
+   "country": "India"
+  },
+  {
+   "name": "ColdBoot",
+   "domain": "coldboot.hu",
+   "country": "Hungary"
+  },
+  {
+   "name": "Columbitech",
+   "domain": "columbitech.com",
+   "country": "Sweden"
+  },
+  {
+   "name": "CombinedX",
+   "domain": "combinedx.com",
+   "country": "Sweden"
+  },
+  {
+   "name": "Comodo Group",
+   "domain": "comodo.com",
+   "country": "United States"
+  },
+  {
+   "name": "Computer Security and Industrial Cryptography",
+   "domain": "esat.kuleuven.be",
+   "country": "Belgium"
+  },
+  {
+   "name": "Core Security Technologies",
+   "domain": "coresecurity.com",
+   "country": "United States"
+  },
+  {
+   "name": "Cortile",
+   "domain": "cortile.io",
+   "country": "United States"
+  },
+  {
+   "name": "CPF Coaching LLC",
+   "domain": "cpf-coaching.com",
+   "country": "United States"
+  },
+  {
+   "name": "Credant Technologies",
+   "domain": "credant.com",
+   "country": "United States"
+  },
+  {
+   "name": "CronLab",
+   "domain": "cronlab.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Crossbeam Systems",
+   "domain": "crossbeam.com",
+   "country": "United States"
+  },
+  {
+   "name": "CrowdStrike",
+   "domain": "crowdstrike.com",
+   "country": "United States"
+  },
+  {
+   "name": "CrowdStrike Services",
+   "domain": "crowdstrike.com",
+   "country": "United States"
+  },
+  {
+   "name": "Cryptek",
+   "domain": "cryptek.com",
+   "country": "United States"
+  },
+  {
+   "name": "Custodia Cyber Ltd",
+   "domain": "custodiacyber.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "CybaVerse",
+   "domain": "cybaverse.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Cyber Intelligence House",
+   "domain": "cyberintelligencehouse.com",
+   "country": ""
+  },
+  {
+   "name": "Cyber NCS",
+   "domain": "cyberncs.com",
+   "country": "Israel"
+  },
+  {
+   "name": "Cyber Olympiad Foundation",
+   "domain": "cyberolympiad.in",
+   "country": "India"
+  },
+  {
+   "name": "Cyberhound",
+   "domain": "cyberhound.com",
+   "country": ""
+  },
+  {
+   "name": "Cyberlab Security Limited",
+   "domain": "cyberlab.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Cyberneza LLC",
+   "domain": "cyberneza.com",
+   "country": "United States"
+  },
+  {
+   "name": "Cyberoam",
+   "domain": "cyberoam.com",
+   "country": ""
+  },
+  {
+   "name": "CyberSentien",
+   "domain": "cybersentien.com",
+   "country": "Australia"
+  },
+  {
+   "name": "Cybertrust",
+   "domain": "cybertrust.co.jp",
+   "country": "Japan"
+  },
+  {
+   "name": "CyberVadis",
+   "domain": "cybervadis.com",
+   "country": "France"
+  },
+  {
+   "name": "CybExer Technologies",
+   "domain": "cybexer.com",
+   "country": "Estonia"
+  },
+  {
+   "name": "cycura GmbH",
+   "domain": "cycura.de",
+   "country": "Germany"
+  },
+  {
+   "name": "CYE",
+   "domain": "cyesec.com",
+   "country": "Israel"
+  },
+  {
+   "name": "Cyera",
+   "domain": "cyera.io",
+   "country": "Israel"
+  },
+  {
+   "name": "CYGNVS",
+   "domain": "cygnvs.com",
+   "country": "United States"
+  },
+  {
+   "name": "Cylance Inc.",
+   "domain": "cylance.com",
+   "country": "United States"
+  },
+  {
+   "name": "Cyngular",
+   "domain": "cyngular.com",
+   "country": ""
+  },
+  {
+   "name": "Cyota",
+   "domain": "cyota.com",
+   "country": "United States"
+  },
+  {
+   "name": "CyPeace",
+   "domain": "cypeace.net",
+   "country": "Vietnam"
+  },
+  {
+   "name": "DarkMatter",
+   "domain": "darkmatter.ae",
+   "country": ""
+  },
+  {
+   "name": "Dasient",
+   "domain": "dasient.com",
+   "country": "United States"
+  },
+  {
+   "name": "Data & More",
+   "domain": "dataandmore.com",
+   "country": "Denmark"
+  },
+  {
+   "name": "DataDome",
+   "domain": "datadome.co",
+   "country": "United States"
+  },
+  {
+   "name": "DataGravity",
+   "domain": "datagravity.com",
+   "country": "United States"
+  },
+  {
+   "name": "Datto",
+   "domain": "datto.com",
+   "country": "United States"
+  },
+  {
+   "name": "DB Networks",
+   "domain": "dbnetworks.com",
+   "country": "United States"
+  },
+  {
+   "name": "DDactic",
+   "domain": "ddactic.net",
+   "country": "Israel"
+  },
+  {
+   "name": "Decurity",
+   "domain": "decurity.io",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "Deep Instinct",
+   "domain": "deepinstinct.com",
+   "country": ""
+  },
+  {
+   "name": "DEFION Security",
+   "domain": "defion.security",
+   "country": "Netherlands"
+  },
+  {
+   "name": "Digital Hands",
+   "domain": "digitalhands.com",
+   "country": "United States"
+  },
+  {
+   "name": "Diopter AI",
+   "domain": "diopter.ai",
+   "country": "United States"
+  },
+  {
+   "name": "DivvyCloud",
+   "domain": "divvycloud.com",
+   "country": "United States"
+  },
+  {
+   "name": "dope.security",
+   "domain": "dope.security",
+   "country": "United States"
+  },
+  {
+   "name": "Dr.Web",
+   "domain": "drweb.co.jp",
+   "country": ""
+  },
+  {
+   "name": "Dream Security",
+   "domain": "dreamgroup.com",
+   "country": "Israel"
+  },
+  {
+   "name": "DriverShield",
+   "domain": "drivershield.io",
+   "country": "Turkey"
+  },
+  {
+   "name": "E-C.O.P (Thailand) Limited",
+   "domain": "ecop.co.th",
+   "country": "Thailand"
+  },
+  {
+   "name": "Egress Software Technologies Ltd",
+   "domain": "egress.com",
+   "country": ""
+  },
+  {
+   "name": "Endgame systems",
+   "domain": "endgame.com",
+   "country": ""
+  },
+  {
+   "name": "Enoki Labs",
+   "domain": "enokilabs.ai",
+   "country": "Belgium"
+  },
+  {
+   "name": "Entropya",
+   "domain": "entropya.com",
+   "country": "United States"
+  },
+  {
+   "name": "Entrust",
+   "domain": "entrust.com",
+   "country": "United States"
+  },
+  {
+   "name": "Ethixbase360",
+   "domain": "ethixbase360.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Exclusive Networks",
+   "domain": "exclusive-networks.com",
+   "country": "France"
+  },
+  {
+   "name": "Expernet",
+   "domain": "expernet.re",
+   "country": "France"
+  },
+  {
+   "name": "Expert Insights",
+   "domain": "expertinsights.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "ExtraHop Networks",
+   "domain": "extrahop.com",
+   "country": "United States"
+  },
+  {
+   "name": "Factero Advisory Services",
+   "domain": "factero.ca",
+   "country": "Canada"
+  },
+  {
+   "name": "Fastly",
+   "domain": "fastly.com",
+   "country": "United States"
+  },
+  {
+   "name": "FastPassCorp",
+   "domain": "fastpasscorp.com",
+   "country": "Denmark"
+  },
+  {
+   "name": "Ferentin",
+   "domain": "ferentin.com",
+   "country": "United States"
+  },
+  {
+   "name": "Fidelis Security Systems",
+   "domain": "fidelissecurity.com",
+   "country": "United States"
+  },
+  {
+   "name": "Fingerprint",
+   "domain": "fingerprint.com",
+   "country": "United States"
+  },
+  {
+   "name": "Fire Mountain Labs",
+   "domain": "firemountainlabs.com",
+   "country": "United States"
+  },
+  {
+   "name": "FireEye",
+   "domain": "fireeye.com",
+   "country": "United States"
+  },
+  {
+   "name": "FishNet Security",
+   "domain": "optiv.com",
+   "country": "United States"
+  },
+  {
+   "name": "Flowtriq",
+   "domain": "flowtriq.com",
+   "country": ""
+  },
+  {
+   "name": "Forcepoint",
+   "domain": "forcepoint.com",
+   "country": "United States"
+  },
+  {
+   "name": "Forefront IT Security Services",
+   "domain": "forefrontitsecurityservices.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Forter",
+   "domain": "forter.com",
+   "country": "United States"
+  },
+  {
+   "name": "Fortinet",
+   "domain": "fortinet.com",
+   "country": "United States"
+  },
+  {
+   "name": "Fortra",
+   "domain": "fortra.com",
+   "country": "United States"
+  },
+  {
+   "name": "Fusion Systems",
+   "domain": "fusionsystems.group",
+   "country": "United States"
+  },
+  {
+   "name": "FwChange",
+   "domain": "fwchange.com",
+   "country": ""
+  },
+  {
+   "name": "G Data CyberDefense",
+   "domain": "gdata.de",
+   "country": "Germany"
+  },
+  {
+   "name": "genua GmbH",
+   "domain": "genua.de",
+   "country": "Germany"
+  },
+  {
+   "name": "GetReal Security",
+   "domain": "getrealsecurity.com",
+   "country": "United States"
+  },
+  {
+   "name": "GFI Software",
+   "domain": "gfi.com",
+   "country": ""
+  },
+  {
+   "name": "GH Crecemos",
+   "domain": "ghcrecemos.com",
+   "country": ""
+  },
+  {
+   "name": "Gigamon",
+   "domain": "gigamon.com",
+   "country": "United States"
+  },
+  {
+   "name": "GLIMPS",
+   "domain": "glimps.re",
+   "country": "France"
+  },
+  {
+   "name": "GMV Innovating Solutions",
+   "domain": "gmv.com",
+   "country": "Spain"
+  },
+  {
+   "name": "GreyNoise Intelligence",
+   "domain": "greynoise.io",
+   "country": "United States"
+  },
+  {
+   "name": "Group-IB",
+   "domain": "group-ib.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Gtd",
+   "domain": "gtd.cl",
+   "country": "Chile"
+  },
+  {
+   "name": "Gtd Colombia",
+   "domain": "gtdcolombia.com",
+   "country": "Colombia"
+  },
+  {
+   "name": "Gtd Perú",
+   "domain": "gtdperu.com",
+   "country": "Peru"
+  },
+  {
+   "name": "GTMaritime",
+   "domain": "gtmaritime.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Guardian Analytics",
+   "domain": "guardiananalytics.com",
+   "country": "United States"
+  },
+  {
+   "name": "GuardingPearSoftware",
+   "domain": "guardingpearsoftware.com",
+   "country": "Germany"
+  },
+  {
+   "name": "Guardsi Cybersecurity",
+   "domain": "guardsi.com.br",
+   "country": "Brazil"
+  },
+  {
+   "name": "Guidance Software",
+   "domain": "guidancesoftware.com",
+   "country": "United States"
+  },
+  {
+   "name": "HACK KAP",
+   "domain": "hackkap.com",
+   "country": "Sri Lanka"
+  },
+  {
+   "name": "HackerOne",
+   "domain": "hackerone.com",
+   "country": "United States"
+  },
+  {
+   "name": "hackrate",
+   "domain": "hckrt.com",
+   "country": "Hungary"
+  },
+  {
+   "name": "HackRisk",
+   "domain": "hackrisk.ai",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "HB Technologies",
+   "domain": "hb-technologies.com.dz",
+   "country": ""
+  },
+  {
+   "name": "HBGary",
+   "domain": "hbgary.com",
+   "country": ""
+  },
+  {
+   "name": "Hermann Consult & Co. GmbH",
+   "domain": "hermann-consult.de",
+   "country": "Germany"
+  },
+  {
+   "name": "Hexens",
+   "domain": "hexens.io",
+   "country": ""
+  },
+  {
+   "name": "High-Tech Bridge",
+   "domain": "htbridge.com",
+   "country": "Switzerland"
+  },
+  {
+   "name": "Hornetsecurity by Proofpoint",
+   "domain": "hornetsecurity.com",
+   "country": "Germany"
+  },
+  {
+   "name": "HP Enterprise Security Products",
+   "domain": "www8.hp.com",
+   "country": "United States"
+  },
+  {
+   "name": "Hypori",
+   "domain": "hypori.com",
+   "country": "United States"
+  },
+  {
+   "name": "HYPR Corp",
+   "domain": "hypr.com",
+   "country": "United States"
+  },
+  {
+   "name": "Ibas Ontrack",
+   "domain": "ibas.no",
+   "country": "Norway"
+  },
+  {
+   "name": "iboss",
+   "domain": "iboss.com",
+   "country": "United States"
+  },
+  {
+   "name": "IKARUS Security Software",
+   "domain": "ikarussecurity.com",
+   "country": "Austria"
+  },
+  {
+   "name": "Illusive Networks",
+   "domain": "illusivenetworks.com",
+   "country": "Israel"
+  },
+  {
+   "name": "Imperva",
+   "domain": "imperva.com",
+   "country": "United States"
+  },
+  {
+   "name": "Imprivata",
+   "domain": "imprivata.com",
+   "country": "United States"
+  },
+  {
+   "name": "InfoSec Institute",
+   "domain": "infosecinstitute.com",
+   "country": "United States"
+  },
+  {
+   "name": "Infysec",
+   "domain": "infysec.com",
+   "country": ""
+  },
+  {
+   "name": "Institut National de Recherche en Informatique et en Automatique",
+   "domain": "inria.fr",
+   "country": "France"
+  },
+  {
+   "name": "Intego",
+   "domain": "intego.com",
+   "country": "United States"
+  },
+  {
+   "name": "Integris IT",
+   "domain": "integrisit.com",
+   "country": ""
+  },
+  {
+   "name": "InterIntra",
+   "domain": "interintra.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "Internet Identity",
+   "domain": "internetidentity.com",
+   "country": ""
+  },
+  {
+   "name": "Internet Security Alliance",
+   "domain": "isalliance.org",
+   "country": ""
+  },
+  {
+   "name": "Intrudify",
+   "domain": "intrudify.com",
+   "country": "Romania"
+  },
+  {
+   "name": "IONIX",
+   "domain": "ionix.io",
+   "country": "Israel"
+  },
+  {
+   "name": "Iron Edge Gateway",
+   "domain": "entropya.com",
+   "country": ""
+  },
+  {
+   "name": "IRONVALD",
+   "domain": "ironvald.com",
+   "country": "Bosnia and Herzegovina"
+  },
+  {
+   "name": "IronWiFi",
+   "domain": "ironwifi.com",
+   "country": "United States"
+  },
+  {
+   "name": "Isheriff",
+   "domain": "isheriff.com",
+   "country": "United States"
+  },
+  {
+   "name": "Island Technology",
+   "domain": "island.io",
+   "country": ""
+  },
+  {
+   "name": "ITSECOPS",
+   "domain": "itsecops.cloud",
+   "country": ""
+  },
+  {
+   "name": "ITSS L.L.C-FZ",
+   "domain": "itss.co",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "IWall",
+   "domain": "iwall.fr",
+   "country": "France"
+  },
+  {
+   "name": "Joe Security",
+   "domain": "joesecurity.org",
+   "country": "Switzerland"
+  },
+  {
+   "name": "Jones IT",
+   "domain": "itjones.com",
+   "country": "United States"
+  },
+  {
+   "name": "Jscrambler",
+   "domain": "jscrambler.com",
+   "country": ""
+  },
+  {
+   "name": "K7 Total Security",
+   "domain": "k7computing.com",
+   "country": ""
+  },
+  {
+   "name": "Kagoor Networks",
+   "domain": "juniper.net",
+   "country": "United States"
+  },
+  {
+   "name": "Kaspersky Lab",
+   "domain": "kaspersky.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Kissaki",
+   "domain": "kissaki.io",
+   "country": ""
+  },
+  {
+   "name": "Knowledge Grid",
+   "domain": "knowledgegrid.com",
+   "country": "United States"
+  },
+  {
+   "name": "KOVER VPN",
+   "domain": "koversamolet.org",
+   "country": "Russia"
+  },
+  {
+   "name": "KREDO-S",
+   "domain": "credos.ru",
+   "country": "Russia"
+  },
+  {
+   "name": "KSEC Ltd",
+   "domain": "ksec.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "KSEC Worldwide",
+   "domain": "labs.ksec.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Lastline",
+   "domain": "lastline.com",
+   "country": "United States"
+  },
+  {
+   "name": "Lattix Technologies Corp",
+   "domain": "lattix.io",
+   "country": "United States"
+  },
+  {
+   "name": "Laucked",
+   "domain": "laucked.com",
+   "country": "France"
+  },
+  {
+   "name": "Lavasoft",
+   "domain": "lavasoft.com",
+   "country": "Sweden"
+  },
+  {
+   "name": "LDL Security",
+   "domain": "ldlsecurity.com",
+   "country": "Brazil"
+  },
+  {
+   "name": "LegacyMind GmbH",
+   "domain": "legacymind.de",
+   "country": "Germany"
+  },
+  {
+   "name": "Leonardo",
+   "domain": "leonardo.com",
+   "country": "Italy"
+  },
+  {
+   "name": "Liscere",
+   "domain": "liscere.com",
+   "country": "Poland"
+  },
+  {
+   "name": "Littlefish",
+   "domain": "littlefish.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Lockheed Martin",
+   "domain": "lockheedmartin.com",
+   "country": "United States"
+  },
+  {
+   "name": "LogLogic",
+   "domain": "loglogic.com",
+   "country": "United States"
+  },
+  {
+   "name": "LogPulse",
+   "domain": "logpulse.io",
+   "country": ""
+  },
+  {
+   "name": "Lumension Security",
+   "domain": "lumension.com",
+   "country": "United States"
+  },
+  {
+   "name": "Luta Security",
+   "domain": "lutasecurity.com",
+   "country": ""
+  },
+  {
+   "name": "LYFYE",
+   "domain": "lyfye.com",
+   "country": "United States"
+  },
+  {
+   "name": "M86 Security",
+   "domain": "m86security.com",
+   "country": "United States"
+  },
+  {
+   "name": "Mailinblack",
+   "domain": "mailinblack.com",
+   "country": "France"
+  },
+  {
+   "name": "MailRoute",
+   "domain": "mailroute.net",
+   "country": "United States"
+  },
+  {
+   "name": "mainsec UG (haftungsbeschränkt)",
+   "domain": "mainsec.de",
+   "country": "Germany"
+  },
+  {
+   "name": "Maltego Technologies",
+   "domain": "maltego.com",
+   "country": "Germany"
+  },
+  {
+   "name": "Mandiant",
+   "domain": "mandiant.com",
+   "country": "United States"
+  },
+  {
+   "name": "MarkAny",
+   "domain": "markany.com",
+   "country": "South Korea"
+  },
+  {
+   "name": "McAfee, LLC",
+   "domain": "mcafee.com",
+   "country": "United States"
+  },
+  {
+   "name": "MDP Data Protection",
+   "domain": "mdp-data.com",
+   "country": "France"
+  },
+  {
+   "name": "MDSI",
+   "domain": "mdsi.re",
+   "country": "France"
+  },
+  {
+   "name": "Mend",
+   "domain": "mend.io",
+   "country": "United States"
+  },
+  {
+   "name": "Meru Mamori",
+   "domain": "phishguard-jp.com",
+   "country": "Japan"
+  },
+  {
+   "name": "Mile2",
+   "domain": "mile2.com",
+   "country": "United States"
+  },
+  {
+   "name": "Mimecast",
+   "domain": "mimecast.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Mirror Security",
+   "domain": "mirrorsecurity.io",
+   "country": ""
+  },
+  {
+   "name": "Mnemonic",
+   "domain": "mnemonic.no",
+   "country": "Norway"
+  },
+  {
+   "name": "Mocana",
+   "domain": "mocana.com",
+   "country": "United States"
+  },
+  {
+   "name": "Modern 42",
+   "domain": "modern42.com",
+   "country": "Australia"
+  },
+  {
+   "name": "Monarc",
+   "domain": "usemonarc.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "Morphisec",
+   "domain": "morphisec.com",
+   "country": "United States"
+  },
+  {
+   "name": "Mosaic451",
+   "domain": "mosaic451.com",
+   "country": "United States"
+  },
+  {
+   "name": "Mountain Theory",
+   "domain": "mountaintheory.ai",
+   "country": "United States"
+  },
+  {
+   "name": "My GRC",
+   "domain": "mijn-ibp.nl",
+   "country": "Netherlands"
+  },
+  {
+   "name": "MyDataRemoval",
+   "domain": "mydataremoval.com",
+   "country": "United States"
+  },
+  {
+   "name": "Namogoo",
+   "domain": "namogoo.com",
+   "country": "Israel"
+  },
+  {
+   "name": "NCC Group",
+   "domain": "nccgroup.trust",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Netarx",
+   "domain": "netarx.com",
+   "country": "United States"
+  },
+  {
+   "name": "Nethermind",
+   "domain": "nethermind.io",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "NetScreen Technologies",
+   "domain": "juniper.net",
+   "country": "United States"
+  },
+  {
+   "name": "Netskope, Inc",
+   "domain": "netskope.com",
+   "country": "United States"
+  },
+  {
+   "name": "nFlo",
+   "domain": "nflo.pl",
+   "country": "Poland"
+  },
+  {
+   "name": "Niebezpiecznik",
+   "domain": "niebezpiecznik.pl",
+   "country": "Poland"
+  },
+  {
+   "name": "NitroSecurity",
+   "domain": "nitrosecurity.com",
+   "country": "United States"
+  },
+  {
+   "name": "Norton",
+   "domain": "norton.com",
+   "country": ""
+  },
+  {
+   "name": "Nowsecure",
+   "domain": "nowsecure.com",
+   "country": "United States"
+  },
+  {
+   "name": "Nucleus Security",
+   "domain": "nucleussec.com",
+   "country": "United States"
+  },
+  {
+   "name": "Nuvol Cybersecurity",
+   "domain": "cybernuvol.com",
+   "country": "Mexico"
+  },
+  {
+   "name": "O3 Security",
+   "domain": "o3.security",
+   "country": "United States"
+  },
+  {
+   "name": "O360 B.V.",
+   "domain": "offensive360.com",
+   "country": "Netherlands"
+  },
+  {
+   "name": "Observeit",
+   "domain": "observeit.com",
+   "country": "United States"
+  },
+  {
+   "name": "Octa1ne",
+   "domain": "octa1ne.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Olarm",
+   "domain": "olarm.com",
+   "country": "South Africa"
+  },
+  {
+   "name": "Omega AI Inc.",
+   "domain": "omegaaiinc.com",
+   "country": "United States"
+  },
+  {
+   "name": "OneID",
+   "domain": "oneid.com",
+   "country": "United States"
+  },
+  {
+   "name": "OpenOrigins",
+   "domain": "openorigins.com",
+   "country": "United States"
+  },
+  {
+   "name": "Opportify",
+   "domain": "opportify.ai",
+   "country": "United States"
+  },
+  {
+   "name": "Optenet",
+   "domain": "optenet.com",
+   "country": ""
+  },
+  {
+   "name": "Orca Security",
+   "domain": "orca.security",
+   "country": "Israel"
+  },
+  {
+   "name": "osinera",
+   "domain": "osinera.com",
+   "country": "Azerbaijan"
+  },
+  {
+   "name": "Ossprey Security",
+   "domain": "ossprey.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Otaka",
+   "domain": "otaka.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "OWASP",
+   "domain": "owasp.org",
+   "country": "United States"
+  },
+  {
+   "name": "Palo Alto Networks",
+   "domain": "paloaltonetworks.com",
+   "country": "United States"
+  },
+  {
+   "name": "Panda Security",
+   "domain": "pandasecurity.com",
+   "country": "Spain"
+  },
+  {
+   "name": "Panop",
+   "domain": "panop.io",
+   "country": "Switzerland"
+  },
+  {
+   "name": "Paramount Defenses",
+   "domain": "paramountdefenses.com",
+   "country": ""
+  },
+  {
+   "name": "Parsons Corporation",
+   "domain": "parsons.com",
+   "country": "United States"
+  },
+  {
+   "name": "Penetrify.cloud",
+   "domain": "penetrify.cloud",
+   "country": "Czech Republic"
+  },
+  {
+   "name": "Penta Security",
+   "domain": "pentasecurity.co.jp",
+   "country": "South Korea"
+  },
+  {
+   "name": "Pentera",
+   "domain": "pentera.io",
+   "country": "Israel"
+  },
+  {
+   "name": "Perimeter 81",
+   "domain": "perimeter81.com",
+   "country": "Israel"
+  },
+  {
+   "name": "Persona",
+   "domain": "withpersona.com",
+   "country": "United States"
+  },
+  {
+   "name": "Perspecta Inc.",
+   "domain": "perspecta.com",
+   "country": "United States"
+  },
+  {
+   "name": "Planet VPN",
+   "domain": "freevpnplanet.com",
+   "country": "Romania"
+  },
+  {
+   "name": "Plurall AI",
+   "domain": "plurall.ai",
+   "country": "United States"
+  },
+  {
+   "name": "Polyguard",
+   "domain": "polyguard.ai",
+   "country": "United States"
+  },
+  {
+   "name": "PONA Technology",
+   "domain": "pona.com.tr",
+   "country": "Turkey"
+  },
+  {
+   "name": "Positive Technologies",
+   "domain": "ptsecurity.ru",
+   "country": ""
+  },
+  {
+   "name": "Potenza Services",
+   "domain": "potenzaservices.com",
+   "country": "United States"
+  },
+  {
+   "name": "PreVeil",
+   "domain": "preveil.com",
+   "country": ""
+  },
+  {
+   "name": "Private.Me",
+   "domain": "private.me",
+   "country": "United States"
+  },
+  {
+   "name": "Priviy",
+   "domain": "priviy.com",
+   "country": "Switzerland"
+  },
+  {
+   "name": "Promon AS",
+   "domain": "promon.co",
+   "country": "Norway"
+  },
+  {
+   "name": "Proofpoint, Inc.",
+   "domain": "proofpoint.com",
+   "country": "United States"
+  },
+  {
+   "name": "Protos AI",
+   "domain": "protoslabs.io",
+   "country": "Singapore"
+  },
+  {
+   "name": "Protos Labs",
+   "domain": "protoslabs.io",
+   "country": "Singapore"
+  },
+  {
+   "name": "Puma Scan",
+   "domain": "pumascan.com",
+   "country": ""
+  },
+  {
+   "name": "Puma Security",
+   "domain": "pumasecurity.io",
+   "country": "United States"
+  },
+  {
+   "name": "QNu Labs",
+   "domain": "qnulabs.com",
+   "country": "India"
+  },
+  {
+   "name": "Qorum Secur'Num",
+   "domain": "qsn-cyber.fr",
+   "country": "France"
+  },
+  {
+   "name": "Qualys",
+   "domain": "qualys.com",
+   "country": "United States"
+  },
+  {
+   "name": "Quint Security",
+   "domain": "quintai.dev",
+   "country": "United States"
+  },
+  {
+   "name": "QuintessenceLabs",
+   "domain": "quintessencelabs.com",
+   "country": "Australia"
+  },
+  {
+   "name": "Quzara LLC | Also known as: Quzara",
+   "domain": "quzara.com",
+   "country": "United States"
+  },
+  {
+   "name": "Radware",
+   "domain": "radware.com",
+   "country": "Israel"
+  },
+  {
+   "name": "RansomLeak",
+   "domain": "ransomleak.com",
+   "country": "Estonia"
+  },
+  {
+   "name": "Raxis",
+   "domain": "raxis.com",
+   "country": "United States"
+  },
+  {
+   "name": "Reality Defender",
+   "domain": "realitydefender.com",
+   "country": "United States"
+  },
+  {
+   "name": "Recorded Future",
+   "domain": "recordedfuture.com",
+   "country": "United States"
+  },
+  {
+   "name": "Red Canary",
+   "domain": "redcanary.com",
+   "country": "United States"
+  },
+  {
+   "name": "RedTeam Hacker Academy",
+   "domain": "redteamacademy.com",
+   "country": "India"
+  },
+  {
+   "name": "Report URI",
+   "domain": "report-uri.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Responsible Cyber",
+   "domain": "responsible-cyber.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Retina-X Studios",
+   "domain": "retinax.com",
+   "country": ""
+  },
+  {
+   "name": "Revelion",
+   "domain": "revelion.ai",
+   "country": ""
+  },
+  {
+   "name": "Right-Hand Cybersecurity",
+   "domain": "right-hand.ai",
+   "country": ""
+  },
+  {
+   "name": "Risk Management Advisory",
+   "domain": "riskmanagementadvisory.co.za",
+   "country": "South Africa"
+  },
+  {
+   "name": "RSA",
+   "domain": "rsa.com",
+   "country": "United States"
+  },
+  {
+   "name": "Rubrik",
+   "domain": "rubrik.com",
+   "country": "United States"
+  },
+  {
+   "name": "S21Sec",
+   "domain": "s21sec.com",
+   "country": ""
+  },
+  {
+   "name": "S4E.io",
+   "domain": "s4e.io",
+   "country": ""
+  },
+  {
+   "name": "Safeguard",
+   "domain": "safeguard.sh",
+   "country": "United States"
+  },
+  {
+   "name": "SafeHabits",
+   "domain": "safehabits.eu",
+   "country": ""
+  },
+  {
+   "name": "Safenet",
+   "domain": "safenet-inc.com",
+   "country": "United States"
+  },
+  {
+   "name": "Safetica Technologies",
+   "domain": "safetica.com",
+   "country": "Czech Republic"
+  },
+  {
+   "name": "SANS Institute",
+   "domain": "sans.org",
+   "country": "United States"
+  },
+  {
+   "name": "Sealgate",
+   "domain": "sealgate.ai",
+   "country": ""
+  },
+  {
+   "name": "Second Front Systems",
+   "domain": "secondfront.com",
+   "country": "United States"
+  },
+  {
+   "name": "SecRadar",
+   "domain": "secradar.ru",
+   "country": "Russia"
+  },
+  {
+   "name": "Seculert",
+   "domain": "seculert.com",
+   "country": "Israel"
+  },
+  {
+   "name": "Secunia",
+   "domain": "secunia.com",
+   "country": ""
+  },
+  {
+   "name": "securagen.ai",
+   "domain": "securagen.ai",
+   "country": "Greece"
+  },
+  {
+   "name": "SecuraTrust",
+   "domain": "securatrust.de",
+   "country": "Germany"
+  },
+  {
+   "name": "SecureNET Systems",
+   "domain": "snsys.ro",
+   "country": "Romania"
+  },
+  {
+   "name": "Security Quotient",
+   "domain": "securityquotient.io",
+   "country": "India"
+  },
+  {
+   "name": "SecurityScorecard",
+   "domain": "securityscorecard.com",
+   "country": "Luxembourg"
+  },
+  {
+   "name": "Secvura",
+   "domain": "secvura.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Senai",
+   "domain": "senai.io",
+   "country": "United States"
+  },
+  {
+   "name": "SentinelOne",
+   "domain": "sentinelone.com",
+   "country": "Israel"
+  },
+  {
+   "name": "Sentrint",
+   "domain": "sentrint.com",
+   "country": "India"
+  },
+  {
+   "name": "Shavlik Technologies",
+   "domain": "shavlik.com",
+   "country": ""
+  },
+  {
+   "name": "ShieldApps Software Innovations",
+   "domain": "shieldapps.com",
+   "country": "United States"
+  },
+  {
+   "name": "ShieldLabs",
+   "domain": "shieldlabs.ai",
+   "country": "United States"
+  },
+  {
+   "name": "SIBERLOCK",
+   "domain": "siberlock.com",
+   "country": "Turkey"
+  },
+  {
+   "name": "Siberson",
+   "domain": "siberson.com",
+   "country": "Turkey"
+  },
+  {
+   "name": "simler",
+   "domain": "simler.ai",
+   "country": "Netherlands"
+  },
+  {
+   "name": "Simply Data Sdn Bhd",
+   "domain": "simplydata.com.my",
+   "country": "Malaysia"
+  },
+  {
+   "name": "Sinaptic AI",
+   "domain": "sinaptic.ai",
+   "country": "Ukraine"
+  },
+  {
+   "name": "SkyCloud",
+   "domain": "skycloud-inet.com",
+   "country": ""
+  },
+  {
+   "name": "Smart CT Solutions",
+   "domain": "smartctsolutions.com",
+   "country": "United States"
+  },
+  {
+   "name": "SmartKeeper",
+   "domain": "smartkeeper-essmall.com",
+   "country": "South Korea"
+  },
+  {
+   "name": "Snyk",
+   "domain": "snyk.io",
+   "country": ""
+  },
+  {
+   "name": "SoftCamp",
+   "domain": "softcamp.co.kr",
+   "country": "South Korea"
+  },
+  {
+   "name": "Soken",
+   "domain": "soken.dev",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Solcept AG",
+   "domain": "solcept.ch",
+   "country": ""
+  },
+  {
+   "name": "Solebit",
+   "domain": "solebit.io",
+   "country": "United States"
+  },
+  {
+   "name": "SonicWall",
+   "domain": "sonicwall.com",
+   "country": "United States"
+  },
+  {
+   "name": "Sophos",
+   "domain": "sophos.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Spirion",
+   "domain": "spirion.com",
+   "country": ""
+  },
+  {
+   "name": "SpyCloud",
+   "domain": "spycloud.com",
+   "country": "United States"
+  },
+  {
+   "name": "SSL.com",
+   "domain": "ssl.com",
+   "country": "United States"
+  },
+  {
+   "name": "STACK Cybersecurity",
+   "domain": "stackcyber.com",
+   "country": ""
+  },
+  {
+   "name": "Standoff 365",
+   "domain": "standoff365.com",
+   "country": "Russia"
+  },
+  {
+   "name": "StingBox",
+   "domain": "stingbox.com",
+   "country": "United States"
+  },
+  {
+   "name": "Stonesoft Corporation",
+   "domain": "stonesoft.com",
+   "country": ""
+  },
+  {
+   "name": "StrongestLayer",
+   "domain": "strongestlayer.com",
+   "country": ""
+  },
+  {
+   "name": "Sucuri",
+   "domain": "sucuri.net",
+   "country": "United States"
+  },
+  {
+   "name": "SVM Secure",
+   "domain": "svmsecure.com",
+   "country": ""
+  },
+  {
+   "name": "Swif.ai",
+   "domain": "swif.ai",
+   "country": "United States"
+  },
+  {
+   "name": "Synack",
+   "domain": "synack.com",
+   "country": "United States"
+  },
+  {
+   "name": "SyntaAI",
+   "domain": "syntaai.com",
+   "country": "India"
+  },
+  {
+   "name": "System Force IT",
+   "domain": "systemforce.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Tapestry Technologies",
+   "domain": "tapestrytech.com",
+   "country": ""
+  },
+  {
+   "name": "Team8",
+   "domain": "team8.vc",
+   "country": "Israel"
+  },
+  {
+   "name": "Teldat",
+   "domain": "teldat.com",
+   "country": "Spain"
+  },
+  {
+   "name": "Telsur",
+   "domain": "telsur.cl",
+   "country": "Chile"
+  },
+  {
+   "name": "Tenable Network Security",
+   "domain": "tenable.com",
+   "country": "United States"
+  },
+  {
+   "name": "TestPros",
+   "domain": "testpros.com",
+   "country": "United States"
+  },
+  {
+   "name": "Thales Group",
+   "domain": "thalesgroup.com",
+   "country": "France"
+  },
+  {
+   "name": "The Sawi Group",
+   "domain": "sawigroup.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "ThetaRay",
+   "domain": "thetaray.com",
+   "country": "Israel"
+  },
+  {
+   "name": "Threat Stack",
+   "domain": "threatstack.com",
+   "country": "United States"
+  },
+  {
+   "name": "ThreatConnect",
+   "domain": "threatconnect.com",
+   "country": ""
+  },
+  {
+   "name": "ThreatLocker",
+   "domain": "threatlocker.com",
+   "country": "United States"
+  },
+  {
+   "name": "Tines",
+   "domain": "tines.com",
+   "country": "Ireland"
+  },
+  {
+   "name": "Tiversa",
+   "domain": "tiversa.com",
+   "country": ""
+  },
+  {
+   "name": "Torq technologies",
+   "domain": "torq.io",
+   "country": "Israel"
+  },
+  {
+   "name": "Tragentics",
+   "domain": "tragentics.com",
+   "country": "United States"
+  },
+  {
+   "name": "Transparent Edge",
+   "domain": "transparentedge.eu",
+   "country": "Spain"
+  },
+  {
+   "name": "TreeBox Solutions Pte Ltd",
+   "domain": "treeboxsolutions.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Tripwire",
+   "domain": "tripwire.com",
+   "country": "United States"
+  },
+  {
+   "name": "TrueScreen",
+   "domain": "truescreen.io",
+   "country": "Italy"
+  },
+  {
+   "name": "Trusteer",
+   "domain": "trusteer.com",
+   "country": "United States"
+  },
+  {
+   "name": "TrustGate AI",
+   "domain": "trustgateai.io",
+   "country": "United States"
+  },
+  {
+   "name": "Trustwave Holdings",
+   "domain": "trustwave.com",
+   "country": "United States"
+  },
+  {
+   "name": "Tufin",
+   "domain": "tufin.com",
+   "country": "United States"
+  },
+  {
+   "name": "UpGuard",
+   "domain": "upguard.com",
+   "country": "Australia"
+  },
+  {
+   "name": "ValidSoft",
+   "domain": "validsoft.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Varta",
+   "domain": "getvarta.com",
+   "country": ""
+  },
+  {
+   "name": "vCISO Lite",
+   "domain": "vcisolite.com",
+   "country": "United States"
+  },
+  {
+   "name": "VeloGuardian",
+   "domain": "veloguardian.com",
+   "country": "Estonia"
+  },
+  {
+   "name": "Venafi",
+   "domain": "venafi.com",
+   "country": "United States"
+  },
+  {
+   "name": "Veracode",
+   "domain": "veracode.com",
+   "country": "United States"
+  },
+  {
+   "name": "VeriSwarm",
+   "domain": "veriswarm.ai",
+   "country": "United States"
+  },
+  {
+   "name": "VicOne",
+   "domain": "vicone.com",
+   "country": "Japan"
+  },
+  {
+   "name": "Vidoop",
+   "domain": "vidoop.com",
+   "country": ""
+  },
+  {
+   "name": "VidraSec",
+   "domain": "vidrasec.com",
+   "country": "Austria"
+  },
+  {
+   "name": "Vireo Sentinel",
+   "domain": "vireosentinel.com",
+   "country": ""
+  },
+  {
+   "name": "Virtual Cyber Labs",
+   "domain": "virtualcyberlabs.com",
+   "country": ""
+  },
+  {
+   "name": "Virus Help Team",
+   "domain": "vht-dk.dk",
+   "country": "Denmark"
+  },
+  {
+   "name": "VirusTotal",
+   "domain": "virustotal.com",
+   "country": "Spain"
+  },
+  {
+   "name": "VMware Carbon Black",
+   "domain": "carbonblack.com",
+   "country": "United States"
+  },
+  {
+   "name": "Voss Neural Research",
+   "domain": "vossneuralresearch.com",
+   "country": "United States"
+  },
+  {
+   "name": "VulnCheck",
+   "domain": "vulncheck.com",
+   "country": "United States"
+  },
+  {
+   "name": "WatchGuard",
+   "domain": "watchguard.com",
+   "country": "United States"
+  },
+  {
+   "name": "Web Sheriff",
+   "domain": "websheriff.com",
+   "country": ""
+  },
+  {
+   "name": "Webroot Inc.",
+   "domain": "webroot.com",
+   "country": "United States"
+  },
+  {
+   "name": "Wermescher Advisory GmbH",
+   "domain": "wermescher.com",
+   "country": "Austria"
+  },
+  {
+   "name": "Whalebone",
+   "domain": "whalebone.io",
+   "country": "Czech Republic"
+  },
+  {
+   "name": "WISECLICK",
+   "domain": "wise.click",
+   "country": "Australia"
+  },
+  {
+   "name": "Wiz (company)",
+   "domain": "wiz.io",
+   "country": ""
+  },
+  {
+   "name": "Wiztrust",
+   "domain": "protect.wiztrust.com",
+   "country": "France"
+  },
+  {
+   "name": "WYKYK",
+   "domain": "wykyk.com",
+   "country": "Netherlands"
+  },
+  {
+   "name": "Wykyk FZ-LLC",
+   "domain": "wykyk.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "Xetron",
+   "domain": "meetngc.com",
+   "country": ""
+  },
+  {
+   "name": "YesWeHack",
+   "domain": "yeswehack.com",
+   "country": ""
+  },
+  {
+   "name": "YSecurity",
+   "domain": "ysecurity.io",
+   "country": "United States"
+  },
+  {
+   "name": "Z-JAK Technologies",
+   "domain": "zjak.net",
+   "country": "United States"
+  },
+  {
+   "name": "Zemana",
+   "domain": "zemana.com",
+   "country": "Turkey"
+  },
+  {
+   "name": "Zeobit",
+   "domain": "zeobit.com",
+   "country": "United States"
+  },
+  {
+   "name": "Zerodium",
+   "domain": "zerodium.com",
+   "country": ""
+  },
+  {
+   "name": "ZeroFox",
+   "domain": "zerofox.com",
+   "country": "United States"
+  },
+  {
+   "name": "Zimperium",
+   "domain": "zimperium.com",
+   "country": "United States"
+  },
+  {
+   "name": "Zscaler",
+   "domain": "zscaler.com",
+   "country": "United States"
+  }
+ ]
+}

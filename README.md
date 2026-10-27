@@ -32,9 +32,10 @@ Dashboard accounts within one installation control that installation's shared au
 | Workspace | What it does |
 |---|---|
 | **Run & activity** | Discover vacancies, choose a resume persona, filter by country or city, set batch size and parallel workers, and follow the activity log. Remote and worldwide searches have quick filters. |
-| **Review** | Open applications that need your final click, review unresolved questions, and save answers for reuse. |
+| **Review** | Open applications that need your final click, review unresolved questions, and save answers for reuse. Expand answer decisions to inspect the draft, final answer and supporting CV evidence. |
 | **Replies** | See interview invitations, assessments, offers and rejection summaries from your configured mailbox. Open the next step and mark it as done. Recruiter search links and outreach drafts stay available for your review. |
 | **Resumes** | Upload a PDF for each profession, generate its search profile with an enabled LLM, and see whether its PDF is available. Each persona uses its own CV. |
+| **Sources** | Enable sources, launch a selected search, inspect per-source counts and adapter errors or cooldowns, and preview which filters reduce the application queue. |
 | **AI providers** | Enable your chosen API or CLI providers, select models, test connections and configure your own keys. Local model servers are supported. All example providers start disabled. |
 
 The engine keeps submission confirmation, duplicate protection, per-company limits, persona-specific answer
@@ -48,6 +49,10 @@ confirmation is detected; unclear results need review.
 - Match titles, keywords and exclusions to the selected resume persona, then filter by location. Set `--country` or `--location` in the CLI, or use the dashboard controls.
 - LinkedIn is a discovery source. Easy Apply is not used; applications go through employer ATS forms or manual review.
 - Search APIs may need your own keys. Workspace integrations require your separately configured source projects and are optional.
+- Discover public career pages through `jsonld_careers`, employer hosts through `findall_hosts`, and remote or sponsorship boards through `remote_visa_boards`. JobPosting JSON-LD, freshness checks and employer apply URLs keep discovery separate from submission.
+- Import your own JobWatch exports or canonical snapshot for local review. JobWatch is disabled in the example configuration; cloud synchronization and upstream worker scheduling require your own separate setup. [Discovery and review guide](docs/discovery-and-review.md).
+
+Provider fallback now retains model/provider cooldowns across processes. The optional OpenCode CLI provider supports automatic selection from its configured free-model pool; paid Go models require explicit selection and separate setup. No provider is enabled by installing ApplyPilot.
 
 ### Choose how applications are handled
 
@@ -166,6 +171,15 @@ Open a prepared application for a final check, or answer a question once so it c
 Interview invitations and assessments are separated from rejection summaries.
 
 ![Employer replies and next steps with synthetic data](docs/images/applypilot/current-replies.png)
+
+</details>
+
+<details>
+<summary><strong>Inspect discovery sources and the queue</strong></summary>
+
+See the last run, adapter health, selected sources and the reasons vacancies were filtered.
+
+![Source health and queue preview with synthetic data](docs/images/applypilot/current-sources.png)
 
 </details>
 

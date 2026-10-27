@@ -99,7 +99,7 @@ def test_worker_respects_limit():
     saved = {k: getattr(A, k) for k in stubs}
     saved_db = (A.db.claim_job, A.db.release_job)
     for k, v in stubs.items(): setattr(A, k, v)
-    A.db.claim_job = lambda con, jid, tok: jid != "j1"   # j1 is held by another run
+    A.db.claim_job = lambda con, jid, tok, **kw: jid != "j1"   # j1 is held by another run
     A.db.release_job = lambda con, jid, tok: None
     in_q, out_q, started = mp.Queue(), mp.Queue(), mp.Value("i", 0)
     try:

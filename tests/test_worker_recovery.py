@@ -47,7 +47,7 @@ def setup_run(tmp_path, monkeypatch, count, **extra):
     monkeypatch.setattr(A, '_worker_process_loop', synthetic_worker)
     cfg = {'profile': {}, 'cv_path': 'appsec.pdf', 'search': {}, 'llm': {'enabled': False},
            'apply': {'max_per_run': 74, 'max_per_company': 100, 'max_per_company_window': 100,
-                     'reject_cooldown_count': 0}, '_test_db': str(db.DB_PATH), '_control': str(A.CONTROL), **extra}
+                     'reject_cooldown_count': 0, 'min_cv_match': 0}, '_test_db': str(db.DB_PATH), '_control': str(A.CONTROL), **extra}
     (tmp_path / 'appsec.pdf').write_bytes(b'fixture')
     monkeypatch.setattr(A, 'read_json', lambda *a: cfg)
     monkeypatch.setattr(A, 'pick_cv', lambda *a: 'appsec.pdf')

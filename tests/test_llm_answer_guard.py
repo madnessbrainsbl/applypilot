@@ -63,5 +63,9 @@ def demo():
     print("llm answer guard self-check OK")
 
 
+def test_demo():
+    demo()
+
+
 if __name__ == "__main__":
     demo()

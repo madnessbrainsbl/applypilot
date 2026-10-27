@@ -1,0 +1,33 @@
+{
+  "_comment": "Public feeds and URL patterns for tools/osint_sources.py. No login, no API keys.",
+  "ats_hosts": [
+    {"ats": "greenhouse", "pattern": "job-boards.greenhouse.io/*", "rx": "job-boards\\.greenhouse\\.io/([a-z0-9][\\w-]+)"},
+    {"ats": "greenhouse", "pattern": "boards.greenhouse.io/*", "rx": "boards\\.greenhouse\\.io/([a-z0-9][\\w-]+)"},
+    {"ats": "greenhouse", "pattern": "job-boards.eu.greenhouse.io/*", "rx": "job-boards\\.eu\\.greenhouse\\.io/([a-z0-9][\\w-]+)"},
+    {"ats": "ashby", "pattern": "jobs.ashbyhq.com/*", "rx": "jobs\\.ashbyhq\\.com/([a-z0-9][\\w.-]+)"},
+    {"ats": "lever", "pattern": "jobs.lever.co/*", "rx": "jobs\\.lever\\.co/([a-z0-9][\\w-]+)"},
+    {"ats": "lever_eu", "pattern": "jobs.eu.lever.co/*", "rx": "jobs\\.eu\\.lever\\.co/([a-z0-9][\\w-]+)"},
+    {"ats": "workable", "pattern": "apply.workable.com/*", "rx": "apply\\.workable\\.com/([a-z0-9][\\w-]+)"},
+    {"ats": "recruitee", "pattern": "*.recruitee.com/*", "rx": "//([a-z0-9][\\w-]+)\\.recruitee\\.com"},
+    {"ats": "personio", "pattern": "*.jobs.personio.de/*", "rx": "//([a-z0-9][\\w-]+)\\.jobs\\.personio\\.de"},
+    {"ats": "personio_com", "pattern": "*.jobs.personio.com/*", "rx": "//([a-z0-9][\\w-]+)\\.jobs\\.personio\\.com"},
+    {"ats": "teamtailor", "pattern": "*.teamtailor.com/jobs*", "rx": "//([a-z0-9][\\w-]+)\\.teamtailor\\.com"},
+    {"ats": "smartrecruiters", "pattern": "careers.smartrecruiters.com/*", "rx": "careers\\.smartrecruiters\\.com/([A-Za-z0-9][\\w-]+)"},
+    {"ats": "smartrecruiters", "pattern": "jobs.smartrecruiters.com/*", "rx": "jobs\\.smartrecruiters\\.com/([A-Za-z0-9][\\w-]+)"}
+  ],
+  "community": [
+    {"name": "reddit:forhire", "kind": "atom", "url": "https://www.reddit.com/r/forhire/new/.rss", "require": "\\[hiring\\]"},
+    {"name": "reddit:hiring", "kind": "atom", "url": "https://www.reddit.com/r/hiring/new/.rss", "require": "hiring|looking for|wanted"},
+    {"name": "reddit:photography", "kind": "atom", "url": "https://www.reddit.com/r/photography/search.rss?q=hiring+OR+job&restrict_sr=1&sort=new", "require": "hiring|job|wanted|looking for"},
+    {"name": "reddit:videography", "kind": "atom", "url": "https://www.reddit.com/r/videography/search.rss?q=hiring+OR+job&restrict_sr=1&sort=new", "require": "hiring|job|wanted|looking for"},
+    {"name": "reddit:netsec", "kind": "atom", "url": "https://www.reddit.com/r/netsec/search.rss?q=hiring&restrict_sr=1&sort=new", "require": "hiring"},
+    {"name": "reddit:cybersecurity", "kind": "atom", "url": "https://www.reddit.com/r/cybersecurity/search.rss?q=hiring&restrict_sr=1&sort=new", "require": "hiring"},
+    {"name": "reddit:remotejobs", "kind": "atom", "url": "https://www.reddit.com/r/remotejobs/new/.rss", "require": "hiring|photograph|video|security"},
+    {"name": "mastodon:fedihire", "kind": "rss", "url": "https://mastodon.social/tags/fedihire.rss"},
+    {"name": "mastodon:hiring", "kind": "rss", "url": "https://mastodon.social/tags/hiring.rss"},
+    {"name": "mastodon:fosstodon-hiring", "kind": "rss", "url": "https://fosstodon.org/tags/hiring.rss"},
+    {"name": "mastodon:infosec-jobs", "kind": "rss", "url": "https://infosec.exchange/tags/infosecjobs.rss"},
+    {"name": "mastodon:jobs-photo", "kind": "rss", "url": "https://mastodon.social/tags/photographerwanted.rss"},
+    {"name": "mastodon:getfedihired", "kind": "rss", "url": "https://mastodon.social/tags/jobs.rss"}
+  ]
+}

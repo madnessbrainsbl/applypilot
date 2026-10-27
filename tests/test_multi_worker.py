@@ -102,7 +102,7 @@ def test_worker_respects_limit(tmp_path, monkeypatch):
     saved = {k: getattr(A, k) for k in stubs}
     saved_db = (A.db.claim_job, A.db.release_job)
     for k, v in stubs.items(): setattr(A, k, v)
-    A.db.claim_job = lambda con, jid, tok: jid != "j1"   # j1 is held by another run
+    A.db.claim_job = lambda con, jid, tok, **kw: jid != "j1"   # j1 is held by another run
     A.db.release_job = lambda con, jid, tok: None
     in_q, out_q, started = mp.Queue(), mp.Queue(), mp.Value("i", 0)
     try:
@@ -121,12 +121,3 @@ def test_worker_respects_limit(tmp_path, monkeypatch):
         for k, v in saved.items(): setattr(A, k, v)
         A.db.claim_job, A.db.release_job = saved_db
         A._STOP_EVENT = None
-
-if __name__ == "__main__":
-    test_workers_parser()
-    test_profile_dir_isolation()
-    test_watch_isolation()
-    test_fill_deadline_isolation()
-    test_worker_quit_via_event()
-    test_worker_respects_limit()
-    print("multi-worker self-check OK")

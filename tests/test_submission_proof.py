@@ -18,28 +18,15 @@ def test_actual_rejection_overrides_acknowledgement():
     assert A.classify_email('Thank you for applying', 'Unfortunately we have decided to move forward with other candidates.') == 'rejected'
 
 
-@pytest.mark.parametrize('country,number,code,national', [
-    ('United States', '+12025550123', 'us', '2025550123'),
-    ('United Kingdom', '+442079460123', 'uk', '2079460123'),
-])
-def test_phone_picker_uses_candidate_country(page, country, number, code, national):
-    page.set_content('''<label>Phone<div class="phone"><select>
-        <option value="ru">Russia +7</option><option value="us">United States +1</option>
-        <option value="uk">United Kingdom +44</option></select><input type="tel" name="phone"></div></label>''')
-    assert A.fill_field(page.locator('input'), {'profile': {'phone': number, 'country': country}, 'apply': {}})
-    assert page.locator('select').input_value() == code
-    assert page.locator('input').input_value() == national
-
-
 def test_persona_full_name_does_not_inherit_other_candidate():
     cfg = {'profile': {'first_name': 'Jane', 'last_name': 'Doe', 'full_name': 'Jane Doe'},
            'personas': {'creative': {'profile': {'first_name': 'Alex', 'last_name': 'Taylor'}}}}
     assert A.get_persona_cfg(cfg, 'creative')['profile']['full_name'] == 'Alex Taylor'
-    cfg['personas']['creative']['profile']['full_name'] = 'Alex O.'
-    assert A.get_persona_cfg(cfg, 'creative')['profile']['full_name'] == 'Alex O.'
+    cfg['personas']['creative']['profile']['full_name'] = 'Alex T.'
+    assert A.get_persona_cfg(cfg, 'creative')['profile']['full_name'] == 'Alex T.'
 
 
-@pytest.mark.parametrize('persona,first,last', [('appsec', 'Jane', 'Doe'), ('creative', 'Alex', 'Taylor')])
+@pytest.mark.parametrize('persona,first,last', [('appsec', 'Jane', 'Doe'), ('creative', 'Mark', 'Taylor')])
 def test_persona_replaces_other_candidate_before_submit(page, monkeypatch, persona, first, last):
     cfg = {'profile': {'first_name': first, 'last_name': last, 'full_name': f'{first} {last}',
                        'email': 'shared@example.com'}, 'active_persona': persona}

@@ -1,0 +1,362 @@
+{
+ "list": "register",
+ "fetched": "2026-10-16T10:09:03+00:00",
+ "companies": [
+  {
+   "name": "Agile Cyber Solutions Limited",
+   "country": "UK"
+  },
+  {
+   "name": "AGS Cyber",
+   "country": "UK"
+  },
+  {
+   "name": "Aqua Security Software UK LTD",
+   "country": "UK"
+  },
+  {
+   "name": "Base Cyber Security B.V.",
+   "country": "NL"
+  },
+  {
+   "name": "Bluecube Cyber Security Solutions Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Bulletproof Cyber Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Bureau Veritas Cybersecurity Europe B.V.",
+   "country": "NL"
+  },
+  {
+   "name": "Chess Cybersecurity Limited",
+   "country": "UK"
+  },
+  {
+   "name": "CITATION CYBER LIMITED",
+   "country": "UK"
+  },
+  {
+   "name": "Complete Cyber Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Comsec International-Information Security B.V.",
+   "country": "NL"
+  },
+  {
+   "name": "Corero Network Security (UK) Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Cowbell Cyber Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Cyber Alarm Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Cyber Chain Alliance Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Cyber Freight Amsterdam B.V.",
+   "country": "NL"
+  },
+  {
+   "name": "Cyber Prism Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Cyber Range Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Cyber Security Hub Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "CYBER SHEKU LIMITED",
+   "country": "UK"
+  },
+  {
+   "name": "Cyber Strategies Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Cyber-Ark Software (UK) Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Cyber-Weld",
+   "country": "UK"
+  },
+  {
+   "name": "CYBERCAFE TRADING LTD.",
+   "country": "UK"
+  },
+  {
+   "name": "CyberCube Analytics Europe Limited",
+   "country": "UK"
+  },
+  {
+   "name": "CYBERDD LIMITED",
+   "country": "UK"
+  },
+  {
+   "name": "CYBERDOG UK LIMITED",
+   "country": "UK"
+  },
+  {
+   "name": "CYBERDYNE, INC",
+   "country": "NL"
+  },
+  {
+   "name": "Cyberfort Group",
+   "country": "UK"
+  },
+  {
+   "name": "Cyberhawk Innovations Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "CyberIAM Holdings Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Cyberlens Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "CYBERLIVER LIMITED",
+   "country": "UK"
+  },
+  {
+   "name": "CYBERLYSMART SERVICES LIMITED",
+   "country": "UK"
+  },
+  {
+   "name": "Cybermeister B.V.",
+   "country": "NL"
+  },
+  {
+   "name": "CYBEROWL LIMITED",
+   "country": "UK"
+  },
+  {
+   "name": "CyberRATSS Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "CYBERREY LTD",
+   "country": "UK"
+  },
+  {
+   "name": "CYBERSECURE365 UK LTD",
+   "country": "UK"
+  },
+  {
+   "name": "CyberShadows Intel Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Cyberstaff Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Cybersys Technologies Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Cybertots at Acton Gardens Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "CYBERTOTS AT COPLEY CLOSE CHILDREN`S CENTRE LTD",
+   "country": "UK"
+  },
+  {
+   "name": "Cybertots at GWQ",
+   "country": "UK"
+  },
+  {
+   "name": "Cybertots Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Cybertots on the Green",
+   "country": "UK"
+  },
+  {
+   "name": "CYBERWAVE IT LIMITED",
+   "country": "UK"
+  },
+  {
+   "name": "E2E CYBER SOLUTIONS LTD",
+   "country": "UK"
+  },
+  {
+   "name": "Elite Technical Consulting Ltd T/A CyberForte",
+   "country": "UK"
+  },
+  {
+   "name": "ERG Ltd T/A Cyberi",
+   "country": "UK"
+  },
+  {
+   "name": "European Network for Cyber Security (ENCS) Coöperatief U.A.",
+   "country": "NL"
+  },
+  {
+   "name": "fnCyber Security Consulting Services B.V.",
+   "country": "NL"
+  },
+  {
+   "name": "iCyberDefence Limited",
+   "country": "UK"
+  },
+  {
+   "name": "ID Cyber Solutions Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Information Security Media Group UK LTD",
+   "country": "UK"
+  },
+  {
+   "name": "INFOSEC CYBER SECURITY LTD",
+   "country": "UK"
+  },
+  {
+   "name": "INFOSEC K2K LTD",
+   "country": "UK"
+  },
+  {
+   "name": "INFOSECWORLD LIMITED",
+   "country": "UK"
+  },
+  {
+   "name": "Irha & Inaya Ltd. T/ A Cyberlinks",
+   "country": "UK"
+  },
+  {
+   "name": "Mobility Cyber Labs Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Nexus Cyber security",
+   "country": "UK"
+  },
+  {
+   "name": "Nihon Cyber Defence Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "NXPower (UK) Ltd t/a Cyberpower",
+   "country": "UK"
+  },
+  {
+   "name": "OmniCyber Security Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Orange Cyberdefense UK Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Pacific Rim Security Consultancy UK Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Prism Infosec Limited",
+   "country": "UK"
+  },
+  {
+   "name": "ProdaftCyber B.V.",
+   "country": "NL"
+  },
+  {
+   "name": "Quorum Cyber Security Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Recyber Opco Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Redscan Cyber Security Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Reliance Cyber Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Searchlight Cyber Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Secon Cyber Security Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Solace Global Cyber Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Talanos Cybersecurity Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Think Cyber Security Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "ThreatAware Limited",
+   "country": "UK"
+  },
+  {
+   "name": "ThreatFabric B.V.",
+   "country": "NL"
+  },
+  {
+   "name": "ThreatSpike Labs Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Triple Threat Mgmt",
+   "country": "UK"
+  },
+  {
+   "name": "UK Cyber Security Council",
+   "country": "UK"
+  },
+  {
+   "name": "UK&I CYBER RANGES ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Ultraviolet Cyber (UK) Limited",
+   "country": "UK"
+  },
+  {
+   "name": "ValueMentor Infosec Limited",
+   "country": "UK"
+  },
+  {
+   "name": "Vambrace Cybersecurity Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "X Cyber Group Ltd",
+   "country": "UK"
+  },
+  {
+   "name": "Zuhayr Consultancy Limited T/A Cyberpeers",
+   "country": "UK"
+  }
+ ]
+}

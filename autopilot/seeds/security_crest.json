@@ -1,0 +1,1886 @@
+{
+ "list": "crest",
+ "fetched": "2026-10-16T10:53:31+00:00",
+ "companies": [
+  {
+   "name": "3B Data Security (UBDS Group)",
+   "domain": "3bdatasecurity.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "4ARMED Ltd",
+   "domain": "4armed.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "A&O Corsaire",
+   "domain": "aoitgroup.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Abacus Information Technology, LLC",
+   "domain": "abacustechnology.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Accenture",
+   "domain": "accenture.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Across Verticals Sdn Bhd",
+   "domain": "acrossverticals.com",
+   "country": "Malaysia"
+  },
+  {
+   "name": "Acumen Cyber Ltd",
+   "domain": "acumencyber.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Advance Electronics Company Ltd.",
+   "domain": "aecl.com",
+   "country": "Saudi Arabia"
+  },
+  {
+   "name": "Advanced Controls IT Co",
+   "domain": "advancedcontrols.sa",
+   "country": "Saudi Arabia"
+  },
+  {
+   "name": "Adversify Ltd",
+   "domain": "adversify.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Aegis Security Pte Ltd",
+   "domain": "aegissecurity.com.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "Air IT",
+   "domain": "airit.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "AKATI Sekurity",
+   "domain": "akati.com",
+   "country": "Malaysia"
+  },
+  {
+   "name": "Alchemy Security Consulting",
+   "domain": "alchemysec.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "Alvarez & Marsal Global Cyber Risk Services",
+   "domain": "alvarezandmarsal.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "AmberWolf",
+   "domain": "amberwolf.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Ampcus Cyber",
+   "domain": "ampcuscyber.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Anchoram Consulting",
+   "domain": "anchoramconsulting.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "Ansen",
+   "domain": "anxinsec.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "Arcanum Cyber",
+   "domain": "arcanum-cyber.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Aristi Limited",
+   "domain": "aristi.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Art Resilia",
+   "domain": "artresilia.com",
+   "country": "Portugal"
+  },
+  {
+   "name": "ASK Pentest",
+   "domain": "ask-pentest.com",
+   "country": "Malaysia"
+  },
+  {
+   "name": "Aspire Technology Solutions Ltd",
+   "domain": "aspirets.com",
+   "country": ""
+  },
+  {
+   "name": "Assure IT Pte Ltd",
+   "domain": "assure-it.com.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "Assure Technical Limited",
+   "domain": "assuretechnical.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Assurity Trusted Solutions Pte Ltd",
+   "domain": "assurity.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "Astra IT Inc.",
+   "domain": "getastra.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Atech Cloud",
+   "domain": "atech.cloud",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "ATOS Group (Including SEC Consult and Eviden)",
+   "domain": "sec-consult.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Aura Information Security",
+   "domain": "aurainfosec.com",
+   "country": "New Zealand"
+  },
+  {
+   "name": "Barclay Simpson Solutions Ltd",
+   "domain": "bss.uk.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Baseel Partners LLP",
+   "domain": "baseel.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Bastion Security Group (including Cythera)",
+   "domain": "bastionsecurity.co.nz",
+   "country": "New Zealand"
+  },
+  {
+   "name": "BCC Risk Advisory Ltd (edgescan)",
+   "domain": "edgescan.com%20",
+   "country": "Ireland"
+  },
+  {
+   "name": "BDO LLP",
+   "domain": "bdo.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Beacon Red Investment – Sole Proprietorship LLC",
+   "domain": "beaconred.ae",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "BeeSec Ltd",
+   "domain": "beesec.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Beetles Cyber Security Ltd",
+   "domain": "beetles.io",
+   "country": "Bangladesh"
+  },
+  {
+   "name": "Bishop Fox",
+   "domain": "",
+   "country": "United States of America"
+  },
+  {
+   "name": "Bitdefender",
+   "domain": "bitdefender.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Blaze Information Security",
+   "domain": "blazeinfosec.com",
+   "country": "Germany"
+  },
+  {
+   "name": "Bluesify Solutions Sdn Bhd",
+   "domain": "bluesify.com",
+   "country": "Malaysia"
+  },
+  {
+   "name": "BlueVision",
+   "domain": "bluevision.co",
+   "country": "South Africa"
+  },
+  {
+   "name": "BNF SG Pte Ltd",
+   "domain": "bnf.group",
+   "country": "Singapore"
+  },
+  {
+   "name": "Booz Allen Hamilton Inc",
+   "domain": "boozallen.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Borderless CS",
+   "domain": "borderlesscs.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "Bramfitt Technology Labs",
+   "domain": "bramfitt-tech-labs.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Breachlock Ltd",
+   "domain": "breachlock.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Bridewell",
+   "domain": "bridewell.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Briskinfosec Technology and Consulting Pvt Ltd",
+   "domain": "briskinfosec.com",
+   "country": "India"
+  },
+  {
+   "name": "Bugcrowd Inc",
+   "domain": "bugcrowd.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Bureau Veritas Cybersecurity Europe",
+   "domain": "secura.com",
+   "country": "Netherlands"
+  },
+  {
+   "name": "Bytes Software Services Ltd",
+   "domain": "bytes.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "C3IA Solutions",
+   "domain": "c3ia.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Capture The Bug",
+   "domain": "",
+   "country": "Australia"
+  },
+  {
+   "name": "Casco",
+   "domain": "casco.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "CBIZ Pivot Point Security",
+   "domain": "pivotpointsecurity.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "CENSUS S.A.",
+   "domain": "census-labs.com",
+   "country": "Greece"
+  },
+  {
+   "name": "Centrii",
+   "domain": "cyberenergia.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Centurion Information Security Pte Ltd",
+   "domain": "centurioninfosec.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "CFC Security t/a CFC Response and Solis",
+   "domain": "cfcresponse.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Chaleit Services Ltd",
+   "domain": "chaleit.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Check Point Software Technologies, LTD",
+   "domain": "checkpoint.com",
+   "country": "Israel"
+  },
+  {
+   "name": "Cilynx Services LTD",
+   "domain": "",
+   "country": "Israel"
+  },
+  {
+   "name": "Cipher",
+   "domain": "cipher.com.sa",
+   "country": "Saudi Arabia"
+  },
+  {
+   "name": "CipherShield Pty Ltd",
+   "domain": "ciphershield.au",
+   "country": "Australia"
+  },
+  {
+   "name": "Cisco",
+   "domain": "cisco.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Citation Cyber",
+   "domain": "citationcyber.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Civica",
+   "domain": "civica.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Claranet Cyber Security",
+   "domain": "claranet.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "CMC CYBER SECURITY LIMITED COMPANY",
+   "domain": "cmccybersecurity.com",
+   "country": "Vietnam"
+  },
+  {
+   "name": "CMC Telecom",
+   "domain": "cmctelecom.vn",
+   "country": "Vietnam"
+  },
+  {
+   "name": "Cobalt Labs",
+   "domain": "cobalt.io",
+   "country": "Germany"
+  },
+  {
+   "name": "CodeShield Ltd",
+   "domain": "codeshield.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Cognisys Group Ltd",
+   "domain": "cognisys.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Compass Security Network Computing AG",
+   "domain": "compass-security.com",
+   "country": "Switzerland"
+  },
+  {
+   "name": "Condition Zebra (M) Sdn Bhd",
+   "domain": "condition-zebra.com",
+   "country": "Malaysia"
+  },
+  {
+   "name": "Consider IT Ltd",
+   "domain": "considerit.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Control Risks Group Ltd",
+   "domain": "controlrisks.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "CovertSwarm",
+   "domain": "covertswarm.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "CPX",
+   "domain": "cpx.net",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "Credo Technology Services (L.L.C)",
+   "domain": "credots.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "Crosslake Technologies",
+   "domain": "crosslaketech.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "CSA Cyber",
+   "domain": "csacyber.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "ctrl:cyber",
+   "domain": "ctrl.co",
+   "country": "Australia"
+  },
+  {
+   "name": "Cube Networks",
+   "domain": "cubenetworks.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "Cyber Alchemy Ltd",
+   "domain": "cyberalchemy.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Cyber Security Specialists",
+   "domain": "cybersecurityspecialists.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Cyberani by Aramco Digital",
+   "domain": "cyberani.sa",
+   "country": "Saudi Arabia"
+  },
+  {
+   "name": "CyberCrowd",
+   "domain": "cybercrowd.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "CyberCX Pty Ltd",
+   "domain": "",
+   "country": "Australia"
+  },
+  {
+   "name": "Cyberfort Limited",
+   "domain": "cyberfortgroup.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "CYBERINTELSYS CONSULTING SERVICES PTE LTD",
+   "domain": "cyberintelsys.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Cyberis Reply Ltd",
+   "domain": "cyberis.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "CyberOps Network SRL",
+   "domain": "cyberopsnetwork.com",
+   "country": "Romania"
+  },
+  {
+   "name": "CyberQ Group",
+   "domain": "cyberqgroup.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "CyberRisk",
+   "domain": "cyber-risk.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "Cybersafe Pte Ltd",
+   "domain": "cybersafe.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "CYBERSHELTER INFOSEC SOLUTIONS LLC",
+   "domain": "cybershelter.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "CyBiz",
+   "domain": "cybiz.au",
+   "country": "Australia"
+  },
+  {
+   "name": "CYBRANYTECH LLC",
+   "domain": "cybranytech.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "CYESEC LTD.",
+   "domain": "cyesec.com",
+   "country": "Israel"
+  },
+  {
+   "name": "CypherLeap",
+   "domain": "cypherleap.com",
+   "country": "Australia"
+  },
+  {
+   "name": "CYRAAC Services Private Limited",
+   "domain": "cyraacs.com",
+   "country": "India"
+  },
+  {
+   "name": "Cyro Cyber Ltd",
+   "domain": "cyrocyber.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "CYSIAM Ltd",
+   "domain": "cysiam.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Cytix Ltd",
+   "domain": "cytix.io",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "D&A TRUST",
+   "domain": "dna-trust.com",
+   "country": "Morocco"
+  },
+  {
+   "name": "D2 Network Associates Ltd",
+   "domain": "d2na.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "DACTA SG PTE. LTD.",
+   "domain": "dactaglobal.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "DarkGuard AG",
+   "domain": "darkguard.com",
+   "country": "Switzerland"
+  },
+  {
+   "name": "Datacom Systems Limited",
+   "domain": "datacom.com",
+   "country": "New Zealand"
+  },
+  {
+   "name": "DCR Partners Ltd",
+   "domain": "dcrpartners.co.uk%20",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Deloitte Consultative Services B.V.",
+   "domain": "deloitte.com",
+   "country": "Netherlands"
+  },
+  {
+   "name": "Devoteam Cyber Trust",
+   "domain": "integrity.pt",
+   "country": "Portugal"
+  },
+  {
+   "name": "DigitalXRAID Ltd",
+   "domain": "digitalxraid.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Division 5 Pty Ltd",
+   "domain": "division5.io",
+   "country": "Australia"
+  },
+  {
+   "name": "DNV Business Assurance Korea Ltd.",
+   "domain": "dnv.co.kr",
+   "country": "Korea, Republic of"
+  },
+  {
+   "name": "DNV Cyber",
+   "domain": "dnv.com",
+   "country": "Netherlands"
+  },
+  {
+   "name": "Dreamlab Technologies",
+   "domain": "dreamlab.net",
+   "country": "Chile"
+  },
+  {
+   "name": "Dreamlab Technologies Oman",
+   "domain": "dreamlab.net",
+   "country": "Oman"
+  },
+  {
+   "name": "DRT Cyber Inc",
+   "domain": "drtcyber.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Dvuln Pty Ltd",
+   "domain": "dvuln.com",
+   "country": "Australia"
+  },
+  {
+   "name": "DXC Technology",
+   "domain": "dxc.technology",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "EC-Council Global Services Sdn Bhd",
+   "domain": "egs.eccouncil.org",
+   "country": "Malaysia"
+  },
+  {
+   "name": "EIC Limited",
+   "domain": "eic.com.bd",
+   "country": "Bangladesh"
+  },
+  {
+   "name": "EJN Labs LTD",
+   "domain": "ejnlabs.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "EliteSec",
+   "domain": "elitesec.io",
+   "country": "Canada"
+  },
+  {
+   "name": "Emagined Security a Neovera Company",
+   "domain": "neovera.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Entersoft Australia Pty Ltd.",
+   "domain": "entersoft.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "EPAM Systems Ltd",
+   "domain": "epam.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Ernst & Young",
+   "domain": "ey.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Evalian Ltd",
+   "domain": "evalian.co.uk%20%20",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Evolve North Ltd",
+   "domain": "evolvenorth.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Exe Security Limited",
+   "domain": "exesecurity.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Exelasis Ltd",
+   "domain": "exelasis.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Exosec Ltd",
+   "domain": "exosec.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Exploitr Limited",
+   "domain": "exploitr.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Fluid Attacks",
+   "domain": "fluidattacks.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Foregenix Ltd",
+   "domain": "",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Forfend Information Security Ltd",
+   "domain": "forfendinfosec.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Fortbridge",
+   "domain": "fortbridge.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Fortiedge Pte Ltd",
+   "domain": "fortiedge.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Fortis Cyber Security Ltd",
+   "domain": "fortiscyber.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Forvis Mazars",
+   "domain": "mazars.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "FPT Software Co Ltd",
+   "domain": "fptsoftware.com",
+   "country": "Vietnam"
+  },
+  {
+   "name": "FPT Telecom",
+   "domain": "fpt.vn",
+   "country": ""
+  },
+  {
+   "name": "Fujitsu Australia Ltd",
+   "domain": "global.fujitsu",
+   "country": "Australia"
+  },
+  {
+   "name": "GoDefend Limited",
+   "domain": "godefend.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "GRC Solutions",
+   "domain": "grcsolutions.io",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Group8 Cyber Pte Ltd",
+   "domain": "group8.co",
+   "country": "Singapore"
+  },
+  {
+   "name": "GTT EMEA Ltd",
+   "domain": "gtt.net",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "GuidePoint Security",
+   "domain": "guidepointsecurity.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Gulf Business Machines",
+   "domain": "gbmme.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "Haboob Tech for Communication and Information Technology",
+   "domain": "haboob.sa",
+   "country": "Saudi Arabia"
+  },
+  {
+   "name": "Help Information Technology Consultancy",
+   "domain": "helpag.com%20",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "Heretek Ltd",
+   "domain": "heretek.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Hexadius Consulting Pte. Ltd",
+   "domain": "hexadius.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "HEXAPRIME TECHNOLOGY CO. LLC.",
+   "domain": "hexaprime.me",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "HolistiCyber",
+   "domain": "holisticyber.com",
+   "country": "Israel"
+  },
+  {
+   "name": "IARM Information Security Pvt. Ltd",
+   "domain": "iarminfo.com",
+   "country": "India"
+  },
+  {
+   "name": "IBM",
+   "domain": "ibm.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "iCyberDefence Ltd",
+   "domain": "icyberdefence.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "IG-Smart Ltd",
+   "domain": "ig-smart.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "ImmuniWeb",
+   "domain": "immuniweb.com",
+   "country": "Switzerland"
+  },
+  {
+   "name": "In.security Ltd",
+   "domain": "in.security",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "INFINITUMIT",
+   "domain": "infinitumit.com.tr",
+   "country": "Turkey"
+  },
+  {
+   "name": "Infinity Cybersec Pte Ltd",
+   "domain": "icyber.com.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "Information Systems Services Pty. Ltd. t/a CyberZone Global",
+   "domain": "cyberzoneglobal.com",
+   "country": "Australia"
+  },
+  {
+   "name": "Infosys Ltd",
+   "domain": "infosys.com",
+   "country": "India"
+  },
+  {
+   "name": "Insight Information Security LLC",
+   "domain": "",
+   "country": "Oman"
+  },
+  {
+   "name": "IntaForensics Ltd",
+   "domain": "intaforensics.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "INTERCERT",
+   "domain": "intercert.com",
+   "country": "India"
+  },
+  {
+   "name": "Intertec Systems L.L.C",
+   "domain": "intertecsystems.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "Intertek-NTA",
+   "domain": "intertek.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "InTheCyber Group SA",
+   "domain": "inthecybergroup.com",
+   "country": "Switzerland"
+  },
+  {
+   "name": "Intigriti NV",
+   "domain": "intigriti.com",
+   "country": "Belgium"
+  },
+  {
+   "name": "Intruder",
+   "domain": "intruder.io",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Inventivo Pte Ltd",
+   "domain": "inventivo.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "IOActive Inc",
+   "domain": "ioactive.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "ioSENTRIX",
+   "domain": "",
+   "country": "United States of America"
+  },
+  {
+   "name": "IPSec",
+   "domain": "ipsec.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "iSTORM",
+   "domain": "istormsolutions.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "ITDefence Private Ltd",
+   "domain": "itdefence.asia",
+   "country": "Singapore"
+  },
+  {
+   "name": "Iterasec",
+   "domain": "iterasec.com",
+   "country": "Poland"
+  },
+  {
+   "name": "Jisc",
+   "domain": "jisc.ac.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "JT Consultancy & Management Pte Ltd",
+   "domain": "jtconsultancy.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "Keysight Technologies, Inc",
+   "domain": "spirent.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "KHIPU Networks",
+   "domain": "khipu-networks.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "KIT365 Limited",
+   "domain": "kit365.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "KoreLogic",
+   "domain": "korelogic.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Kreston ME Consulting",
+   "domain": "krestonmeconsulting.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "Kroll LLC",
+   "domain": "kroll.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Krypsys Ltd",
+   "domain": "krypsys.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Kulkan LLC",
+   "domain": "kulkan.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Laneden Ltd",
+   "domain": "laneden.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "LAYER8",
+   "domain": "layer8.pt",
+   "country": "Portugal"
+  },
+  {
+   "name": "Leo CybSec",
+   "domain": "leocybsec.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "LevelBlue Cyber Solutions Ltd.",
+   "domain": "levelblue.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Littlefish Group",
+   "domain": "littlefish.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Malcrove EMEA Technology LLC",
+   "domain": "malcrove.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "Malomatia",
+   "domain": "malomatia.com",
+   "country": "Qatar"
+  },
+  {
+   "name": "Mandiant (part of Google Cloud)",
+   "domain": "mandiant.com",
+   "country": "Ireland"
+  },
+  {
+   "name": "Mantel Operations Pty Ltd",
+   "domain": "mantelgroup.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "Maple Networks Ltd",
+   "domain": "maple-networks.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Mercury Information Security Services Pty Ltd",
+   "domain": "mercuryiss.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "Microminder Cyber Security",
+   "domain": "micromindercs.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Mitigo Limited",
+   "domain": "mitigogroup.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Moro Hub",
+   "domain": "morohub.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "MTI Technology Ltd",
+   "domain": "mti.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "MWR CyberSec (Pty) Ltd",
+   "domain": "mwrcybersec.com",
+   "country": "South Africa"
+  },
+  {
+   "name": "Nanorisk Limited",
+   "domain": "nanorisk.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "NCC Group",
+   "domain": "nccgroup.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Nellcote Ltd",
+   "domain": "nellcote.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Net Square Solutions Private Limited",
+   "domain": "net-square.com",
+   "country": "India"
+  },
+  {
+   "name": "NETPLUZ",
+   "domain": "netpluz.asia",
+   "country": "Singapore"
+  },
+  {
+   "name": "NetSPI",
+   "domain": "netspi.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "NEXUS TECHNOLOGIES INC.",
+   "domain": "nexustech.com.ph",
+   "country": "Philippines"
+  },
+  {
+   "name": "Node4 Ltd",
+   "domain": "node4.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "NRI Secure Technologies Ltd",
+   "domain": "nri-secure.com",
+   "country": "Japan"
+  },
+  {
+   "name": "NTT DATA",
+   "domain": "uk.nttdata.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Numen Cyber Technology Pte Ltd",
+   "domain": "numencyber.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "NuSummit Cybersecurity Limited",
+   "domain": "cybersecurity.nusummit.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "NXTL Solutions LLC",
+   "domain": "nxtlsolutions.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "OccamSec, LLC",
+   "domain": "osec.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "OISSG Consultancy",
+   "domain": "oissggroup.com",
+   "country": "Qatar"
+  },
+  {
+   "name": "OmniCyber Security Ltd",
+   "domain": "omnicybersecurity.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "OneStep Group",
+   "domain": "onestepgroup.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "ONSECURITY TECHNOLOGY LIMITED",
+   "domain": "onsecurity.io",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Onward Security",
+   "domain": "onwardsecurity.com",
+   "country": "Taiwan"
+  },
+  {
+   "name": "Opensource Pte Ltd",
+   "domain": "opensource.com.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "Orange CyberDefense",
+   "domain": "orangecyberdefense.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Orenda Security",
+   "domain": "orendasecurity.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Orpheus Cyber Ltd",
+   "domain": "orpheus-cyber.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Orro Pty Ltd",
+   "domain": "orro.group",
+   "country": "Australia"
+  },
+  {
+   "name": "PA Consulting",
+   "domain": "paconsulting.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Packetlabs",
+   "domain": "packetlabs.net",
+   "country": "Canada"
+  },
+  {
+   "name": "Palo Alto Networks",
+   "domain": "start.paloaltonetworks.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Parabellum Cybersecurity Pty Ltd",
+   "domain": "parabellum.cx",
+   "country": "Australia"
+  },
+  {
+   "name": "PastelOps Pte Ltd",
+   "domain": "pastelops.io",
+   "country": "Singapore"
+  },
+  {
+   "name": "PCS Security Pte Ltd",
+   "domain": "pcs-security.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Pentest Cyber",
+   "domain": "pentestcyber.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Pentesys Ltd",
+   "domain": "pentesys.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Performanta Ltd",
+   "domain": "performanta.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Periculo",
+   "domain": "periculo.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "PGI – Protection Group International Ltd",
+   "domain": "pgitl.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Planit",
+   "domain": "planit.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Plante Moran",
+   "domain": "plantemoran.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Praetorian Security, Inc.",
+   "domain": "praetorian.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "PricewaterhouseCoopers LLP (PwC)",
+   "domain": "pwc.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Prism Infosec Ltd",
+   "domain": "prisminfosec.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Privacy Ninja Pte Ltd",
+   "domain": "privacy.com.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "Project Black",
+   "domain": "projectblack.io",
+   "country": "Australia"
+  },
+  {
+   "name": "Protiviti Member Firm Middle East Consultancy LLC",
+   "domain": "protiviti.com",
+   "country": "United Arab Emirates"
+  },
+  {
+   "name": "PulseSecure Pte Ltd",
+   "domain": "pulsesecure.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Punk Security",
+   "domain": "punksecurity.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "QinetiQ Ltd",
+   "domain": "qinetiq.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Qualysec Technologies Private Limited",
+   "domain": "qualysec.com",
+   "country": "India"
+  },
+  {
+   "name": "R-Secure",
+   "domain": "r-secure.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Razilio",
+   "domain": "razil.io",
+   "country": "Australia"
+  },
+  {
+   "name": "Razor Thorn Security Ltd",
+   "domain": "razorthorn.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Realize Security Ltd",
+   "domain": "realizesec.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Red Citadel Limited",
+   "domain": "redcitadel.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Red Team Partners",
+   "domain": "redteampartnersglobal.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Redcentric PLC",
+   "domain": "redcentricplc.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "REDHUNT LABS LIMITED",
+   "domain": "redhuntlabs.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "RedPoint Security Pte Ltd",
+   "domain": "redpoint.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "REDSECLABS Pvt Ltd",
+   "domain": "redseclabs.com",
+   "country": "Pakistan"
+  },
+  {
+   "name": "Reliance Cyber",
+   "domain": "reliancecyber.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Remediata Limited",
+   "domain": "remediata.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Resillion",
+   "domain": "resillion.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Resolvo Systems Pte Ltd",
+   "domain": "resolvo.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Reversec",
+   "domain": "reversec.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Risk Associates Pty Ltd",
+   "domain": "riskassociates.com",
+   "country": "Australia"
+  },
+  {
+   "name": "risk3sixty LLC",
+   "domain": "risk3sixty.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Rootshell Security Ltd",
+   "domain": "rootshellsecurity.net",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "RT&CO Cybersecurity Inc.",
+   "domain": "mantuaservices.com",
+   "country": "Philippines"
+  },
+  {
+   "name": "Ruptura InfoSecurity",
+   "domain": "ruptura-infosec.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "RXG Labs",
+   "domain": "riskxgroup.com",
+   "country": "South Africa"
+  },
+  {
+   "name": "S-RM Intelligence and Risk Consulting Ltd",
+   "domain": "s-rminform.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Safe Harbour Security",
+   "domain": "safeharboursecurity.com",
+   "country": ""
+  },
+  {
+   "name": "Safetech Innovations SA",
+   "domain": "safetech.ro",
+   "country": "Romania"
+  },
+  {
+   "name": "Salus Digital Security Ltd",
+   "domain": "saluscyber.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Samurai Digital Security Ltd",
+   "domain": "samuraisecurity.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Sapphire Technologies Ltd",
+   "domain": "sapphire.net",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Satisnet Ltd",
+   "domain": "satisnet.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Saudi Information Technology Company (SITE)",
+   "domain": "site.sa",
+   "country": ""
+  },
+  {
+   "name": "Schellman Compliance LLC",
+   "domain": "schellman.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Scrut Automation Inc.",
+   "domain": "scrut.io",
+   "country": "United States of America"
+  },
+  {
+   "name": "SECFORCE Ltd",
+   "domain": "secforce.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "SECNORA OÜ",
+   "domain": "secnora.com",
+   "country": "Estonia"
+  },
+  {
+   "name": "Secora Consulting Ltd",
+   "domain": "secoraconsulting.com",
+   "country": "Ireland"
+  },
+  {
+   "name": "SecQuest Information Security Ltd",
+   "domain": "secquest.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "SecuraNova Ltd",
+   "domain": "securanova.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Secure Nexus",
+   "domain": "securenexus.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Secure Schools",
+   "domain": "secureschools.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Securebytes Solutions Ltd",
+   "domain": "securebytes.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Secured Net Solutions Inc",
+   "domain": "securednet.com",
+   "country": "Canada"
+  },
+  {
+   "name": "SecureLayer7 Technologies Private Ltd",
+   "domain": "securelayer7.net",
+   "country": "India"
+  },
+  {
+   "name": "SecurePlex SDN BHD",
+   "domain": "",
+   "country": "Malaysia"
+  },
+  {
+   "name": "Securin Inc",
+   "domain": "securin.io",
+   "country": "United States of America"
+  },
+  {
+   "name": "SecuRing",
+   "domain": "securing.pl",
+   "country": "Poland"
+  },
+  {
+   "name": "Securious Limited",
+   "domain": "securious.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Securis360 Inc.",
+   "domain": "securis360.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Security Alliance",
+   "domain": "secalliance.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Security Centric Pty Ltd",
+   "domain": "securitycentric.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "SecurityBoat Cybersecurity Solutions Pvt Ltd",
+   "domain": "securityboat.net",
+   "country": "India"
+  },
+  {
+   "name": "SecurityHQ Ltd",
+   "domain": "securityhq.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "SEKERA SERVICES",
+   "domain": "sekera-group.com",
+   "country": "Morocco"
+  },
+  {
+   "name": "Sekuro",
+   "domain": "sekuro.io",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Sencode Ltd",
+   "domain": "sencode.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Sentrium Security Ltd",
+   "domain": "sentrium.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "SEP2 Limited",
+   "domain": "sep2.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Silverskin Information Security Oy",
+   "domain": "silverskin.com",
+   "country": "Finland"
+  },
+  {
+   "name": "Simply Data Sdn Bhd",
+   "domain": "simplydata.com.my",
+   "country": "Malaysia"
+  },
+  {
+   "name": "SIRAR by STC",
+   "domain": "sirar.com.sa",
+   "country": "Saudi Arabia"
+  },
+  {
+   "name": "Snipeyes Cybersecurity",
+   "domain": "snipeyes.com",
+   "country": "Indonesia"
+  },
+  {
+   "name": "softScheck Singapore Pte Ltd",
+   "domain": "softscheck-apac.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "SOLUSEC LTD",
+   "domain": "solusec.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Sophos",
+   "domain": "sophos.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Specialist Computer Centres PLC",
+   "domain": "scc.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Ssquad Pte Ltd",
+   "domain": "ssquad.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "stc Group",
+   "domain": "stc.com.sa",
+   "country": "Saudi Arabia"
+  },
+  {
+   "name": "Stickman Consulting Pty Ltd",
+   "domain": "stickmancyber.com",
+   "country": "Australia"
+  },
+  {
+   "name": "Stone Cybersecurity Pte Ltd",
+   "domain": "stonecyber.org",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Strata Information Group, Inc.",
+   "domain": "sigcorp.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Stratus Security Consulting Pty Ltd",
+   "domain": "stratussecurity.com",
+   "country": "Australia"
+  },
+  {
+   "name": "Stripe OLT Consulting Ltd",
+   "domain": "stripeolt.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Swarmnetics Pte Ltd",
+   "domain": "swarmnetics.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Syscyber Security Solutions Pte Ltd",
+   "domain": "sysnet.com.sg",
+   "country": "Singapore"
+  },
+  {
+   "name": "TAC Security Inc",
+   "domain": "tacsecurity.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "Talanos Cybersecurity",
+   "domain": "talanoscybersecurity.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Tamkeen Technologies",
+   "domain": "tamkeentech.sa",
+   "country": "Saudi Arabia"
+  },
+  {
+   "name": "Tanto Security Pty Ltd",
+   "domain": "tantosec.com",
+   "country": "Australia"
+  },
+  {
+   "name": "Tata Consultancy Services Ltd",
+   "domain": "tcs.com",
+   "country": "India"
+  },
+  {
+   "name": "TDC NET",
+   "domain": "tdcnet.com",
+   "country": "Denmark"
+  },
+  {
+   "name": "TechMagic",
+   "domain": "techmagic.co",
+   "country": "Ukraine"
+  },
+  {
+   "name": "Terra Security Inc",
+   "domain": "terra.security",
+   "country": "United States of America"
+  },
+  {
+   "name": "Tescom Singapore Software Systems Testing Pte. Ltd",
+   "domain": "tescom-apac.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Thales",
+   "domain": "tesserent.com",
+   "country": "Australia"
+  },
+  {
+   "name": "Theos Cyber Solutions Ltd",
+   "domain": "theos-cyber.com",
+   "country": "Hong Kong"
+  },
+  {
+   "name": "Thomas Murray Cyber Limited",
+   "domain": "cyber.thomasmurray.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "ThreatLight",
+   "domain": "threatlight.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "ThreatSpike Labs Limited",
+   "domain": "threatspike.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "TIC DEFENSE",
+   "domain": "ticdefense.com",
+   "country": "Mexico"
+  },
+  {
+   "name": "Titanforged Security",
+   "domain": "titanforgedsecurity.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Toro Risk Solutions – Global Limited",
+   "domain": "torosolutions.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Triskele Labs Global Pty Ltd",
+   "domain": "triskelelabs.com",
+   "country": "Australia"
+  },
+  {
+   "name": "Trusted Impact Pty Ltd",
+   "domain": "trustedimpact.com",
+   "country": "Australia"
+  },
+  {
+   "name": "TrustedSec",
+   "domain": "trustedsec.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "TSR Solutions Inc",
+   "domain": "tsrsolutions.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "UK Cyber Defence Ltd",
+   "domain": "cyber-defence.io",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "VAADATA",
+   "domain": "vaadata.com",
+   "country": "France"
+  },
+  {
+   "name": "ValueMentor",
+   "domain": "valuementor.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Vectra Corporation Ltd",
+   "domain": "vectra-corp.com",
+   "country": "Australia"
+  },
+  {
+   "name": "Veilron Technologies Pte. Ltd",
+   "domain": "veilron.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Verichains Company Limited",
+   "domain": "verichains.io",
+   "country": "Vietnam"
+  },
+  {
+   "name": "VerSprite, LLC",
+   "domain": "versprite.com",
+   "country": "United States of America"
+  },
+  {
+   "name": "VIET NAM CYSTACK JOINT STOCK COMPANY",
+   "domain": "cystack.net",
+   "country": "Vietnam"
+  },
+  {
+   "name": "Vietnamese Security Network JSC",
+   "domain": "vsec.com.vn",
+   "country": "Vietnam"
+  },
+  {
+   "name": "Viettel Cyber Security One Member Limited Liability Company",
+   "domain": "viettelsecurity.com",
+   "country": "Vietnam"
+  },
+  {
+   "name": "Visionet EMEA Limited",
+   "domain": "visionet.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "VISTA Infosec",
+   "domain": "vistainfosec.com",
+   "country": "India"
+  },
+  {
+   "name": "VNPT",
+   "domain": "vnptit.vn",
+   "country": "Vietnam"
+  },
+  {
+   "name": "watchTowr",
+   "domain": "watchtowr.com",
+   "country": "Singapore"
+  },
+  {
+   "name": "Waterstons Ltd",
+   "domain": "waterstons.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Wavenet CyberGuard",
+   "domain": "wavenet.co.uk",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "we45 Solutions Pvt ltd",
+   "domain": "we45.com",
+   "country": "India"
+  },
+  {
+   "name": "White Rook Cyber",
+   "domain": "whiterookcyber.com.au",
+   "country": "Australia"
+  },
+  {
+   "name": "WithSecure",
+   "domain": "withsecure.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "WorkNest Secure",
+   "domain": "worknest.com",
+   "country": "United Kingdom"
+  },
+  {
+   "name": "Yes We Hack SAS",
+   "domain": "yeswehack.com",
+   "country": "France"
+  },
+  {
+   "name": "ZainTech Solutions FZ-LLC",
+   "domain": "zaintech.com",
+   "country": "Jordan"
+  },
+  {
+   "name": "Zendata SA",
+   "domain": "zendata.security",
+   "country": "Switzerland"
+  },
+  {
+   "name": "zitec",
+   "domain": "zitec.com",
+   "country": "Romania"
+  }
+ ]
+}
