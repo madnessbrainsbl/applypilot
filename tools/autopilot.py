@@ -1911,6 +1911,8 @@ def _jobspy_lenient_countries():
     # jobspy raises on a country missing from its list ("Beirut, Beirut Governorate,
     # Lebanon" on LinkedIn) and that one card dropped every posting found for the location
     from jobspy.model import Country
+    if not hasattr(Country, "from_string"):
+        return  # Newer JobSpy versions keep unknown location countries as strings.
     if getattr(Country.from_string, "_lenient", False):
         return
     def from_string(cls, s, _strict=Country.from_string.__func__):

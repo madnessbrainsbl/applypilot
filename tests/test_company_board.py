@@ -22,13 +22,27 @@ def demo():
         pass
     else:
         A._jobspy_lenient_countries()
-        assert Country.from_string("Lebanon") is Country.WORLDWIDE, "one unknown country must not kill the search"
-        assert Country.from_string("Germany") is Country.GERMANY
+        if hasattr(Country, "from_string"):
+            assert Country.from_string("Lebanon") is Country.WORLDWIDE, "one unknown country must not kill the search"
+            assert Country.from_string("Germany") is Country.GERMANY
+        else:
+            from jobspy.model import Location
+            assert Location(country="Lebanon").country == "Lebanon"
+            assert Country("germany") is Country.GERMANY
     print("company board lookup self-check OK")
 
 
 def test_demo():
     demo()
+
+
+def test_jobspy_without_legacy_country_parser(monkeypatch):
+    import sys
+    from types import SimpleNamespace
+    import autopilot as A
+
+    monkeypatch.setitem(sys.modules, "jobspy.model", SimpleNamespace(Country=type("Country", (), {})))
+    A._jobspy_lenient_countries()
 
 
 if __name__ == "__main__":

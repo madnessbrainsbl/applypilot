@@ -5,7 +5,7 @@ import db
 
 
 CV = "Application Security Engineer, 5 years of experience. Python, secure code review."
-CFG = {"profile": {"location": "Springfield, Russia"}, "apply": {"require_sponsorship": True, "answers": {"open_to_relocation": "Yes"}}, "active_persona": "appsec"}
+CFG = {"profile": {"location": "Springfield, Canada"}, "apply": {"require_sponsorship": True, "answers": {"open_to_relocation": "Yes"}}, "active_persona": "appsec"}
 JOB = {"id": "fixture", "title": "Engineer", "company": "Fixture", "url": "https://example.invalid/job"}
 
 
@@ -129,7 +129,7 @@ def test_existing_guard_selfcheck_with_isolated_database(page):
 
 def test_claims_are_checked_without_cv_text_and_regardless_of_case():
     assert A._unsupported_claim({"label": "Qualifications"}, "oscp", CV)
-    assert A._unsupported_claim({"label": "Experience"}, "5 years of experience", '{"location": "Russia"}')
+    assert A._unsupported_claim({"label": "Experience"}, "5 years of experience", '{"location": "Canada"}')
 
 
 def test_location_matches_whole_words():
@@ -166,8 +166,8 @@ def test_explicit_citizenship_replaces_bad_cache_without_inferring_from_residenc
     import json
 
     assert A._unsupported_claim({"label": EXPORT_LABEL}, CITIZENSHIP, json.dumps(CFG["profile"]))
-    unknown_date = json.dumps({"citizenship_statement": "Russia — Russian citizenship."})
-    assert A._unsupported_claim({"label": EXPORT_LABEL}, "Russia — Russian citizenship.", unknown_date)
+    unknown_date = json.dumps({"citizenship_statement": "Canada — Canadan citizenship."})
+    assert A._unsupported_claim({"label": EXPORT_LABEL}, "Canada — Canadan citizenship.", unknown_date)
     profile = {**CFG["profile"], "citizenship_statement": CITIZENSHIP}
     cfg = {**CFG, "profile": profile}
     assert A.offline_answer("List your permanent residency countries", (), cfg) is None
